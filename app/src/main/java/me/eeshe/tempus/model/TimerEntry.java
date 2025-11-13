@@ -1,6 +1,8 @@
 package me.eeshe.tempus.model;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public class TimerEntry {
@@ -11,7 +13,7 @@ public class TimerEntry {
   private final String email;
   private final List<String> tags;
   private final boolean billable;
-  private final long startTimeMilliseconds;
+  private final long startTimeMillis;
   private final long durationMillis;
 
   public TimerEntry(
@@ -22,7 +24,7 @@ public class TimerEntry {
       String email,
       List<String> tags,
       boolean billable,
-      long startTimeMilliseconds,
+      long startTimeMillis,
       long durationMillis) {
     this.projectName = projectName;
     this.clientName = clientName;
@@ -31,8 +33,20 @@ public class TimerEntry {
     this.email = email;
     this.tags = tags;
     this.billable = billable;
-    this.startTimeMilliseconds = startTimeMilliseconds;
+    this.startTimeMillis = startTimeMillis;
     this.durationMillis = durationMillis;
+  }
+
+  /**
+   * Generes a String with the format 'ProjectName:Task'. If there is no task,
+   * it will simply be 'ProjectName'.
+   */
+  public String createProjectTaskString() {
+    String projectTaskString = projectName;
+    if (task == null || task.isEmpty()) {
+      return projectTaskString;
+    }
+    return projectTaskString + ":" + task;
   }
 
   public String getProjectName() {
@@ -63,8 +77,12 @@ public class TimerEntry {
     return billable;
   }
 
-  public long getStartTimeMilliseconds() {
-    return startTimeMilliseconds;
+  public long getStartTimeMillis() {
+    return startTimeMillis;
+  }
+
+  public LocalDateTime getStartDateTime() {
+    return Instant.ofEpochMilli(startTimeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
   }
 
   public long getDurationMillis() {

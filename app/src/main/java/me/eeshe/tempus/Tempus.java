@@ -5,11 +5,17 @@ package me.eeshe.tempus;
 
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
-import me.eeshe.tempus.ui.TimeTrackerScreen;
+import me.eeshe.tempus.database.SQLiteManager;
+import me.eeshe.tempus.service.TimerEntryService;
+import me.eeshe.tempus.ui.TimerEntryListScreen;
 
 public class Tempus {
   public static void main(String[] args) {
+    SQLiteManager sqLiteManager = new SQLiteManager();
+    TimerEntryService timerEntryService = new TimerEntryService(sqLiteManager);
+
     DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-    new TimeTrackerScreen().open(terminalFactory);
+    new TimerEntryListScreen(timerEntryService).open(terminalFactory);
+    // new TimeTrackerScreen().open(terminalFactory);
   }
 }
