@@ -77,6 +77,7 @@ public class TimeTrackerScreen {
 
     BasicWindow window = new BasicWindow();
     window.setHints(List.of(
+        Window.Hint.NO_DECORATIONS,
         Window.Hint.CENTERED));
 
     Panel panel = new Panel(new LinearLayout());
