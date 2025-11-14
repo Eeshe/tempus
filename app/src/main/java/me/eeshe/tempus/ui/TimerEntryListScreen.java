@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
@@ -31,6 +31,8 @@ public class TimerEntryListScreen {
   private final TreeMap<Integer, TimerEntry> displayedTimerEntries = new TreeMap<>();
   private final TimerEntryService timerEntryService;
 
+  private TerminalPosition cursorPosition;
+
   public TimerEntryListScreen(TimerEntryService timerEntryService) {
     this.timerEntryService = timerEntryService;
   }
@@ -40,45 +42,33 @@ public class TimerEntryListScreen {
       Screen screen = terminalFactory.createScreen();
       screen.startScreen();
 
+      displayTimeEntries(screen);
       while (true) {
-        screen.doResizeIfNecessary();
-        displayTimeEntries(screen);
+        TerminalSize newTerminalSize = screen.doResizeIfNecessary();
+        if (newTerminalSize != null) {
+          screen.clear();
+          displayTimeEntries(screen);
+        }
         screen.refresh();
 
         KeyStroke keyStroke = screen.pollInput();
         if (keyStroke == null) {
           continue;
         }
-        if (keyStroke.getKeyType() == KeyType.Escape) {
+        KeyType keyType = keyStroke.getKeyType();
+        if (keyType == KeyType.Escape) {
           break;
+        }
+        if (keyType == KeyType.Character && Character.toLowerCase(keyStroke.getCharacter()) == 'n') {
+          createTimerEntry(screen);
+          continue;
+        }
+        if (keyType == KeyType.Enter || (keyType == KeyType.Character && keyStroke.getCharacter() == ' ')) {
+          continueTimerEntry(screen);
+          continue;
         }
         CursorUtil.attemptCursorMovement(screen, keyStroke);
       }
-      // WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
-      // textGUI.setTheme(new SimpleTheme(
-      // TextColor.ANSI.DEFAULT,
-      // TextColor.ANSI.DEFAULT));
-      //
-      // BasicWindow window = new BasicWindow();
-      // window.setHints(List.of(
-      // Window.Hint.NO_DECORATIONS,
-      // Window.Hint.FULL_SCREEN));
-      //
-      // Panel panel = new Panel(new GridLayout(4));
-      //
-      // List<TimerEntry> timerEntries = timerEntryService.fetchAll();
-      // Set<LocalDate> listedDates = new HashSet<>();
-      // for (TimerEntry timerEntry : timerEntries) {
-      // LocalDateTime startDateTime = timerEntry.getStartDateTime();
-      // LocalDate startDate = startDateTime.toLocalDate();
-      // if (!listedDates.contains(startDate)) {
-      // listedDates.add(startDate);
-      // addDaySeparator(panel, timerEntry, timerEntries);
-      // }
-      // addTimerEntry(panel, timerEntry);
-      // }
-      // window.setComponent(panel);
-      // textGUI.addWindowAndWait(window);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -103,7 +93,7 @@ public class TimerEntryListScreen {
         dailyTimerEntries.getDate().format(DAY_SEPARATOR_FORMATTER));
 
     String dayElapsedTimeString = TimeFormatUtil
-        .formatMillisecondsToHHMMSS(dailyTimerEntries.computeEllapsedTimeMillis());
+        .formatMillisecondsToHHMMSS(dailyTimerEntries.computeElapsedTimeMillis());
 
     screen.newTextGraphics().putString(
         terminalSize.getColumns() - dayElapsedTimeString.length(),
@@ -130,59 +120,65 @@ public class TimerEntryListScreen {
   }
 
   private void addTimerEntry(Screen screen, TimerEntry timerEntry) {
-    int displayRow = getNextDisplayRow();
-    TextGraphics descriptionTextGraphics = screen.newTextGraphics().putString(
-        2,
-        displayRow,
-        timerEntry.getDescription());
-    TextGraphics billableTextGraphics = screen.newTextGraphics()
-        .setForegroundColor(timerEntry.isBillable() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED)
-        .putString(
-            50,
-            displayRow,
-            "$");
-
     long durationMillis = timerEntry.getDurationMillis();
     LocalDateTime startDateTime = timerEntry.getStartDateTime();
     LocalDateTime stopDateTime = startDateTime.plus(durationMillis, ChronoUnit.MILLIS);
-    TextGraphics timestampsTextGraphics = screen.newTextGraphics().putString(
-        80,
-        displayRow,
-        String.format("%s - %s",
-            startDateTime.format(HOUR_MINUTE_FORMATTER),
-            stopDateTime.format(HOUR_MINUTE_FORMATTER)));
 
-    TextGraphics timeEllapsedTextGraphics = screen.newTextGraphics().putString(
-        120,
+    final String descriptionString = timerEntry.getDescription();
+    final String billableString = "$";
+    final String timestampsString = String.format("%s - %s",
+        startDateTime.format(HOUR_MINUTE_FORMATTER),
+        stopDateTime.format(HOUR_MINUTE_FORMATTER));
+    final String timeElapsedString = TimeFormatUtil.formatMillisecondsToHHMMSS(durationMillis);
+
+    int displayRow = getNextDisplayRow();
+    screen.newTextGraphics().putString(
+        2,
         displayRow,
-        TimeFormatUtil.formatMillisecondsToHHMMSS(durationMillis));
+        descriptionString);
+
+    final int totalRightSizeLength = billableString.length() + timestampsString.length() +
+        timeElapsedString.length() + 4; // +4 for separation
+    int newTextColumn = screen.getTerminalSize().getColumns() - totalRightSizeLength;
+    screen.newTextGraphics()
+        .setForegroundColor(timerEntry.isBillable() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED)
+        .putString(
+            newTextColumn,
+            displayRow,
+            billableString);
+
+    newTextColumn += billableString.length() + 2;
+    screen.newTextGraphics().putString(
+        newTextColumn,
+        displayRow,
+        timestampsString);
+
+    newTextColumn += timestampsString.length() + 2;
+    screen.newTextGraphics().putString(
+        newTextColumn,
+        displayRow,
+        timeElapsedString);
 
     saveNextDisplayRow(displayRow, timerEntry);
   }
 
-  // private void addDaySeparator(Panel panel, TimerEntry addedTimerEntry,
-  // List<TimerEntry> timerEntries) {
-  // Label daySeparatorLabel = new
-  // Label(addedTimerEntry.getStartDateTime().format(DAY_SEPARATOR_FORMATTER));
-  // daySeparatorLabel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3));
-  // panel.addComponent(daySeparatorLabel);
-  //
-  // LocalDate addedTimerEntryDate =
-  // addedTimerEntry.getStartDateTime().toLocalDate();
-  // long dayDurationMillis = 0L;
-  // for (TimerEntry timerEntry : timerEntries) {
-  // LocalDate timerEntryDate = timerEntry.getStartDateTime().toLocalDate();
-  // if (!timerEntryDate.isEqual(addedTimerEntryDate)) {
-  // if (timerEntryDate.isAfter(addedTimerEntryDate)) {
-  // break;
-  // }
-  // continue;
-  // }
-  // dayDurationMillis += timerEntry.getDurationMillis();
-  // }
-  // panel.addComponent(new
-  // Label(TimeFormatUtil.formatMillisecondsToHHMMSS(dayDurationMillis)));
-  // }
+  private void createTimerEntry(Screen screen) {
+    storeCursorPosition(screen);
+    new TimeTrackerScreen().open(screen);
+    displayTimeEntries(screen);
+    restoreCursorPosition(screen);
+  }
+
+  private void continueTimerEntry(Screen screen) {
+    TimerEntry timerEntry = getDisplayedTimerEntry(screen.getCursorPosition().getRow());
+    if (timerEntry == null) {
+      return;
+    }
+    storeCursorPosition(screen);
+    new TimeTrackerScreen().open(screen, timerEntry);
+    displayTimeEntries(screen);
+    restoreCursorPosition(screen);
+  }
 
   private int getNextDisplayRow() {
     if (displayedTimerEntries.isEmpty()) {
@@ -191,47 +187,22 @@ public class TimerEntryListScreen {
     return displayedTimerEntries.lastKey() + 1;
   }
 
+  private TimerEntry getDisplayedTimerEntry(int row) {
+    return displayedTimerEntries.get(row);
+  }
+
   private void saveNextDisplayRow(int displayRow, TimerEntry timerEntry) {
     displayedTimerEntries.put(displayRow, timerEntry);
   }
 
-  // private void addTimerEntry(Panel panel, TimerEntry timerEntry) {
-  // Panel projectTaskPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-  //
-  // Label projectTaskLabel = new Label(timerEntry.generateProjectTaskString());
-  // projectTaskLabel.setForegroundColor(TextColor.ANSI.MAGENTA);
-  // projectTaskLabel.setPreferredSize(new TerminalSize(30, 1));
-  // projectTaskPanel.addComponent(projectTaskLabel);
-  //
-  // Label descriptionLabel = new Label(timerEntry.getDescription());
-  // projectTaskPanel.addComponent(descriptionLabel);
-  //
-  // panel.addComponent(projectTaskPanel);
-  //
-  // Label billableLabel = new Label("$");
-  // billableLabel.setForegroundColor(timerEntry.isBillable() ?
-  // TextColor.ANSI.GREEN : TextColor.ANSI.RED);
-  // billableLabel.addStyle(SGR.BOLD);
-  // panel.addComponent(billableLabel);
-  //
-  // long durationMillis = timerEntry.getDurationMillis();
-  // LocalDateTime startDateTime = timerEntry.getStartDateTime();
-  // LocalDateTime stopDateTime = startDateTime.plus(durationMillis,
-  // ChronoUnit.MILLIS);
-  // Label timesLabel = new Label(String.format("%s - %s",
-  // startDateTime.format(HOUR_MINUTE_FORMATTER),
-  // stopDateTime.format(HOUR_MINUTE_FORMATTER)));
-  // panel.addComponent(timesLabel);
-  //
-  // Label durationLabel = new
-  // Label(TimeFormatUtil.formatMillisecondsToHHMMSS(durationMillis));
-  // panel.addComponent(durationLabel);
-  // }
-  //
-  // private int getNextDisplayRow() {
-  // if (displayedTimerEntries.isEmpty()) {
-  // return 0;
-  // }
-  // return displayedTimerEntries.lastKey() + 1;
-  // }
+  private void storeCursorPosition(Screen screen) {
+    this.cursorPosition = screen.getCursorPosition();
+  }
+
+  private void restoreCursorPosition(Screen screen) {
+    if (cursorPosition == null) {
+      return;
+    }
+    screen.setCursorPosition(cursorPosition);
+  }
 }
