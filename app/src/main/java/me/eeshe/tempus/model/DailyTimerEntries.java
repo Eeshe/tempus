@@ -19,7 +19,7 @@ public class DailyTimerEntries {
     this.timerEntries = timerEntries;
   }
 
-  public long computeEllapsedTimeMillis() {
+  public long computeElapsedTimeMillis() {
     return timerEntries.values().stream().flatMap(List::stream)
         .map(TimerEntry::getDurationMillis).mapToLong(Long::longValue).sum();
   }

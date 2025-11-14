@@ -1,6 +1,5 @@
 package me.eeshe.tempus.ui;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
@@ -22,10 +21,12 @@ import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.Separator;
 import com.googlecode.lanterna.gui2.TextBox;
 import com.googlecode.lanterna.gui2.TextBox.TextChangeListener;
+import com.googlecode.lanterna.gui2.TextGUI;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
 import me.eeshe.tempus.database.SQLiteManager;
 import me.eeshe.tempus.model.TimerEntry;
@@ -54,147 +55,186 @@ public class TimeTrackerScreen {
     this.timerEntryService = new TimerEntryService(new SQLiteManager());
   }
 
-  public void open(DefaultTerminalFactory TerminalFactory) {
-    try {
-      Screen screen = TerminalFactory.createScreen();
-      screen.startScreen();
+  public void open(Screen screen) {
+    open(screen, null);
+  }
 
-      WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
-      textGUI.setTheme(new SimpleTheme(
-          TextColor.ANSI.DEFAULT,
-          TextColor.ANSI.DEFAULT));
-
-      BasicWindow window = new BasicWindow();
-      window.setHints(List.of(
-          Window.Hint.NO_DECORATIONS,
-          Window.Hint.CENTERED));
-
-      Panel panel = new Panel(new LinearLayout());
-      final LayoutData centeredLayoutData = LinearLayout.createLayoutData(Alignment.Center);
-
-      Label titleLabel = new Label("Timer").setLayoutData(centeredLayoutData);
-      panel.addComponent(titleLabel);
-
-      Label projectLabel = new Label("Project");
-      panel.addComponent(projectLabel);
-
-      TextBox projectTextBox = createProjectTextBox();
-      panel.addComponent(projectTextBox);
-
-      Label clientLabel = new Label("Client");
-      panel.addComponent(clientLabel);
-      TextBox clientTextBox = createClientTextBox();
-      panel.addComponent(clientTextBox);
-
-      Label descriptionLabel = new Label("Description");
-      panel.addComponent(descriptionLabel);
-      TextBox descriptionTextBox = createDescriptionTextBox();
-      panel.addComponent(descriptionTextBox);
-
-      Label taskLabel = new Label("Task");
-      panel.addComponent(taskLabel);
-      TextBox taskTextBox = createTaskTextBox();
-      panel.addComponent(taskTextBox);
-
-      Label emailLabel = new Label("Email");
-      panel.addComponent(emailLabel);
-      TextBox emailTextBox = createEmailTextBox();
-      panel.addComponent(emailTextBox);
-
-      Label tagsLabel = new Label("Tags");
-      panel.addComponent(tagsLabel);
-      TextBox tagsTextBox = createTagsTextBox();
-      panel.addComponent(tagsTextBox);
-
-      CheckBox billableCheckBox = new CheckBox("Billable");
-      billableCheckBox.addListener(checked -> {
-        this.isBillable = checked;
-      });
-      panel.addComponent(billableCheckBox);
-
-      Label elapsedTimeLabel = new Label(computeElapsedTimeText()).setLayoutData(centeredLayoutData);
-      panel.addComponent(elapsedTimeLabel);
-
-      panel.addComponent(
-          new Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(Alignment.Fill)));
-
-      Label lastTimerLabel = new Label("");
-      panel.addComponent(lastTimerLabel);
-
-      Button timerButton = new Button("Start").setLayoutData(centeredLayoutData);
-      timerButton.addListener(button -> {
-        if (!isTimerTaskRunning()) {
-          initialTimeMillis = System.currentTimeMillis();
-          startTimerTask(elapsedTimeLabel);
-          button.setLabel("Stop");
-        } else {
-          stopTimerTask();
-          button.setLabel("Start");
-
-          saveTimerEntry();
-
-          lastTimerLabel
-              .setText(String.format("Worked on %s:%s (%s) for: %s",
-                  descriptionTextBox.getText(),
-                  taskTextBox.getText(),
-                  projectTextBox.getText(),
-                  computeElapsedTimeText()));
-          initialTimeMillis = 0;
-          elapsedTimeLabel.setText(computeElapsedTimeText());
-        }
-      });
-      panel.addComponent(timerButton);
-
-      window.setComponent(panel);
-      textGUI.addWindowAndWait(window);
-    } catch (IOException e) {
-      e.printStackTrace();
+  public void open(Screen screen, TimerEntry timerEntry) {
+    if (timerEntry != null) {
+      this.projectName = timerEntry.getProjectName();
+      this.clientName = timerEntry.getClientName();
+      this.description = timerEntry.getDescription();
+      this.task = timerEntry.getTask();
+      this.email = timerEntry.getEmail();
+      this.tags = String.join(", ", timerEntry.getTags());
+      this.isBillable = timerEntry.isBillable();
     }
+
+    WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
+    textGUI.setTheme(new SimpleTheme(
+        TextColor.ANSI.DEFAULT,
+        TextColor.ANSI.DEFAULT));
+
+    BasicWindow window = new BasicWindow();
+    window.setHints(List.of(
+        Window.Hint.NO_DECORATIONS,
+        Window.Hint.CENTERED));
+
+    Panel panel = new Panel(new LinearLayout());
+    final LayoutData centeredLayoutData = LinearLayout.createLayoutData(Alignment.Center);
+
+    Label titleLabel = new Label("Timer").setLayoutData(centeredLayoutData);
+    panel.addComponent(titleLabel);
+
+    Label projectLabel = new Label("Project");
+    panel.addComponent(projectLabel);
+
+    TextBox projectTextBox = createProjectTextBox();
+    panel.addComponent(projectTextBox);
+
+    Label clientLabel = new Label("Client");
+    panel.addComponent(clientLabel);
+    TextBox clientTextBox = createClientTextBox();
+    panel.addComponent(clientTextBox);
+
+    Label descriptionLabel = new Label("Description");
+    panel.addComponent(descriptionLabel);
+    TextBox descriptionTextBox = createDescriptionTextBox();
+    panel.addComponent(descriptionTextBox);
+
+    Label taskLabel = new Label("Task");
+    panel.addComponent(taskLabel);
+    TextBox taskTextBox = createTaskTextBox();
+    panel.addComponent(taskTextBox);
+
+    Label emailLabel = new Label("Email");
+    panel.addComponent(emailLabel);
+    TextBox emailTextBox = createEmailTextBox();
+    panel.addComponent(emailTextBox);
+
+    Label tagsLabel = new Label("Tags");
+    panel.addComponent(tagsLabel);
+    TextBox tagsTextBox = createTagsTextBox();
+    panel.addComponent(tagsTextBox);
+
+    panel.addComponent(createBillableCheckBox());
+
+    Label elapsedTimeLabel = new Label(computeElapsedTimeText()).setLayoutData(centeredLayoutData);
+    panel.addComponent(elapsedTimeLabel);
+
+    panel.addComponent(
+        new Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(Alignment.Fill)));
+
+    Label lastTimerLabel = new Label("");
+    panel.addComponent(lastTimerLabel);
+
+    Button timerButton = new Button("Start").setLayoutData(centeredLayoutData);
+    timerButton.addListener(button -> {
+      if (!isTimerTaskRunning()) {
+        initialTimeMillis = System.currentTimeMillis();
+        startTimerTask(elapsedTimeLabel);
+        button.setLabel("Stop");
+      } else {
+        stopTimerTask();
+        button.setLabel("Start");
+
+        saveTimerEntry();
+
+        lastTimerLabel
+            .setText(String.format("Worked on %s:%s (%s) for: %s",
+                descriptionTextBox.getText(),
+                taskTextBox.getText(),
+                projectTextBox.getText(),
+                computeElapsedTimeText()));
+        initialTimeMillis = 0;
+        elapsedTimeLabel.setText(computeElapsedTimeText());
+      }
+    });
+    panel.addComponent(timerButton);
+    window.setComponent(panel);
+    textGUI.addListener(new TextGUI.Listener() {
+      @Override
+      public boolean onUnhandledKeyStroke(TextGUI textGUI, KeyStroke keyStroke) {
+        if (keyStroke == null) {
+          return false;
+        }
+        if (keyStroke.getKeyType() == KeyType.Escape) {
+          window.close();
+        }
+        return true;
+      }
+    });
+    textGUI.addWindowAndWait(window);
   }
 
   private TextBox createProjectTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.projectName = newText;
-    });
+    return createTextBox(
+        projectName,
+        (newText, changedByUserInteraction) -> {
+          this.projectName = newText;
+        });
   }
 
   private TextBox createClientTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.clientName = newText;
-    });
+    return createTextBox(
+        clientName,
+        (newText, changedByUserInteraction) -> {
+          this.clientName = newText;
+        });
   }
 
   private TextBox createDescriptionTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.description = newText;
-    });
+    return createTextBox(
+        description,
+        (newText, changedByUserInteraction) -> {
+          this.description = newText;
+        });
   }
 
   private TextBox createTaskTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.task = newText;
-    });
+    return createTextBox(
+        task,
+        (newText, changedByUserInteraction) -> {
+          this.task = newText;
+        });
   }
 
   private TextBox createEmailTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.email = newText;
-    });
+    return createTextBox(
+        email,
+        (newText, changedByUserInteraction) -> {
+          this.email = newText;
+        });
   }
 
   private TextBox createTagsTextBox() {
-    return createTextBox((newText, changedByUserInteraction) -> {
-      this.tags = newText;
-    });
+    return createTextBox(
+        tags,
+        (newText, changedByUserInteraction) -> {
+          this.tags = newText;
+        });
   }
 
-  private TextBox createTextBox(TextChangeListener textChangeListener) {
+  private TextBox createTextBox(String text, TextChangeListener textChangeListener) {
     TextBox textBox = new TextBox(new TerminalSize(50, 1));
+    if (text != null) {
+      textBox.setText(text);
+    }
     textBox.setLayoutData(LinearLayout.createLayoutData(Alignment.Center));
     textBox.setTheme(TEXT_BOX_THEME);
     textBox.setTextChangeListener(textChangeListener);
 
     return textBox;
+  }
+
+  private CheckBox createBillableCheckBox() {
+    CheckBox billableCheckBox = new CheckBox("Billable");
+    billableCheckBox.setChecked(isBillable);
+    billableCheckBox.addListener(checked -> {
+      this.isBillable = checked;
+    });
+
+    return billableCheckBox;
   }
 
   private void saveTimerEntry() {
