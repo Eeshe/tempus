@@ -11,6 +11,7 @@ import java.util.TreeMap;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
@@ -81,6 +82,7 @@ public class TimerEntryListScreen {
       addDaySeparator(screen, dailyTimerEntries);
       addTimerEntries(screen, dailyTimerEntries.getTimerEntries());
     }
+    drawFooter(screen);
   }
 
   private void addDaySeparator(Screen screen, DailyTimerEntries dailyTimerEntries) {
@@ -112,9 +114,11 @@ public class TimerEntryListScreen {
           projectTaskName);
 
       final TimerEntry firstTimerEntry = entrySet.getValue().get(0);
+      final boolean matchTask = true;
       final long dailyElapsedTimeMillis = timerEntryService.computeDailyElapsedTimeMillis(
           firstTimerEntry,
-          firstTimerEntry.getStartDateTime().toLocalDate());
+          firstTimerEntry.getStartDateTime().toLocalDate(),
+          matchTask);
       final String dailyElapsedTimeString = TimeFormatUtil.formatMillisecondsToHHMMSS(dailyElapsedTimeMillis);
       screen.newTextGraphics().setForegroundColor(TextColor.ANSI.MAGENTA).putString(
           screen.getTerminalSize().getColumns() - dailyElapsedTimeString.length(),
@@ -169,6 +173,27 @@ public class TimerEntryListScreen {
         timeElapsedString);
 
     saveNextDisplayRow(displayRow, timerEntry);
+  }
+
+  private void drawFooter(Screen screen) {
+    TerminalSize terminalSize = screen.getTerminalSize();
+    int height = terminalSize.getRows() - 1;
+    int width = terminalSize.getColumns();
+
+    final TerminalPosition from = new TerminalPosition(0, height);
+    final TerminalPosition to = new TerminalPosition(width, height);
+    final TextColor backgroundColor = TextColor.ANSI.MAGENTA_BRIGHT;
+    screen.newTextGraphics().drawLine(
+        from,
+        to,
+        TextCharacter.DEFAULT_CHARACTER
+            .withCharacter(' ')
+            .withBackgroundColor(backgroundColor));
+
+    final String text = "N: New Timer  Space/Enter: Continue Timer";
+    screen.newTextGraphics().setBackgroundColor(backgroundColor).putString(from, text);
+
+    displayedTimerEntries.remove(from.getRow());
   }
 
   private void createTimerEntry(Screen screen) {
