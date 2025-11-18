@@ -16,6 +16,5 @@ public class Tempus {
 
     DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
     new TimerEntryListScreen(timerEntryService).open(terminalFactory);
-    // new TimeTrackerScreen().open(terminalFactory);
   }
 }

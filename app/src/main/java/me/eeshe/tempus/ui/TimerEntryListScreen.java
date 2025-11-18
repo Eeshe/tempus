@@ -1,6 +1,5 @@
 package me.eeshe.tempus.ui;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +68,7 @@ public class TimerEntryListScreen {
         }
         CursorUtil.attemptCursorMovement(screen, keyStroke);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -111,6 +110,16 @@ public class TimerEntryListScreen {
           0,
           displayRow,
           projectTaskName);
+
+      final TimerEntry firstTimerEntry = entrySet.getValue().get(0);
+      final long dailyElapsedTimeMillis = timerEntryService.computeDailyElapsedTimeMillis(
+          firstTimerEntry,
+          firstTimerEntry.getStartDateTime().toLocalDate());
+      final String dailyElapsedTimeString = TimeFormatUtil.formatMillisecondsToHHMMSS(dailyElapsedTimeMillis);
+      screen.newTextGraphics().setForegroundColor(TextColor.ANSI.MAGENTA).putString(
+          screen.getTerminalSize().getColumns() - dailyElapsedTimeString.length(),
+          displayRow,
+          dailyElapsedTimeString);
       saveNextDisplayRow(displayRow, null);
 
       for (TimerEntry timerEntry : entrySet.getValue()) {
@@ -175,7 +184,7 @@ public class TimerEntryListScreen {
       return;
     }
     storeCursorPosition(screen);
-    new TimeTrackerScreen().open(screen, timerEntry);
+    new TimeTrackerScreen(timerEntry).open(screen);
     displayTimeEntries(screen);
     restoreCursorPosition(screen);
   }

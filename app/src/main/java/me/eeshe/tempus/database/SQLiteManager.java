@@ -73,6 +73,7 @@ public class SQLiteManager {
    *         connection is open or an error occurred.
    */
   public Connection getConnection() {
+    connect();
     try {
       if (connection == null || connection.isClosed()) {
         // This indicates a missing or closed connection. Log and return null.

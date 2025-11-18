@@ -1,5 +1,6 @@
 package me.eeshe.tempus.ui;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
@@ -31,6 +32,7 @@ import com.googlecode.lanterna.screen.Screen;
 import me.eeshe.tempus.database.SQLiteManager;
 import me.eeshe.tempus.model.TimerEntry;
 import me.eeshe.tempus.service.TimerEntryService;
+import me.eeshe.tempus.util.TimeFormatUtil;
 
 public class TimeTrackerScreen {
   private static final SimpleTheme TEXT_BOX_THEME = new SimpleTheme(
@@ -50,26 +52,30 @@ public class TimeTrackerScreen {
   private Timer timerTask;
 
   private final TimerEntryService timerEntryService;
+  private final long dailyElapsedTimeMillis;
 
   public TimeTrackerScreen() {
     this.timerEntryService = new TimerEntryService(new SQLiteManager());
+    this.dailyElapsedTimeMillis = 0;
+  }
+
+  public TimeTrackerScreen(TimerEntry timerEntry) {
+    this.timerEntryService = new TimerEntryService(new SQLiteManager());
+
+    this.projectName = timerEntry.getProjectName();
+    this.clientName = timerEntry.getClientName();
+    this.description = timerEntry.getDescription();
+    this.task = timerEntry.getTask();
+    this.email = timerEntry.getEmail();
+    this.tags = String.join(", ", timerEntry.getTags());
+    this.isBillable = timerEntry.isBillable();
+
+    this.dailyElapsedTimeMillis = timerEntryService.computeDailyElapsedTimeMillis(
+        timerEntry,
+        LocalDate.now());
   }
 
   public void open(Screen screen) {
-    open(screen, null);
-  }
-
-  public void open(Screen screen, TimerEntry timerEntry) {
-    if (timerEntry != null) {
-      this.projectName = timerEntry.getProjectName();
-      this.clientName = timerEntry.getClientName();
-      this.description = timerEntry.getDescription();
-      this.task = timerEntry.getTask();
-      this.email = timerEntry.getEmail();
-      this.tags = String.join(", ", timerEntry.getTags());
-      this.isBillable = timerEntry.isBillable();
-    }
-
     WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
     textGUI.setTheme(new SimpleTheme(
         TextColor.ANSI.DEFAULT,
@@ -125,27 +131,20 @@ public class TimeTrackerScreen {
     panel.addComponent(
         new Separator(Direction.HORIZONTAL).setLayoutData(LinearLayout.createLayoutData(Alignment.Fill)));
 
-    Label lastTimerLabel = new Label("");
-    panel.addComponent(lastTimerLabel);
+    Label dailyElapsedTimeLabel = createDailyElapsedTimeLabel();
+    panel.addComponent(dailyElapsedTimeLabel);
 
     Button timerButton = new Button("Start").setLayoutData(centeredLayoutData);
     timerButton.addListener(button -> {
       if (!isTimerTaskRunning()) {
         initialTimeMillis = System.currentTimeMillis();
-        startTimerTask(elapsedTimeLabel);
+        startTimerTask(elapsedTimeLabel, dailyElapsedTimeLabel);
         button.setLabel("Stop");
       } else {
         stopTimerTask();
         button.setLabel("Start");
 
         saveTimerEntry();
-
-        lastTimerLabel
-            .setText(String.format("Worked on %s:%s (%s) for: %s",
-                descriptionTextBox.getText(),
-                taskTextBox.getText(),
-                projectTextBox.getText(),
-                computeElapsedTimeText()));
         initialTimeMillis = 0;
         elapsedTimeLabel.setText(computeElapsedTimeText());
       }
@@ -237,6 +236,19 @@ public class TimeTrackerScreen {
     return billableCheckBox;
   }
 
+  private Label createDailyElapsedTimeLabel() {
+    return new Label(computeDailyElapsedTimeString());
+  }
+
+  private String computeDailyElapsedTimeString() {
+    if (dailyElapsedTimeMillis == 0) {
+      return "";
+    }
+    return String.format("You've worked on %s today for: %s",
+        projectName,
+        TimeFormatUtil.formatMillisecondsToHHMMSS(dailyElapsedTimeMillis + computeElapsedTimeMillis()));
+  }
+
   private void saveTimerEntry() {
     if (projectName == null) {
       return;
@@ -258,7 +270,7 @@ public class TimeTrackerScreen {
     return timerTask != null;
   }
 
-  private void startTimerTask(Label elapsedTimeLabel) {
+  private void startTimerTask(Label elapsedTimeLabel, Label dailyElapsedTimeLabel) {
     if (timerTask != null) {
       timerTask.cancel();
     }
@@ -267,6 +279,7 @@ public class TimeTrackerScreen {
       @Override
       public void run() {
         elapsedTimeLabel.setText(computeElapsedTimeText());
+        dailyElapsedTimeLabel.setText(computeDailyElapsedTimeString());
       }
     }, 0L, 1000);
   }
@@ -280,24 +293,13 @@ public class TimeTrackerScreen {
   }
 
   private String computeElapsedTimeText() {
-    long elapsedTimeMillis = 0;
-    if (initialTimeMillis != 0) {
-      elapsedTimeMillis = System.currentTimeMillis() - initialTimeMillis;
-    }
-    return millisecondsToHMS(elapsedTimeMillis);
+    return TimeFormatUtil.formatMillisecondsToHHMMSS(computeElapsedTimeMillis());
   }
 
-  private String millisecondsToHMS(long milliseconds) {
-    if (milliseconds < 0) {
-      milliseconds = 0;
+  private long computeElapsedTimeMillis() {
+    if (initialTimeMillis == 0) {
+      return 0;
     }
-    long totalSeconds = milliseconds / 1000;
-
-    long hours = totalSeconds / 3600;
-    long minutes = (totalSeconds % 3600) / 60;
-    long seconds = totalSeconds % 60;
-
-    // Use String.format to ensure two digits with leading zeros
-    return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    return System.currentTimeMillis() - initialTimeMillis;
   }
 }

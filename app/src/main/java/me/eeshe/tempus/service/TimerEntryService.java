@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -50,7 +52,7 @@ public class TimerEntryService {
         "email TEXT, " +
         "tags TEXT, " +
         "billable INTEGER NOT NULL, " +
-        "startTimeMillis TEXT NOT NULL, " +
+        "startTimeMillis INTEGER NOT NULL, " +
         "durationMillis INTEGER NOT NULL" +
         ")");
   }
@@ -61,14 +63,12 @@ public class TimerEntryService {
    * @param createTableSql SQL Statement to execute.
    */
   private void createTable(String createTableSql) {
-    sqLiteManager.connect();
     try (Connection connection = sqLiteManager.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(createTableSql)) {
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       LOGGER.error("Error creating table {}. Message: {}", TIMER_ENTRY_TABLE, e.getMessage());
     }
-    sqLiteManager.close();
   }
 
   /**
@@ -77,7 +77,6 @@ public class TimerEntryService {
    * @param timerEntry TimerEntry to save.
    */
   public void save(TimerEntry timerEntry) {
-    sqLiteManager.connect();
     final String sql = "INSERT INTO " + TIMER_ENTRY_TABLE +
         " (projectName, clientName, description, task, email, tags, billable, startTimeMillis, durationMillis) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -97,7 +96,6 @@ public class TimerEntryService {
     } catch (SQLException e) {
       LOGGER.error("Error saving TimeEntry. Error: {}", e.getMessage());
     }
-    sqLiteManager.close();
   }
 
   public Map<LocalDate, DailyTimerEntries> fetchAllDaily() {
@@ -125,37 +123,100 @@ public class TimerEntryService {
    * @return Stored TimerEntries.
    */
   public List<TimerEntry> fetchAll() {
-    sqLiteManager.connect();
     final String sql = "SELECT * FROM " + TIMER_ENTRY_TABLE + " ORDER BY startTimeMillis DESC";
     List<TimerEntry> timerEntries = new ArrayList<>();
     try (Connection connection = sqLiteManager.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       ResultSet resultSet = preparedStatement.executeQuery();
       while (resultSet.next()) {
-        String projectName = resultSet.getString("projectName");
-        String clientName = resultSet.getString("clientName");
-        String description = resultSet.getString("description");
-        String task = resultSet.getString("task");
-        String email = resultSet.getString("email");
-        List<String> tags = Arrays.asList(resultSet.getString("tags").split(","));
-        boolean billable = resultSet.getBoolean("billable");
-        long startTimeMillis = resultSet.getLong("startTimeMillis");
-        long durationMillis = resultSet.getLong("durationMillis");
-
-        timerEntries.add(new TimerEntry(
-            projectName,
-            clientName,
-            description,
-            task,
-            email,
-            tags,
-            billable,
-            startTimeMillis,
-            durationMillis));
+        TimerEntry timerEntry = parseTimerEntry(resultSet);
+        if (timerEntry == null) {
+          continue;
+        }
+        timerEntries.add(timerEntry);
       }
     } catch (SQLException e) {
       LOGGER.error("Error fetching all TimerEntries. Message: {}", e.getMessage());
     }
     return timerEntries;
+  }
+
+  /**
+   * Computes the amount of time in milliseconds a Project has been elapsed for
+   * within the passed Date.
+   *
+   * @param timerEntry TimerEntry whose project will be computed.
+   * @param localDate  Date to compute.
+   * @return Total elapsed time in milliseconds of the passed TimerEntry's
+   *         project.
+   */
+  public long computeDailyElapsedTimeMillis(TimerEntry timerEntry, LocalDate localDate) {
+    return fetch(timerEntry, LocalDate.now())
+        .stream().map(TimerEntry::getDurationMillis).mapToLong(Long::longValue).sum();
+  }
+
+  /**
+   *
+   * Fetches all the TimerEntries matching the passed TimerEntry's project
+   * name that are within the passed date.
+   *
+   * @param timerEntry TimerEntry to compare.
+   * @return Matching TimerEntries.
+   */
+  private List<TimerEntry> fetch(TimerEntry timerEntry, LocalDate date) {
+    List<TimerEntry> timerEntries = new ArrayList<>();
+    final String sql = "SELECT * FROM " + TIMER_ENTRY_TABLE + " WHERE projectName = ? AND " +
+        "startTimeMillis BETWEEN ? AND ?";
+    try (Connection connection = sqLiteManager.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setString(1, timerEntry.getProjectName());
+
+      ZoneId zoneId = ZoneId.systemDefault();
+      preparedStatement.setLong(2, date.atStartOfDay(zoneId).toInstant().toEpochMilli());
+      preparedStatement.setLong(3, date.atTime(LocalTime.MAX).atZone(zoneId).toInstant().toEpochMilli());
+
+      ResultSet resultSet = preparedStatement.executeQuery();
+      while (resultSet.next()) {
+        TimerEntry dateTimerEntry = parseTimerEntry(resultSet);
+        if (dateTimerEntry == null) {
+          continue;
+        }
+        timerEntries.add(dateTimerEntry);
+      }
+    } catch (SQLException e) {
+      LOGGER.error("Error fetching TimeEntries matching {} and date {}. Message: {}",
+          timerEntry.getProjectName(),
+          date,
+          e.getMessage());
+    }
+    return timerEntries;
+  }
+
+  private TimerEntry parseTimerEntry(ResultSet resultSet) {
+    try {
+      String projectName = resultSet.getString("projectName");
+      String clientName = resultSet.getString("clientName");
+      String description = resultSet.getString("description");
+      String task = resultSet.getString("task");
+      String email = resultSet.getString("email");
+      List<String> tags = Arrays.asList(resultSet.getString("tags").split(","));
+      boolean billable = resultSet.getBoolean("billable");
+      long startTimeMillis = resultSet.getLong("startTimeMillis");
+      long durationMillis = resultSet.getLong("durationMillis");
+
+      return new TimerEntry(
+          projectName,
+          clientName,
+          description,
+          task,
+          email,
+          tags,
+          billable,
+          startTimeMillis,
+          durationMillis);
+    } catch (SQLException e) {
+      LOGGER.error("Error parsing TimerEntry. Message: {}", e.getMessage());
+    }
+    return null;
   }
 }
