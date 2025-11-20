@@ -94,7 +94,7 @@ public class TimerEntryListScreen {
 
   private void addDaySeparator(Screen screen, DailyTimerEntries dailyTimerEntries) {
     int listRow = getNextListRow();
-    TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, null);
+    TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, null, false);
     timerEntryListLine.addTerminalText()
         .setColumn(0)
         .setText(dailyTimerEntries.getDate().format(DAY_SEPARATOR_FORMATTER));
@@ -114,7 +114,7 @@ public class TimerEntryListScreen {
     for (Entry<String, List<TimerEntry>> entrySet : timerEntries.entrySet()) {
       String projectTaskName = entrySet.getKey();
       int listRow = getNextListRow();
-      TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, null);
+      TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, null, true);
       timerEntryListRow.addTerminalText()
           .setColumn(0)
           .setForegroundColor(TextColor.ANSI.MAGENTA)
@@ -154,7 +154,7 @@ public class TimerEntryListScreen {
     final String timeElapsedString = TimeFormatUtil.formatMillisecondsToHHMMSS(durationMillis);
 
     int listRow = getNextListRow();
-    TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry);
+    TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry, false);
     timerEntryListRow.addTerminalText()
         .setColumn(2)
         .setText(descriptionString);
@@ -249,7 +249,7 @@ public class TimerEntryListScreen {
         moveCursorRight(screen);
       }
       case Character -> {
-        char character = keyStroke.getCharacter();
+        char character = Character.toLowerCase(keyStroke.getCharacter());
         switch (character) {
           case 'h' -> {
             moveCursorLeft(screen);
@@ -262,6 +262,9 @@ public class TimerEntryListScreen {
           }
           case 'l' -> {
             moveCursorRight(screen);
+          }
+          case 'n', 'p' -> {
+            navigateToNextProject(screen, keyStroke);
           }
         }
       }
@@ -281,9 +284,8 @@ public class TimerEntryListScreen {
       screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(-1));
       return;
     }
-    scrolledRows -= 1;
-    screen.clear();
-    displayTimeEntries(screen);
+    final int scrolledRows = -1;
+    scrollScreen(screen, scrolledRows);
   }
 
   private void moveCursorDown(Screen screen) {
@@ -297,7 +299,12 @@ public class TimerEntryListScreen {
       screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1));
       return;
     }
-    scrolledRows += 1;
+    final int scrolledRows = 1;
+    scrollScreen(screen, scrolledRows);
+  }
+
+  private void scrollScreen(Screen screen, int rows) {
+    scrolledRows += rows;
     screen.clear();
     displayTimeEntries(screen);
   }
@@ -308,6 +315,43 @@ public class TimerEntryListScreen {
 
   private void moveCursorRight(Screen screen) {
     screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1));
+  }
+
+  private void navigateToNextProject(Screen screen, KeyStroke keyStroke) {
+    if (!keyStroke.isCtrlDown()) {
+      return;
+    }
+    final int iterationIncrement = keyStroke.getCharacter() == 'n' ? 1 : -1;
+    int cursorRow = screen.getCursorPosition().getRow() + iterationIncrement;
+    boolean foundProjectLine = false;
+    while (true) {
+      TimerEntryListRow timerEntryListRow = listRows.get(cursorRow + scrolledRows);
+      if (timerEntryListRow == null) {
+        break;
+      }
+      if (!timerEntryListRow.isProjectRow()) {
+        cursorRow += iterationIncrement;
+        continue;
+      }
+      foundProjectLine = true;
+      break;
+    }
+    if (!foundProjectLine) {
+      return;
+    }
+    final TerminalSize terminalSize = screen.getTerminalSize();
+    final int screenRows = terminalSize.getRows() - 1; // -1 to account for the footer
+    if (cursorRow < 0) {
+      // Found project is above the current top row
+      scrollScreen(screen, cursorRow);
+    } else if (cursorRow >= screenRows) {
+      // Found project is below the current bottom row
+      scrollScreen(screen, cursorRow - screenRows + 1); // +1 to account for the footer
+      cursorRow = screenRows - 1; // -1 to account for the footer
+    }
+    screen.setCursorPosition(new TerminalPosition(
+        screen.getCursorPosition().getColumn(),
+        cursorRow));
   }
 
   private int getNextListRow() {
@@ -345,11 +389,13 @@ class TimerEntryListRow {
   private final int row;
   private final TimerEntry timerEntry;
   private final List<TerminalText> terminalTexts;
+  private final boolean isProjectRow;
 
-  public TimerEntryListRow(int row, TimerEntry timerEntry) {
+  public TimerEntryListRow(int row, TimerEntry timerEntry, boolean isProjectRow) {
     this.row = row;
     this.timerEntry = timerEntry;
     this.terminalTexts = new ArrayList<>();
+    this.isProjectRow = isProjectRow;
   }
 
   public void draw(Screen screen, int row) {
@@ -380,6 +426,10 @@ class TimerEntryListRow {
     terminalTexts.add(terminalText);
 
     return terminalText;
+  }
+
+  public boolean isProjectRow() {
+    return isProjectRow;
   }
 }
 
