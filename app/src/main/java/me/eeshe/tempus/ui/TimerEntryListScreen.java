@@ -60,7 +60,8 @@ public class TimerEntryListScreen {
         if (keyType == KeyType.Escape) {
           break;
         }
-        if (keyType == KeyType.Character && Character.toLowerCase(keyStroke.getCharacter()) == 'n') {
+        if (keyType == KeyType.Character && Character.toLowerCase(keyStroke.getCharacter()) == 'n' &&
+            !keyStroke.isCtrlDown()) {
           createTimerEntry(screen);
           continue;
         }
@@ -207,8 +208,6 @@ public class TimerEntryListScreen {
 
     final String text = "N: New Timer  Space/Enter: Continue Timer";
     screen.newTextGraphics().setBackgroundColor(backgroundColor).putString(from, text);
-
-    listRows.remove(from.getRow());
   }
 
   private void createTimerEntry(Screen screen) {
