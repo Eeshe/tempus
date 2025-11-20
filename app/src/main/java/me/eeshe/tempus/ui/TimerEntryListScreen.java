@@ -93,8 +93,10 @@ public class TimerEntryListScreen {
   }
 
   private void addDaySeparator(Screen screen, DailyTimerEntries dailyTimerEntries) {
-    int listRow = getNextListRow();
-    TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, null, false);
+    final int listRow = getNextListRow();
+    final TimerEntry timerEntry = null;
+    final boolean isProjectRow = false;
+    TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
     timerEntryListLine.addTerminalText()
         .setColumn(0)
         .setText(dailyTimerEntries.getDate().format(DAY_SEPARATOR_FORMATTER));
@@ -112,9 +114,11 @@ public class TimerEntryListScreen {
 
   private void addTimerEntries(Screen screen, Map<String, List<TimerEntry>> timerEntries) {
     for (Entry<String, List<TimerEntry>> entrySet : timerEntries.entrySet()) {
-      String projectTaskName = entrySet.getKey();
-      int listRow = getNextListRow();
-      TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, null, true);
+      final String projectTaskName = entrySet.getKey();
+      final int listRow = getNextListRow();
+      final TimerEntry timerEntry = null;
+      final boolean isProjectRow = true;
+      final TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
       timerEntryListRow.addTerminalText()
           .setColumn(0)
           .setForegroundColor(TextColor.ANSI.MAGENTA)
@@ -135,16 +139,16 @@ public class TimerEntryListScreen {
 
       saveListRow(timerEntryListRow);
 
-      for (TimerEntry timerEntry : entrySet.getValue()) {
-        addTimerEntry(screen, timerEntry);
+      for (TimerEntry projectTimerEntry : entrySet.getValue()) {
+        addTimerEntry(screen, projectTimerEntry);
       }
     }
   }
 
   private void addTimerEntry(Screen screen, TimerEntry timerEntry) {
-    long durationMillis = timerEntry.getDurationMillis();
-    LocalDateTime startDateTime = timerEntry.getStartDateTime();
-    LocalDateTime stopDateTime = startDateTime.plus(durationMillis, ChronoUnit.MILLIS);
+    final long durationMillis = timerEntry.getDurationMillis();
+    final LocalDateTime startDateTime = timerEntry.getStartDateTime();
+    final LocalDateTime stopDateTime = startDateTime.plus(durationMillis, ChronoUnit.MILLIS);
 
     final String descriptionString = timerEntry.getDescription();
     final String billableString = "$";
@@ -153,8 +157,9 @@ public class TimerEntryListScreen {
         stopDateTime.format(HOUR_MINUTE_FORMATTER));
     final String timeElapsedString = TimeFormatUtil.formatMillisecondsToHHMMSS(durationMillis);
 
-    int listRow = getNextListRow();
-    TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry, false);
+    final int listRow = getNextListRow();
+    final boolean isProjectRow = false;
+    final TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
     timerEntryListRow.addTerminalText()
         .setColumn(2)
         .setText(descriptionString);
@@ -181,9 +186,9 @@ public class TimerEntryListScreen {
   }
 
   private void drawTimerEntryLines(Screen screen) {
-    TerminalSize terminalSize = screen.getTerminalSize();
+    final TerminalSize terminalSize = screen.getTerminalSize();
     for (int row = 0; row < terminalSize.getRows(); row++) {
-      TimerEntryListRow timerEntryListRow = listRows.get(row + scrolledRows);
+      final TimerEntryListRow timerEntryListRow = listRows.get(row + scrolledRows);
       if (timerEntryListRow == null) {
         continue;
       }
@@ -192,9 +197,9 @@ public class TimerEntryListScreen {
   }
 
   private void drawFooter(Screen screen) {
-    TerminalSize terminalSize = screen.getTerminalSize();
-    int height = terminalSize.getRows() - 1;
-    int width = terminalSize.getColumns();
+    final TerminalSize terminalSize = screen.getTerminalSize();
+    final int height = terminalSize.getRows() - 1;
+    final int width = terminalSize.getColumns();
 
     final TerminalPosition from = new TerminalPosition(0, height);
     final TerminalPosition to = new TerminalPosition(width, height);
@@ -206,7 +211,7 @@ public class TimerEntryListScreen {
             .withCharacter(' ')
             .withBackgroundColor(backgroundColor));
 
-    final String text = "N: New Timer  Space/Enter: Continue Timer";
+    final String text = "N: New Timer  Space/Enter: Continue Timer  Ctrl + N/P: Nagivate Projects";
     screen.newTextGraphics().setBackgroundColor(backgroundColor).putString(from, text);
   }
 
@@ -218,7 +223,7 @@ public class TimerEntryListScreen {
   }
 
   private void continueTimerEntry(Screen screen) {
-    TimerEntry timerEntry = getRowTimerEntry(screen.getCursorPosition().getRow());
+    final TimerEntry timerEntry = getRowTimerEntry(screen.getCursorPosition().getRow());
     if (timerEntry == null) {
       return;
     }
@@ -275,8 +280,8 @@ public class TimerEntryListScreen {
   }
 
   private void moveCursorUp(Screen screen) {
-    TerminalPosition cursorPosition = screen.getCursorPosition();
-    int cursorRow = cursorPosition.getRow();
+    final TerminalPosition cursorPosition = screen.getCursorPosition();
+    final int cursorRow = cursorPosition.getRow();
     if (cursorRow + scrolledRows == listRows.firstKey()) {
       return;
     }
@@ -289,12 +294,12 @@ public class TimerEntryListScreen {
   }
 
   private void moveCursorDown(Screen screen) {
-    TerminalPosition cursorPosition = screen.getCursorPosition();
-    int cursorRow = cursorPosition.getRow();
+    final TerminalPosition cursorPosition = screen.getCursorPosition();
+    final int cursorRow = cursorPosition.getRow();
     if (cursorRow + scrolledRows == listRows.lastKey()) {
       return;
     }
-    int listHeight = screen.getTerminalSize().getRows() - 2; // Account for footer and index 0
+    final int listHeight = screen.getTerminalSize().getRows() - 2; // Account for footer and index 0
     if (cursorRow < listHeight) {
       screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1));
       return;
@@ -366,7 +371,7 @@ public class TimerEntryListScreen {
   }
 
   private TimerEntry getRowTimerEntry(int row) {
-    TimerEntryListRow timerEntryListRow = listRows.get(row + scrolledRows);
+    final TimerEntryListRow timerEntryListRow = listRows.get(row + scrolledRows);
     if (timerEntryListRow == null) {
       return null;
     }
