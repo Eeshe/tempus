@@ -14,6 +14,7 @@ import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextCharacter;
 import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
@@ -96,10 +97,20 @@ public class TimerEntryListScreen {
     final int listRow = getNextListRow();
     final TimerEntry timerEntry = null;
     final boolean isProjectRow = false;
-    TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
+    final TimerEntryListRow timerEntryListLine = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
+    final TextColor backgroundColor = TextColor.ANSI.WHITE;
+    final TextColor foregroundColor = TextColor.ANSI.BLACK;
+    timerEntryListLine.addTerminalLine()
+        .setFrom(new TerminalPosition(0, listRow))
+        .setTo(new TerminalPosition(screen.getTerminalSize().getColumns(), listRow))
+        .setCharacter(' ')
+        .setBackgroundColor(backgroundColor);
+
     timerEntryListLine.addTerminalText()
         .setColumn(0)
-        .setText(dailyTimerEntries.getDate().format(DAY_SEPARATOR_FORMATTER));
+        .setText(dailyTimerEntries.getDate().format(DAY_SEPARATOR_FORMATTER))
+        .setBackgroundColor(backgroundColor)
+        .setForegroundColor(foregroundColor);
 
     String dayElapsedTimeString = TimeFormatUtil
         .formatMillisecondsToHHMMSS(dailyTimerEntries.computeElapsedTimeMillis());
@@ -107,7 +118,9 @@ public class TimerEntryListScreen {
     TerminalSize terminalSize = screen.getTerminalSize();
     timerEntryListLine.addTerminalText()
         .setColumn(terminalSize.getColumns() - dayElapsedTimeString.length())
-        .setText(dayElapsedTimeString);
+        .setText(dayElapsedTimeString)
+        .setBackgroundColor(backgroundColor)
+        .setForegroundColor(foregroundColor);
 
     saveListRow(timerEntryListLine);
   }
@@ -119,10 +132,18 @@ public class TimerEntryListScreen {
       final TimerEntry timerEntry = null;
       final boolean isProjectRow = true;
       final TimerEntryListRow timerEntryListRow = new TimerEntryListRow(listRow, timerEntry, isProjectRow);
+      final TextColor backgroundColor = new TextColor.RGB(132, 130, 143);
+      final TextColor foregroundColor = TextColor.ANSI.BLACK;
+      timerEntryListRow.addTerminalLine()
+          .setFrom(new TerminalPosition(0, listRow))
+          .setTo(new TerminalPosition(screen.getTerminalSize().getColumns(), listRow))
+          .setCharacter(' ')
+          .setBackgroundColor(backgroundColor);
       timerEntryListRow.addTerminalText()
           .setColumn(0)
-          .setForegroundColor(TextColor.ANSI.MAGENTA)
-          .setText(projectTaskName);
+          .setText(projectTaskName)
+          .setBackgroundColor(backgroundColor)
+          .setForegroundColor(foregroundColor);
 
       final TimerEntry firstTimerEntry = entrySet.getValue().get(0);
       final boolean matchTask = true;
@@ -134,7 +155,8 @@ public class TimerEntryListScreen {
 
       timerEntryListRow.addTerminalText()
           .setColumn(screen.getTerminalSize().getColumns() - dailyElapsedTimeString.length())
-          .setForegroundColor(TextColor.ANSI.MAGENTA)
+          .setBackgroundColor(backgroundColor)
+          .setForegroundColor(foregroundColor)
           .setText(dailyElapsedTimeString);
 
       saveListRow(timerEntryListRow);
@@ -203,7 +225,8 @@ public class TimerEntryListScreen {
 
     final TerminalPosition from = new TerminalPosition(0, height);
     final TerminalPosition to = new TerminalPosition(width, height);
-    final TextColor backgroundColor = TextColor.ANSI.MAGENTA_BRIGHT;
+    final TextColor backgroundColor = TextColor.ANSI.WHITE;
+    final TextColor foregroundColor = TextColor.ANSI.BLACK;
     screen.newTextGraphics().drawLine(
         from,
         to,
@@ -212,7 +235,10 @@ public class TimerEntryListScreen {
             .withBackgroundColor(backgroundColor));
 
     final String text = "N: New Timer  Space/Enter: Continue Timer  Ctrl + N/P: Nagivate Projects";
-    screen.newTextGraphics().setBackgroundColor(backgroundColor).putString(from, text);
+    screen.newTextGraphics()
+        .setBackgroundColor(backgroundColor)
+        .setForegroundColor(foregroundColor)
+        .putString(from, text);
   }
 
   private void createTimerEntry(Screen screen) {
@@ -393,19 +419,31 @@ public class TimerEntryListScreen {
 class TimerEntryListRow {
   private final int row;
   private final TimerEntry timerEntry;
+  private final List<TerminalLine> terminalLines;
   private final List<TerminalText> terminalTexts;
   private final boolean isProjectRow;
 
   public TimerEntryListRow(int row, TimerEntry timerEntry, boolean isProjectRow) {
     this.row = row;
     this.timerEntry = timerEntry;
+    this.terminalLines = new ArrayList<>();
     this.terminalTexts = new ArrayList<>();
     this.isProjectRow = isProjectRow;
   }
 
   public void draw(Screen screen, int row) {
+    final TextGraphics textGraphics = screen.newTextGraphics();
+    for (TerminalLine terminalLine : terminalLines) {
+      textGraphics.drawLine(
+          terminalLine.getFrom().withRow(row),
+          terminalLine.getTo().withRow(row),
+          TextCharacter.DEFAULT_CHARACTER
+              .withCharacter(' ')
+              .withBackgroundColor(terminalLine.getBackgroundColor())
+              .withForegroundColor(terminalLine.getForegroundColor()));
+    }
     for (TerminalText terminalText : terminalTexts) {
-      screen.newTextGraphics()
+      textGraphics
           .setBackgroundColor(terminalText.getBackgroundColor())
           .setForegroundColor(terminalText.getForegroundColor())
           .putString(
@@ -422,12 +460,23 @@ class TimerEntryListRow {
     return timerEntry;
   }
 
+  public List<TerminalLine> getTerminalLines() {
+    return terminalLines;
+  }
+
+  public TerminalLine addTerminalLine() {
+    final TerminalLine terminalLine = new TerminalLine();
+    terminalLines.add(terminalLine);
+
+    return terminalLine;
+  }
+
   public List<TerminalText> getTerminalTexts() {
     return terminalTexts;
   }
 
   public TerminalText addTerminalText() {
-    TerminalText terminalText = new TerminalText();
+    final TerminalText terminalText = new TerminalText();
     terminalTexts.add(terminalText);
 
     return terminalText;
@@ -435,6 +484,64 @@ class TimerEntryListRow {
 
   public boolean isProjectRow() {
     return isProjectRow;
+  }
+}
+
+class TerminalLine {
+  private TerminalPosition from;
+  private TerminalPosition to;
+  private TextColor backgroundColor;
+  private TextColor foregroundColor;
+  private Character character;
+
+  public TerminalPosition getFrom() {
+    return from;
+  }
+
+  public TerminalLine setFrom(TerminalPosition from) {
+    this.from = from;
+
+    return this;
+  }
+
+  public TerminalPosition getTo() {
+    return to;
+  }
+
+  public TerminalLine setTo(TerminalPosition to) {
+    this.to = to;
+
+    return this;
+  }
+
+  public TextColor getBackgroundColor() {
+    return backgroundColor;
+  }
+
+  public TerminalLine setBackgroundColor(TextColor backgroundColor) {
+    this.backgroundColor = backgroundColor;
+
+    return this;
+  }
+
+  public TextColor getForegroundColor() {
+    return foregroundColor;
+  }
+
+  public TerminalLine setForegroundColor(TextColor foregroundColor) {
+    this.foregroundColor = foregroundColor;
+
+    return this;
+  }
+
+  public Character getCharacter() {
+    return character;
+  }
+
+  public TerminalLine setCharacter(Character character) {
+    this.character = character;
+
+    return this;
   }
 }
 
