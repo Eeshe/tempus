@@ -152,7 +152,7 @@ public class TimerEntryService {
    *         project.
    */
   public long computeDailyElapsedTimeMillis(TimerEntry timerEntry, LocalDate localDate, boolean matchTask) {
-    return fetch(timerEntry, LocalDate.now(), matchTask)
+    return fetch(timerEntry, localDate, matchTask)
         .stream().map(TimerEntry::getDurationMillis).mapToLong(Long::longValue).sum();
   }
 

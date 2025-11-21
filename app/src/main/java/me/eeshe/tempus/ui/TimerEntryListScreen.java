@@ -89,7 +89,7 @@ public class TimerEntryListScreen {
     Map<LocalDate, DailyTimerEntries> timerEntries = timerEntryService.fetchAllDaily();
     for (DailyTimerEntries dailyTimerEntries : timerEntries.values()) {
       addDaySeparator(screen, dailyTimerEntries);
-      addTimerEntries(screen, dailyTimerEntries.getTimerEntries());
+      addTimerEntries(screen, dailyTimerEntries);
     }
   }
 
@@ -125,8 +125,8 @@ public class TimerEntryListScreen {
     saveListRow(timerEntryListLine);
   }
 
-  private void addTimerEntries(Screen screen, Map<String, List<TimerEntry>> timerEntries) {
-    for (Entry<String, List<TimerEntry>> entrySet : timerEntries.entrySet()) {
+  private void addTimerEntries(Screen screen, DailyTimerEntries dailyTimerEntries) {
+    for (Entry<String, List<TimerEntry>> entrySet : dailyTimerEntries.getTimerEntries().entrySet()) {
       final String projectTaskName = entrySet.getKey();
       final int listRow = getNextListRow();
       final TimerEntry timerEntry = null;
@@ -149,7 +149,7 @@ public class TimerEntryListScreen {
       final boolean matchTask = true;
       final long dailyElapsedTimeMillis = timerEntryService.computeDailyElapsedTimeMillis(
           firstTimerEntry,
-          firstTimerEntry.getStartDateTime().toLocalDate(),
+          dailyTimerEntries.getDate(),
           matchTask);
       final String dailyElapsedTimeString = TimeFormatUtil.formatMillisecondsToHHMMSS(dailyElapsedTimeMillis);
 
