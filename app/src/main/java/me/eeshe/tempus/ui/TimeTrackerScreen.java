@@ -70,9 +70,11 @@ public class TimeTrackerScreen {
     this.tags = String.join(", ", timerEntry.getTags());
     this.isBillable = timerEntry.isBillable();
 
+    final boolean matchTask = false;
     this.dailyElapsedTimeMillis = timerEntryService.computeDailyElapsedTimeMillis(
         timerEntry,
-        LocalDate.now());
+        LocalDate.now(),
+        matchTask);
   }
 
   public void open(Screen screen) {

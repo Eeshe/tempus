@@ -147,11 +147,12 @@ public class TimerEntryService {
    *
    * @param timerEntry TimerEntry whose project will be computed.
    * @param localDate  Date to compute.
+   * @param matchTask  Whether the TimerEntry task should match as well.
    * @return Total elapsed time in milliseconds of the passed TimerEntry's
    *         project.
    */
-  public long computeDailyElapsedTimeMillis(TimerEntry timerEntry, LocalDate localDate) {
-    return fetch(timerEntry, LocalDate.now())
+  public long computeDailyElapsedTimeMillis(TimerEntry timerEntry, LocalDate localDate, boolean matchTask) {
+    return fetch(timerEntry, localDate, matchTask)
         .stream().map(TimerEntry::getDurationMillis).mapToLong(Long::longValue).sum();
   }
 
@@ -161,12 +162,16 @@ public class TimerEntryService {
    * name that are within the passed date.
    *
    * @param timerEntry TimerEntry to compare.
+   * @param matchTask  Whether the TimerEntry task should match as well.
    * @return Matching TimerEntries.
    */
-  private List<TimerEntry> fetch(TimerEntry timerEntry, LocalDate date) {
+  private List<TimerEntry> fetch(TimerEntry timerEntry, LocalDate date, boolean matchTask) {
     List<TimerEntry> timerEntries = new ArrayList<>();
-    final String sql = "SELECT * FROM " + TIMER_ENTRY_TABLE + " WHERE projectName = ? AND " +
+    String sql = "SELECT * FROM " + TIMER_ENTRY_TABLE + " WHERE projectName = ? AND " +
         "startTimeMillis BETWEEN ? AND ?";
+    if (matchTask) {
+      sql += " AND COALESCE(task, '') = ?";
+    }
     try (Connection connection = sqLiteManager.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setString(1, timerEntry.getProjectName());
@@ -174,6 +179,10 @@ public class TimerEntryService {
       ZoneId zoneId = ZoneId.systemDefault();
       preparedStatement.setLong(2, date.atStartOfDay(zoneId).toInstant().toEpochMilli());
       preparedStatement.setLong(3, date.atTime(LocalTime.MAX).atZone(zoneId).toInstant().toEpochMilli());
+      if (matchTask) {
+        final String task = timerEntry.getTask() == null ? "" : timerEntry.getTask();
+        preparedStatement.setString(4, task);
+      }
 
       ResultSet resultSet = preparedStatement.executeQuery();
       while (resultSet.next()) {
