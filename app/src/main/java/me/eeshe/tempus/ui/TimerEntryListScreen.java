@@ -273,26 +273,14 @@ public class TimerEntryListScreen {
       case ArrowDown -> {
         moveCursorDown(screen);
       }
-      case ArrowLeft -> {
-        moveCursorLeft(screen);
-      }
-      case ArrowRight -> {
-        moveCursorRight(screen);
-      }
       case Character -> {
         char character = Character.toLowerCase(keyStroke.getCharacter());
         switch (character) {
-          case 'h' -> {
-            moveCursorLeft(screen);
-          }
           case 'j' -> {
             moveCursorDown(screen);
           }
           case 'k' -> {
             moveCursorUp(screen);
-          }
-          case 'l' -> {
-            moveCursorRight(screen);
           }
           case 'n', 'p' -> {
             navigateToNextProject(screen, keyStroke);
@@ -313,10 +301,12 @@ public class TimerEntryListScreen {
     }
     if (cursorRow > 0) {
       screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(-1));
+      handleCursorHighlight(screen, cursorPosition.getRow());
       return;
     }
     final int scrolledRows = -1;
     scrollScreen(screen, scrolledRows);
+    handleCursorHighlight(screen, cursorPosition.getRow());
   }
 
   private void moveCursorDown(Screen screen) {
@@ -327,25 +317,27 @@ public class TimerEntryListScreen {
     }
     final int listHeight = screen.getTerminalSize().getRows() - 2; // Account for footer and index 0
     if (cursorRow < listHeight) {
-      screen.setCursorPosition(screen.getCursorPosition().withRelativeRow(1));
+      screen.setCursorPosition(cursorPosition.withRelativeRow(1));
+      handleCursorHighlight(screen, cursorPosition.getRow());
       return;
     }
     final int scrolledRows = 1;
     scrollScreen(screen, scrolledRows);
+    handleCursorHighlight(screen, cursorPosition.getRow());
+  }
+
+  private void handleCursorHighlight(Screen screen, int previousRow) {
+    final int adjustedPreviousRow = previousRow + scrolledRows;
+    listRows.get(adjustedPreviousRow).draw(screen, previousRow);
+
+    final int currentRow = screen.getCursorPosition().getRow();
+    listRows.get(currentRow + scrolledRows).drawHighlighted(screen, currentRow);
   }
 
   private void scrollScreen(Screen screen, int rows) {
     scrolledRows += rows;
     screen.clear();
     displayTimeEntries(screen);
-  }
-
-  private void moveCursorLeft(Screen screen) {
-    screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(-1));
-  }
-
-  private void moveCursorRight(Screen screen) {
-    screen.setCursorPosition(screen.getCursorPosition().withRelativeColumn(1));
   }
 
   private void navigateToNextProject(Screen screen, KeyStroke keyStroke) {
@@ -380,9 +372,11 @@ public class TimerEntryListScreen {
       scrollScreen(screen, cursorRow - screenRows + 1); // +1 to account for the footer
       cursorRow = screenRows - 1; // -1 to account for the footer
     }
+    final int originalCursorRow = screen.getCursorPosition().getRow();
     screen.setCursorPosition(new TerminalPosition(
         screen.getCursorPosition().getColumn(),
         cursorRow));
+    handleCursorHighlight(screen, originalCursorRow);
   }
 
   private int getNextListRow() {
@@ -433,6 +427,13 @@ class TimerEntryListRow {
 
   public void draw(Screen screen, int row) {
     final TextGraphics textGraphics = screen.newTextGraphics();
+    textGraphics.drawLine(
+        new TerminalPosition(0, row),
+        new TerminalPosition(screen.getTerminalSize().getColumns(), row),
+        TextCharacter.DEFAULT_CHARACTER
+            .withCharacter(' ')
+            .withBackgroundColor(TextColor.ANSI.DEFAULT));
+
     for (TerminalLine terminalLine : terminalLines) {
       textGraphics.drawLine(
           terminalLine.getFrom().withRow(row),
@@ -446,6 +447,27 @@ class TimerEntryListRow {
       textGraphics
           .setBackgroundColor(terminalText.getBackgroundColor())
           .setForegroundColor(terminalText.getForegroundColor())
+          .putString(
+              terminalText.computeTerminalPosition(row),
+              terminalText.getText());
+    }
+  }
+
+  public void drawHighlighted(Screen screen, int row) {
+    final TextGraphics textGraphics = screen.newTextGraphics();
+    final TextColor backgroundColor = TextColor.ANSI.BLUE;
+    final TextColor foregroundColor = TextColor.ANSI.BLUE;
+    final TerminalPosition cursorPosition = screen.getCursorPosition();
+    textGraphics.drawLine(
+        cursorPosition.withColumn(0),
+        cursorPosition.withColumn(screen.getTerminalSize().getColumns()),
+        TextCharacter.DEFAULT_CHARACTER
+            .withCharacter(' ')
+            .withBackgroundColor(backgroundColor)
+            .withForegroundColor(foregroundColor));
+    for (TerminalText terminalText : terminalTexts) {
+      textGraphics
+          .setBackgroundColor(backgroundColor)
           .putString(
               terminalText.computeTerminalPosition(row),
               terminalText.getText());
