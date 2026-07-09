@@ -1,13 +1,19 @@
 package me.eeshe.tempus.entity;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Temporal;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "\"group\"")
 public class Group {
 
     @Id
@@ -15,20 +21,25 @@ public class Group {
     private long id;
 
     private String name;
-    private Instant creationTime;
 
-    public Group(long id, String name, Instant creationTime) {
-        this.id = id;
+    @Temporal
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    public Group() {
+    }
+
+    public Group(String name) {
         this.name = name;
-        this.creationTime = creationTime;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     public long getId() {
         return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -39,12 +50,8 @@ public class Group {
         this.name = name;
     }
 
-    public Instant getCreationTime() {
-        return creationTime;
-    }
-
-    public void setCreationTime(Instant creationTime) {
-        this.creationTime = creationTime;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     @Override

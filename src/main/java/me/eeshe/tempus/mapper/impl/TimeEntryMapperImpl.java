@@ -1,12 +1,9 @@
 package me.eeshe.tempus.mapper.impl;
 
-import org.springframework.stereotype.Component;
-
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 
-@Component
 public class TimeEntryMapperImpl implements TimeEntryMapper {
 
     @Override

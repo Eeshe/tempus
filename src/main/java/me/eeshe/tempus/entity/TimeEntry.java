@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class TimeEntry {
@@ -12,10 +14,22 @@ public class TimeEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @ManyToOne
+    @JoinColumn(name = "group_id")
     private Group group;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id")
     private Project project;
+
+    @ManyToOne
+    @JoinColumn(name = "task_id")
     private Task task;
+
     private String description;
     private boolean isBillable;
 
