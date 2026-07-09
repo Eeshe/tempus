@@ -1,7 +1,6 @@
-package me.eeshe.tempus.entity.dto;
+package me.eeshe.tempus.request;
 
-public record TimeEntryDTO(
-        long id,
+public record UpdateTimeEntryRequest(
         String groupId,
         String userId,
         String projectId,

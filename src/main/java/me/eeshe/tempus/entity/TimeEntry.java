@@ -12,26 +12,26 @@ public class TimeEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String groupId;
-    private String userId;
-    private String projectId;
-    private String taskId;
+    private Group group;
+    private User user;
+    private Project project;
+    private Task task;
     private String description;
     private boolean isBillable;
 
     public TimeEntry(
             long id,
-            String groupId,
-            String userId,
-            String projectId,
-            String taskId,
+            Group group,
+            User user,
+            Project project,
+            Task task,
             String description,
             boolean isBillable) {
         this.id = id;
-        this.groupId = groupId;
-        this.userId = userId;
-        this.projectId = projectId;
-        this.taskId = taskId;
+        this.group = group;
+        this.user = user;
+        this.project = project;
+        this.task = task;
         this.description = description;
         this.isBillable = isBillable;
     }
@@ -44,36 +44,36 @@ public class TimeEntry {
         this.id = id;
     }
 
-    public String getGroupId() {
-        return groupId;
+    public Group getGroup() {
+        return group;
     }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+    public void setGroup(Group group) {
+        this.group = group;
     }
 
-    public String getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public String getProjectId() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
     }
 
-    public String getTaskId() {
-        return taskId;
+    public Task getTask() {
+        return task;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
+    public void setTask(Task task) {
+        this.task = task;
     }
 
     public String getDescription() {

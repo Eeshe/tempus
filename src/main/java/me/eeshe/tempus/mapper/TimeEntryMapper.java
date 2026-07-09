@@ -1,7 +1,7 @@
 package me.eeshe.tempus.mapper;
 
+import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.entity.TimeEntry;
-import me.eeshe.tempus.entity.dto.TimeEntryDTO;
 
 public interface TimeEntryMapper {
 

@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.entity.TimeEntry;
-import me.eeshe.tempus.entity.dto.TimeEntryDTO;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.service.TimeEntryService;
 
@@ -27,7 +27,7 @@ public class TimeEntryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TimeEntryDTO>> getAll() {
+    public ResponseEntity<List<TimeEntryDTO>> list() {
         final List<TimeEntry> timeEntries = timeEntryService.getAllTimeEntries();
         final List<TimeEntryDTO> timeEntryDTOs = timeEntries.stream().map(timeEntryMapper::toDto).toList();
 
