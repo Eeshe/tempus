@@ -13,24 +13,11 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     public TimeEntryDTO toDto(TimeEntry timeEntry) {
         return new TimeEntryDTO(
                 timeEntry.getId(),
-                timeEntry.getGroupId(),
-                timeEntry.getUserId(),
-                timeEntry.getProjectId(),
-                timeEntry.getTaskId(),
+                timeEntry.getGroup().getId(),
+                timeEntry.getUser().getId(),
+                timeEntry.getProject().getId(),
+                timeEntry.getTask().getId(),
                 timeEntry.getDescription(),
                 timeEntry.isBillable());
     }
-
-    @Override
-    public TimeEntry fromDto(TimeEntryDTO timeEntryDTO) {
-        return new TimeEntry(
-                timeEntryDTO.id(),
-                timeEntryDTO.groupId(),
-                timeEntryDTO.userId(),
-                timeEntryDTO.projectId(),
-                timeEntryDTO.taskId(),
-                timeEntryDTO.description(),
-                timeEntryDTO.isBillable());
-    }
-
 }

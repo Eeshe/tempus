@@ -1,7 +1,6 @@
 package me.eeshe.tempus.dto;
 
-public record TimeEntryDTO(
-        long id,
+public record CreateTimeEntryRequestDTO(
         long groupId,
         long userId,
         long projectId,
