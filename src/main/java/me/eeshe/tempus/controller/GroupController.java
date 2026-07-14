@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateGroupRequestDTO;
 import me.eeshe.tempus.dto.GroupDTO;
 import me.eeshe.tempus.dto.UpdateGroupRequestDTO;
@@ -46,7 +47,7 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<GroupDTO> createGroup(CreateGroupRequestDTO createGroupRequestDTO) {
+    public ResponseEntity<GroupDTO> createGroup(@Valid CreateGroupRequestDTO createGroupRequestDTO) {
         final CreateGroupRequest createGroupRequest = groupMapper.fromDTO(createGroupRequestDTO);
         final Group createdGroup = groupService.createGroup(createGroupRequest);
 
@@ -56,7 +57,7 @@ public class GroupController {
     @PutMapping(path = "/{groupId}")
     public ResponseEntity<GroupDTO> updateGroup(
             @PathVariable long groupId,
-            UpdateGroupRequestDTO updateGroupRequestDTO) {
+            @Valid UpdateGroupRequestDTO updateGroupRequestDTO) {
         final UpdateGroupRequest updateGroupRequest = groupMapper.fromDTO(updateGroupRequestDTO);
         final Group updatedGroup = groupService.updateGroup(groupId, updateGroupRequest);
 
