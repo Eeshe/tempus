@@ -22,7 +22,6 @@ public class Group {
 
     private String name;
 
-    @Temporal
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

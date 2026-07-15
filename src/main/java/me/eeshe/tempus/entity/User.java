@@ -20,7 +20,6 @@ public class User {
 
     private String name;
 
-    @Temporal
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
