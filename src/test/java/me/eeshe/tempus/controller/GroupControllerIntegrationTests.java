@@ -41,11 +41,65 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
-    public void testThatListGroupsReturnsNotEmptyList() throws Exception {
+    public void testThatCreateGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .header("name", "MyGroup"));
+                .header("name", ""))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void testThatCreateGroupWithNullNameReturnsHttp400BadRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void testThatListGroupsReturnsNotEmptyList() throws Exception {
+        createMockGroup();
 
         mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
     }
+
+    @Test
+    public void testThatUpdateGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+                .header("name", ""))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void testThatUpdateGroupWithNullNameReturnsHttp400BadRequest() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void testThatUpdateUnexistentGroupReturnsHttp400BadRequest() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/2")
+                .header("name", "UpdatedGroupName"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    public void testThatDeleteGroupReturnsEmptyList() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/1"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
+                .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
+    }
+
+    private void createMockGroup() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
+                .header("name", "MyGroup"));
+    }
+
 }
