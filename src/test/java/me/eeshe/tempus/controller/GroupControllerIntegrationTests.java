@@ -101,5 +101,4 @@ public class GroupControllerIntegrationTests {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
                 .header("name", "MyGroup"));
     }
-
 }

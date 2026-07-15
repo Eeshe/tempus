@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.GroupNotFoundException;
+import me.eeshe.tempus.exception.UserNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,6 +25,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GroupNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleGroupNotFoundException(GroupNotFoundException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserNotFoundException(UserNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

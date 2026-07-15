@@ -1,11 +1,15 @@
 package me.eeshe.tempus.entity;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Temporal;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 
 @Entity
 public class User {
@@ -14,13 +18,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String username;
-    private Instant creationTime;
+    private String name;
 
-    public User(long id, String username, Instant creationTime) {
-        this.id = id;
-        this.username = username;
-        this.creationTime = creationTime;
+    @Temporal
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    public User() {
+    }
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 
     public long getId() {
@@ -31,20 +44,16 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String username) {
+        this.name = username;
     }
 
-    public Instant getCreationTime() {
-        return creationTime;
-    }
-
-    public void setCreationTime(Instant creationTime) {
-        this.creationTime = creationTime;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     @Override
