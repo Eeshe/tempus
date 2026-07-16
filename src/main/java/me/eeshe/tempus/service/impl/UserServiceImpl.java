@@ -1,5 +1,6 @@
 package me.eeshe.tempus.service.impl;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -39,6 +40,9 @@ public class UserServiceImpl implements UserService {
         final User user = getUser(userId);
         if (updateUserRequest.name() != null) {
             user.setName(updateUserRequest.name());
+        }
+        if (updateUserRequest.groups() != null) {
+            user.setGroups(new HashSet<>(updateUserRequest.groups()));
         }
         return userRepository.save(user);
     }

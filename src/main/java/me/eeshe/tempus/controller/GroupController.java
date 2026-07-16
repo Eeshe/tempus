@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateGroupRequestDTO;
 import me.eeshe.tempus.dto.GroupDTO;
+import me.eeshe.tempus.dto.PatchGroupRequestDTO;
 import me.eeshe.tempus.dto.UpdateGroupRequestDTO;
 import me.eeshe.tempus.entity.Group;
 import me.eeshe.tempus.mapper.GroupMapper;
 import me.eeshe.tempus.request.CreateGroupRequest;
+import me.eeshe.tempus.request.PatchGroupRequest;
 import me.eeshe.tempus.request.UpdateGroupRequest;
 import me.eeshe.tempus.service.GroupService;
 
@@ -62,6 +65,17 @@ public class GroupController {
         final Group updatedGroup = groupService.updateGroup(groupId, updateGroupRequest);
 
         return ResponseEntity.ok(groupMapper.toDTO(updatedGroup));
+    }
+
+    @PatchMapping(path = "/{groupId}")
+    public ResponseEntity<GroupDTO> patchGroup(
+            @PathVariable long groupId,
+            PatchGroupRequestDTO patchGroupRequestDTO) {
+        final PatchGroupRequest patchGroupRequest = groupMapper.fromDTO(patchGroupRequestDTO);
+        final Group patchedGroup = groupService.patchGroup(groupId, patchGroupRequest);
+        final GroupDTO patchedGroupDTO = groupMapper.toDTO(patchedGroup);
+
+        return ResponseEntity.ok(patchedGroupDTO);
     }
 
     @DeleteMapping(path = "/{groupId}")
