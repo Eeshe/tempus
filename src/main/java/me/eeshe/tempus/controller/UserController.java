@@ -33,6 +33,8 @@ public class UserController {
         this.userService = userService;
     }
 
+    // TODO: Switch to request body
+
     @GetMapping
     public ResponseEntity<List<UserDTO>> listUsers() {
         final List<User> users = userService.listUsers();

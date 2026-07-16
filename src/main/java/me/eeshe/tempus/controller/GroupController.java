@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,7 +51,7 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<GroupDTO> createGroup(@Valid CreateGroupRequestDTO createGroupRequestDTO) {
+    public ResponseEntity<GroupDTO> createGroup(@Valid @RequestBody CreateGroupRequestDTO createGroupRequestDTO) {
         final CreateGroupRequest createGroupRequest = groupMapper.fromDTO(createGroupRequestDTO);
         final Group createdGroup = groupService.createGroup(createGroupRequest);
 
@@ -60,7 +61,7 @@ public class GroupController {
     @PutMapping(path = "/{groupId}")
     public ResponseEntity<GroupDTO> updateGroup(
             @PathVariable long groupId,
-            @Valid UpdateGroupRequestDTO updateGroupRequestDTO) {
+            @Valid @RequestBody UpdateGroupRequestDTO updateGroupRequestDTO) {
         final UpdateGroupRequest updateGroupRequest = groupMapper.fromDTO(updateGroupRequestDTO);
         final Group updatedGroup = groupService.updateGroup(groupId, updateGroupRequest);
 
@@ -70,7 +71,7 @@ public class GroupController {
     @PatchMapping(path = "/{groupId}")
     public ResponseEntity<GroupDTO> patchGroup(
             @PathVariable long groupId,
-            @Valid PatchGroupRequestDTO patchGroupRequestDTO) {
+            @Valid @RequestBody PatchGroupRequestDTO patchGroupRequestDTO) {
         final PatchGroupRequest patchGroupRequest = groupMapper.fromDTO(patchGroupRequestDTO);
         final Group patchedGroup = groupService.patchGroup(groupId, patchGroupRequest);
         final GroupDTO patchedGroupDTO = groupMapper.toDTO(patchedGroup);
