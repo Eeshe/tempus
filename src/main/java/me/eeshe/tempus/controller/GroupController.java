@@ -70,7 +70,7 @@ public class GroupController {
     @PatchMapping(path = "/{groupId}")
     public ResponseEntity<GroupDTO> patchGroup(
             @PathVariable long groupId,
-            PatchGroupRequestDTO patchGroupRequestDTO) {
+            @Valid PatchGroupRequestDTO patchGroupRequestDTO) {
         final PatchGroupRequest patchGroupRequest = groupMapper.fromDTO(patchGroupRequestDTO);
         final Group patchedGroup = groupService.patchGroup(groupId, patchGroupRequest);
         final GroupDTO patchedGroupDTO = groupMapper.toDTO(patchedGroup);

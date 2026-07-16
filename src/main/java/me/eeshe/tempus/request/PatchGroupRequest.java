@@ -6,6 +6,6 @@ import java.util.Optional;
 import me.eeshe.tempus.entity.User;
 
 public record PatchGroupRequest(
-        Optional<String> name,
+        String name,
         Optional<List<User>> users) {
 }

@@ -49,7 +49,9 @@ public class GroupServiceImpl implements GroupService {
     public Group patchGroup(long groupId, PatchGroupRequest patchGroupRequest) {
         final Group group = getGroup(groupId);
 
-        patchGroupRequest.name().ifPresent(group::setName);
+        if (patchGroupRequest.name() != null) {
+            group.setName(patchGroupRequest.name());
+        }
         patchGroupRequest.users().ifPresent(group::setUsers);
 
         return groupRepository.save(group);
