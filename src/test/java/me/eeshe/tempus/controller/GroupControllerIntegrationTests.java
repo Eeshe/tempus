@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -26,30 +27,35 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
-    public void testThatCreateGroupReturnsHttp201Created() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .header("name", "MyGroup"))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
-    }
-
-    @Test
     public void testThatCreateGroupReturnsValidGroup() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .header("name", "MyGroup"))
+                .content(generateCreateGroupJson())
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
     }
 
     @Test
     public void testThatCreateGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
+        final String json = """
+                {
+                    "name": ""
+                }
+                    """;
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .header("name", ""))
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
     public void testThatCreateGroupWithNullNameReturnsHttp400BadRequest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH))
+        final String json = "{}";
+
+        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
@@ -62,28 +68,46 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
-    public void testThatUpdateGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
+    public void testThatUpdateGroupReturnsValidGroup() throws Exception {
         createMockGroup();
 
         mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
-                .header("name", ""))
+                .content(generateUpdateGroupJson())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
+    }
+
+    @Test
+    public void testThatUpdateGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
+        final String json = """
+                {
+                    "name": ""
+                }
+                    """;
+
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
     public void testThatUpdateGroupWithNullNameReturnsHttp400BadRequest() throws Exception {
-        createMockGroup();
-
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
     public void testThatUpdateUnexistentGroupReturnsHttp400BadRequest() throws Exception {
-        createMockGroup();
+        final String json = generateUpdateGroupJson();
 
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/2")
-                .header("name", "UpdatedGroupName"))
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
@@ -99,6 +123,24 @@ public class GroupControllerIntegrationTests {
 
     private void createMockGroup() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .header("name", "MyGroup"));
+                .content(generateCreateGroupJson())
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    private String generateCreateGroupJson() {
+        return """
+                {
+                    "name": "MyGroup"
+                }
+                    """;
+    }
+
+    private String generateUpdateGroupJson() {
+        return """
+                {
+                    "name": "MyOtherGroup",
+                    "userIds": []
+                }
+                    """;
     }
 }
