@@ -7,5 +7,5 @@ public record GroupDTO(
         long id,
         String name,
         List<Long> userIds,
-        LocalDateTime creationTime) {
+        LocalDateTime createdAt) {
 }

@@ -33,7 +33,16 @@ public class GroupControllerIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
+    }
+
+    @Test
+    public void testThatCreateGroupReturnsHttp201Created() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
+                .content(generateCreateGroupJson())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
     }
 
     @Test
@@ -68,6 +77,29 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
+    public void testThatListGroupsReturnsEmptyList() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
+                .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
+    }
+
+    @Test
+    public void testThatGetGroupReturnsValidGroup() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
+    }
+
+    @Test
+    public void testThatGetUnexistentGroupReturnsHttp400BadRequest() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/9999"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
     public void testThatUpdateGroupReturnsValidGroup() throws Exception {
         createMockGroup();
 
@@ -77,6 +109,17 @@ public class GroupControllerIntegrationTests {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
+    }
+
+    @Test
+    public void testThatUpdateGroupChangesGroupName() throws Exception {
+        createMockGroup(); // Creates group with name MyGroup
+        final String json = generateUpdateGroupJson(); // JSON contains name change to MyNewGroupName
+
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewGroupName"));
     }
 
     @Test
@@ -166,6 +209,21 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
+    public void testThatPatchGroupWithUserIds() throws Exception {
+        createMockGroup();
+
+        final String json = """
+                {
+                    "userIds": []
+                }
+                    """;
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/1")
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
+    }
+
+    @Test
     public void testThatPatchGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
         createMockGroup();
         final String json = """
@@ -196,6 +254,14 @@ public class GroupControllerIntegrationTests {
 
         mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
+    }
+
+    @Test
+    public void testThatDeleteGroupReturnsHttp204NoContent() throws Exception {
+        createMockGroup();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/1"))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     private void createMockGroup() throws Exception {
