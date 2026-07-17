@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,8 +34,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    // TODO: Switch to request body
-
     @GetMapping
     public ResponseEntity<List<UserDTO>> listUsers() {
         final List<User> users = userService.listUsers();
@@ -52,7 +51,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@Valid CreateUserRequestDTO createUserRequestDTO) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserRequestDTO createUserRequestDTO) {
         final CreateUserRequest createUserRequest = userMapper.fromDTO(createUserRequestDTO);
         final User createdUser = userService.createUser(createUserRequest);
         final UserDTO createdUserDTO = userMapper.toDTO(createdUser);
@@ -63,7 +62,7 @@ public class UserController {
     @PutMapping(path = "/{userId}")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable long userId,
-            @Valid UpdateUserRequestDTO updateUserRequestDTO) {
+            @Valid @RequestBody UpdateUserRequestDTO updateUserRequestDTO) {
         final UpdateUserRequest updateUserRequest = userMapper.fromDTO(updateUserRequestDTO);
         final User updatedUser = userService.updateUser(userId, updateUserRequest);
         final UserDTO updatedUserDTO = userMapper.toDTO(updatedUser);
