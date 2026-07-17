@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -27,6 +28,9 @@ public class User {
 
     @ManyToMany(mappedBy = "users")
     private Set<Group> groups = new HashSet<>();
+
+    @OneToMany(mappedBy = "user")
+    private Set<Client> clients = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -78,6 +82,15 @@ public class User {
         }
         this.groups.clear();
         this.groups.addAll(newGroups);
+    }
+
+    public Set<Client> getClients() {
+        return clients;
+    }
+
+    public void setClients(Collection<Client> clients) {
+        this.clients.clear();
+        this.clients.addAll(clients);
     }
 
     public LocalDateTime getCreatedAt() {
