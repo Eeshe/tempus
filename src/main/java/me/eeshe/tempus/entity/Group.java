@@ -63,7 +63,8 @@ public class Group {
     }
 
     public void setUsers(Collection<User> users) {
-        this.users = new HashSet<>(users);
+        this.users.clear();
+        this.users.addAll(users);
     }
 
     public LocalDateTime getCreatedAt() {

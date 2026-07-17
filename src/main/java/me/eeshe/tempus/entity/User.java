@@ -1,6 +1,7 @@
 package me.eeshe.tempus.entity;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -62,8 +63,21 @@ public class User {
         return groups;
     }
 
-    public void setGroups(Set<Group> groups) {
-        this.groups = groups;
+    public void setGroups(Collection<Group> newGroups) {
+        for (Group group : this.groups) {
+            if (newGroups.contains(group)) {
+                continue;
+            }
+            group.getUsers().remove(this);
+        }
+        for (Group newGroup : newGroups) {
+            if (this.groups.contains(newGroup)) {
+                continue;
+            }
+            newGroup.getUsers().add(this);
+        }
+        this.groups.clear();
+        this.groups.addAll(newGroups);
     }
 
     public LocalDateTime getCreatedAt() {

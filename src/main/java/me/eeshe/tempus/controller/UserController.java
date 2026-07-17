@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,11 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateUserRequestDTO;
+import me.eeshe.tempus.dto.PatchUserRequestDTO;
 import me.eeshe.tempus.dto.UpdateUserRequestDTO;
 import me.eeshe.tempus.dto.UserDTO;
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.mapper.UserMapper;
 import me.eeshe.tempus.request.CreateUserRequest;
+import me.eeshe.tempus.request.PatchUserRequest;
 import me.eeshe.tempus.request.UpdateUserRequest;
 import me.eeshe.tempus.service.UserService;
 
@@ -68,6 +71,17 @@ public class UserController {
         final UserDTO updatedUserDTO = userMapper.toDTO(updatedUser);
 
         return ResponseEntity.ok(updatedUserDTO);
+    }
+
+    @PatchMapping(path = "/{userId}")
+    public ResponseEntity<UserDTO> patchUser(
+            @PathVariable long userId,
+            @Valid @RequestBody PatchUserRequestDTO patchUserRequestDTO) {
+        final PatchUserRequest patchUserRequest = userMapper.fromDTO(patchUserRequestDTO);
+        final User patchedUser = userService.patchUser(userId, patchUserRequest);
+        final UserDTO patchedUserDTO = userMapper.toDTO(patchedUser);
+
+        return ResponseEntity.ok(patchedUserDTO);
     }
 
     @DeleteMapping(path = "/{userId}")

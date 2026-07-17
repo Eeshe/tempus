@@ -9,6 +9,7 @@ import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.exception.UserNotFoundException;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.request.CreateUserRequest;
+import me.eeshe.tempus.request.PatchUserRequest;
 import me.eeshe.tempus.request.UpdateUserRequest;
 import me.eeshe.tempus.service.UserService;
 
@@ -38,12 +39,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(long userId, UpdateUserRequest updateUserRequest) {
         final User user = getUser(userId);
-        if (updateUserRequest.name() != null) {
-            user.setName(updateUserRequest.name());
+
+        user.setName(updateUserRequest.name());
+        user.setGroups(new HashSet<>(updateUserRequest.groups()));
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User patchUser(long userId, PatchUserRequest patchUserRequest) {
+        final User user = getUser(userId);
+
+        if (patchUserRequest.name() != null) {
+            user.setName(patchUserRequest.name());
         }
-        if (updateUserRequest.groups() != null) {
-            user.setGroups(new HashSet<>(updateUserRequest.groups()));
-        }
+        patchUserRequest.groups().ifPresent(user::setGroups);
+
         return userRepository.save(user);
     }
 

@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import me.eeshe.tempus.common.validation.annotation.NotBlankIfPresent;
 
-public record PatchGroupRequestDTO(
+public record PatchUserRequestDTO(
         @NotBlankIfPresent(message = ERROR_MESSAGE_EMPTY_NAME) String name,
-        Optional<List<Long>> userIds) {
-    private static final String ERROR_MESSAGE_EMPTY_NAME = "Group name can't be empty if it's provided";
+        Optional<List<Long>> groupIds) {
+    private static final String ERROR_MESSAGE_EMPTY_NAME = "User name can't be empty if it's provided";
 }

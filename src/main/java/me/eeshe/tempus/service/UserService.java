@@ -4,6 +4,7 @@ import java.util.List;
 
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.request.CreateUserRequest;
+import me.eeshe.tempus.request.PatchUserRequest;
 import me.eeshe.tempus.request.UpdateUserRequest;
 
 public interface UserService {
@@ -15,6 +16,8 @@ public interface UserService {
     User createUser(CreateUserRequest createUserRequest);
 
     User updateUser(long userId, UpdateUserRequest updateUserRequest);
+
+    User patchUser(long userId, PatchUserRequest patchUserRequest);
 
     void deleteUser(long userId);
 }
