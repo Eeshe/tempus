@@ -84,6 +84,13 @@ public class Project {
         return client;
     }
 
+    public Long getClientId() {
+        if (client == null) {
+            return null;
+        }
+        return client.getId();
+    }
+
     public void setClient(Client client) {
         this.client = client;
     }

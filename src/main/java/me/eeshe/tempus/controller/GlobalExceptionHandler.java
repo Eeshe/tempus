@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.GroupNotFoundException;
+import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.UserNotFoundException;
 
 @RestControllerAdvice
@@ -40,6 +41,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClientNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(ClientNotFoundException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ProjectNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(ProjectNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
