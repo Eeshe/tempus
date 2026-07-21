@@ -1,10 +1,12 @@
 package me.eeshe.tempus.mapper.impl;
 
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 import me.eeshe.tempus.dto.CreateProjectRequestDTO;
 import me.eeshe.tempus.dto.PatchProjectRequestDTO;
 import me.eeshe.tempus.dto.ProjectDTO;
+import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.mapper.ProjectMapper;
 import me.eeshe.tempus.request.CreateProjectRequest;
@@ -39,7 +41,7 @@ public class ProjectMapperImpl implements ProjectMapper {
                 createProjectRequestDTO.name(),
                 userService.getUser(createProjectRequestDTO.userId()),
                 createProjectRequestDTO.isPrivate(),
-                createProjectRequestDTO.clientId().map(clientService::getClient));
+                resolveClient(createProjectRequestDTO.clientId()));
     }
 
     @Override
@@ -47,6 +49,10 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.isPrivate(),
-                patchProjectRequestDTO.clientId().map(clientService::getClient));
+                JsonNullable.of(resolveClient(patchProjectRequestDTO.clientId().orElse(null))));
+    }
+
+    private Client resolveClient(Long clientId) {
+        return clientId != null ? clientService.getClient(clientId) : null;
     }
 }

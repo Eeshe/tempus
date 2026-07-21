@@ -35,7 +35,7 @@ public class ProjectServiceImpl implements ProjectService {
                 createProjectRequest.name(),
                 createProjectRequest.user(),
                 createProjectRequest.isPrivate(),
-                createProjectRequest.client().orElse(null)));
+                createProjectRequest.client()));
     }
 
     @Override

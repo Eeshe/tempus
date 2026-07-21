@@ -1,8 +1,8 @@
 package me.eeshe.tempus.request;
 
-import java.util.Optional;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 public record PatchClientRequest(
         String name,
-        Optional<Double> hourlyRate) {
+        JsonNullable<Double> hourlyRate) {
 }

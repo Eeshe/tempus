@@ -34,7 +34,7 @@ public class ClientServiceImpl implements ClientService {
         return clientRepository.save(new Client(
                 createClientRequest.name(),
                 createClientRequest.user(),
-                createClientRequest.hourlyRate().orElse(null)));
+                createClientRequest.hourlyRate()));
     }
 
     @Override

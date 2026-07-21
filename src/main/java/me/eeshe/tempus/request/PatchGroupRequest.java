@@ -1,11 +1,12 @@
 package me.eeshe.tempus.request;
 
 import java.util.List;
-import java.util.Optional;
+
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import me.eeshe.tempus.entity.User;
 
 public record PatchGroupRequest(
         String name,
-        Optional<List<User>> users) {
+        JsonNullable<List<User>> users) {
 }

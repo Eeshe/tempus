@@ -1,11 +1,11 @@
 package me.eeshe.tempus.request;
 
-import java.util.Optional;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import me.eeshe.tempus.entity.Client;
 
 public record PatchProjectRequest(
         String name,
-        Optional<Boolean> isPrivate,
-        Optional<Client> client) {
+        JsonNullable<Boolean> isPrivate,
+        JsonNullable<Client> client) {
 }
