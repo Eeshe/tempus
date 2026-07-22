@@ -4,17 +4,17 @@ import java.util.List;
 
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
-import me.eeshe.tempus.request.UpdateTimeEntryRequest;
+import me.eeshe.tempus.request.PatchTimeEntryRequest;
 
 public interface TimeEntryService {
 
-    TimeEntry getTimeEntry(long timeEntryId);
-
     List<TimeEntry> getAllTimeEntries();
 
-    TimeEntry saveTimeEntry(CreateTimeEntryRequest createTimeEntryRequest);
+    TimeEntry getTimeEntry(long timeEntryId);
 
-    TimeEntry updateTimeEntry(UpdateTimeEntryRequest updadTimeEntryRequest);
+    TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest);
+
+    TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest);
 
     void deleteTimeEntry(long timeEntryId);
 }

@@ -1,11 +1,15 @@
 package me.eeshe.tempus.entity;
 
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 
 @Entity
 public class TimeEntry {
@@ -15,39 +19,50 @@ public class TimeEntry {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false, updatable = false)
     private Group group;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
     @ManyToOne
-    @JoinColumn(name = "task_id")
+    @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
     private String description;
+
+    @Column(nullable = false)
     private boolean isBillable;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    public TimeEntry() {
+    }
+
     public TimeEntry(
-            long id,
             Group group,
             User user,
             Project project,
             Task task,
             String description,
             boolean isBillable) {
-        this.id = id;
         this.group = group;
         this.user = user;
         this.project = project;
         this.task = task;
         this.description = description;
         this.isBillable = isBillable;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public long getId() {
@@ -62,16 +77,8 @@ public class TimeEntry {
         return group;
     }
 
-    public void setGroup(Group group) {
-        this.group = group;
-    }
-
     public User getUser() {
         return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public Project getProject() {
@@ -104,5 +111,31 @@ public class TimeEntry {
 
     public void setBillable(boolean isBillable) {
         this.isBillable = isBillable;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (id ^ (id >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TimeEntry other = (TimeEntry) obj;
+        if (id != other.id)
+            return false;
+        return true;
     }
 }

@@ -3,9 +3,10 @@ package me.eeshe.tempus.service.impl;
 import java.util.List;
 
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.repository.TimeEntryRepository;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
-import me.eeshe.tempus.request.UpdateTimeEntryRequest;
+import me.eeshe.tempus.request.PatchTimeEntryRequest;
 import me.eeshe.tempus.service.TimeEntryService;
 
 public class TimeEntryServiceImpl implements TimeEntryService {
@@ -16,31 +17,41 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public TimeEntry getTimeEntry(long timeEntryId) {
-        // TODO: Raise exception if it's not found
-        // return timeEntryRepository.findById(timeEntryId);
-        return null;
-    }
-
-    @Override
     public List<TimeEntry> getAllTimeEntries() {
         return timeEntryRepository.findAll();
     }
 
     @Override
-    public TimeEntry saveTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'saveTimeEntry'");
+    public TimeEntry getTimeEntry(long timeEntryId) {
+        return timeEntryRepository.findById(timeEntryId).orElseThrow(() -> new TimeEntryNotFoundException(timeEntryId));
     }
 
     @Override
-    public TimeEntry updateTimeEntry(UpdateTimeEntryRequest updadTimeEntryRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateTimeEntry'");
+    public TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
+        return timeEntryRepository.save(new TimeEntry(
+                createTimeEntryRequest.group(),
+                createTimeEntryRequest.user(),
+                createTimeEntryRequest.project(),
+                createTimeEntryRequest.task(),
+                createTimeEntryRequest.description(),
+                createTimeEntryRequest.isBillable()));
+    }
+
+    @Override
+    public TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
+        final TimeEntry timeEntry = getTimeEntry(timeEntryId);
+
+        patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
+        patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
+        patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);
+        patchTimeEntryRequest.isBillable().ifPresent(timeEntry::setBillable);
+
+        return timeEntryRepository.save(timeEntry);
     }
 
     @Override
     public void deleteTimeEntry(long timeEntryId) {
         timeEntryRepository.deleteById(timeEntryId);
     }
+
 }
