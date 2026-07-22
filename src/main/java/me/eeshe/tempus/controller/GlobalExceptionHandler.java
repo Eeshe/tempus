@@ -11,6 +11,7 @@ import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.GroupNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
+import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.UserNotFoundException;
 
 @RestControllerAdvice
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProjectNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(ProjectNotFoundException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(TaskNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
