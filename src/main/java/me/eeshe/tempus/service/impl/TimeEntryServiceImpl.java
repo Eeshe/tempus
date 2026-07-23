@@ -2,6 +2,8 @@ package me.eeshe.tempus.service.impl;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.repository.TimeEntryRepository;
@@ -9,6 +11,7 @@ import me.eeshe.tempus.request.CreateTimeEntryRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
 import me.eeshe.tempus.service.TimeEntryService;
 
+@Service
 public class TimeEntryServiceImpl implements TimeEntryService {
     private final TimeEntryRepository timeEntryRepository;
 
@@ -17,7 +20,7 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public List<TimeEntry> getAllTimeEntries() {
+    public List<TimeEntry> listTimeEntries() {
         return timeEntryRepository.findAll();
     }
 

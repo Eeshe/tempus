@@ -1,11 +1,14 @@
 package me.eeshe.tempus.dto;
 
+import java.time.LocalDateTime;
+
 public record TimeEntryDTO(
         long id,
         long groupId,
         long userId,
         long projectId,
-        long taskId,
+        Long taskId,
         String description,
-        boolean isBillable) {
+        boolean isBillable,
+        LocalDateTime createdAt) {
 }

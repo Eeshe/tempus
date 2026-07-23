@@ -31,7 +31,7 @@ public class TimeEntry {
     private Project project;
 
     @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "task_id")
     private Task task;
 
     private String description;
@@ -91,6 +91,10 @@ public class TimeEntry {
 
     public Task getTask() {
         return task;
+    }
+
+    public Long getTaskId() {
+        return task != null ? task.getId() : null;
     }
 
     public void setTask(Task task) {

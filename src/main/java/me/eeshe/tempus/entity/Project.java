@@ -85,10 +85,7 @@ public class Project {
     }
 
     public Long getClientId() {
-        if (client == null) {
-            return null;
-        }
-        return client.getId();
+        return client != null ? client.getId() : null;
     }
 
     public void setClient(Client client) {

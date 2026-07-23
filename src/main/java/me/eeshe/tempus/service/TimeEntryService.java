@@ -8,7 +8,7 @@ import me.eeshe.tempus.request.PatchTimeEntryRequest;
 
 public interface TimeEntryService {
 
-    List<TimeEntry> getAllTimeEntries();
+    List<TimeEntry> listTimeEntries();
 
     TimeEntry getTimeEntry(long timeEntryId);
 
