@@ -1,5 +1,12 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.PROJECTS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.TASKS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createClient;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createProject;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createTask;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createUser;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +17,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @Transactional
 public class ProjectControllerIntegrationTests {
-    private static final String PROJECTS_PATH = "/api/v1/projects";
-    private static final String USERS_PATH = "/api/v1/users";
-    private static final String CLIENTS_PATH = "/api/v1/clients";
     private final MockMvc mockMvc;
 
     @Autowired
@@ -30,10 +34,16 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatCreateProjectReturnsValidProject() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
+                .content("""
+                        {
+                            "name": "MyProject",
+                            "userId": 1,
+                            "isPrivate": false
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
@@ -44,10 +54,16 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatCreateProjectReturnsHttp201Created() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
+                .content("""
+                        {
+                            "name": "MyProject",
+                            "userId": 1,
+                            "isPrivate": false
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -61,7 +77,7 @@ public class ProjectControllerIntegrationTests {
                     "isPrivate": false
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -75,7 +91,7 @@ public class ProjectControllerIntegrationTests {
                     "isPrivate": false
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -89,7 +105,7 @@ public class ProjectControllerIntegrationTests {
                     "isPrivate": false
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -104,7 +120,7 @@ public class ProjectControllerIntegrationTests {
                     "isPrivate": false
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -118,7 +134,7 @@ public class ProjectControllerIntegrationTests {
                     "userId": 1
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -126,7 +142,7 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatCreateProjectWithUnexistentClientIdReturnsHttp400BadRequest() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         final String json = """
                 {
@@ -136,7 +152,7 @@ public class ProjectControllerIntegrationTests {
                     "clientId": 9999
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
+        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -144,23 +160,25 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatListProjectsReturnsNotEmptyList() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        createProject(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
     }
 
     @Test
     public void testThatListProjectsReturnsEmptyList() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
     }
 
     @Test
     public void testThatGetProjectReturnsValidProject() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + projectId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
@@ -170,15 +188,16 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatGetUnexistentProjectReturnsHttp400BadRequest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH + "/9999"))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/9999"))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     @Test
     public void testThatPatchProjectReturnsValidProject() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + projectId)
                 .content(generatePatchProjectJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -190,10 +209,11 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatPatchProjectChangesProjectName() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
         final String json = generatePatchProjectJson();
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + projectId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewProjectName"));
@@ -201,14 +221,15 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatPatchProjectWithIsPrivate() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
         final String json = """
                 {
                     "isPrivate": true
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + projectId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.isPrivate").value(true));
@@ -216,29 +237,32 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatPatchProjectWithClientId() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
+        long projectId = createProject(mockMvc, userId);
         final String json = """
                 {
-                    "clientId": 1
+                    "clientId": %d
                 }
-                    """;
+                    """.formatted(clientId);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + projectId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.clientId").value(1));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.clientId").value(clientId));
     }
 
     @Test
     public void testThatPatchProjectWithEmptyNameReturnsHttp400BadRequest() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
         final String json = """
                 {
                     "name": ""
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + projectId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -246,7 +270,7 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatPatchUnexistentProjectReturnsHttp400BadRequest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/1")
                 .content(generatePatchProjectJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -254,64 +278,37 @@ public class ProjectControllerIntegrationTests {
 
     @Test
     public void testThatDeleteProjectReturnsEmptyList() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(PROJECTS_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/" + projectId));
 
-        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
     }
 
     @Test
     public void testThatDeleteProjectReturnsHttp204NoContent() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(PROJECTS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/" + projectId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
-    private void createMockUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content("""
-                        {
-                            "name": "MockUser"
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
-    }
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteProjectCascadesIntoTask() throws Exception {
+        final long userId = createUser(mockMvc);
+        final long projectId = createProject(mockMvc, userId);
+        final long taskId = createTask(mockMvc, userId, projectId);
 
-    private void createMockClient() throws Exception {
-        createMockUser();
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + taskId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.projectId").value(projectId));
 
-        mockMvc.perform(MockMvcRequestBuilders.post(CLIENTS_PATH)
-                .content("""
-                        {
-                            "name": "MyClient",
-                            "userId": 1,
-                            "hourlyRate": 25.0
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        createMockProject();
-    }
-
-    private void createMockProject() throws Exception {
-        createMockUser();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private String generateCreateProjectJson() {
-        return """
-                {
-                    "name": "MyProject",
-                    "userId": 1,
-                    "isPrivate": false
-                }
-                    """;
+        mockMvc.perform(MockMvcRequestBuilders.delete(PROJECTS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + taskId))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     private String generatePatchProjectJson() {

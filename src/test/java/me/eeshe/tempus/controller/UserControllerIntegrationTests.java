@@ -1,5 +1,18 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.CLIENTS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.GROUPS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.PROJECTS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.TASKS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.TIME_ENTRIES_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.USERS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createClient;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createGroup;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createProject;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createTask;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createTimeEntry;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createUser;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,26 +23,29 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @Transactional
 public class UserControllerIntegrationTests {
-    private static final String USERS_PATH = "/api/v1/users";
     private final MockMvc mockMvc;
 
     @Autowired
-    public UserControllerIntegrationTests(MockMvc mockMvc) {
+    public UserControllerIntegrationTests(final MockMvc mockMvc) {
         this.mockMvc = mockMvc;
     }
 
     @Test
     public void testThatCreateUserReturnsValidUser() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content(generateCreateUserJson())
+                .content("""
+                        {
+                            "name": "MyUser"
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
@@ -40,7 +56,11 @@ public class UserControllerIntegrationTests {
     @Test
     public void testThatCreateUserReturnsHttp201Created() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content(generateCreateUserJson())
+                .content("""
+                        {
+                            "name": "MyUser"
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -70,7 +90,7 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatListUsersReturnsNotEmptyList() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
@@ -84,9 +104,9 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatGetUserReturnsValidUser() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/" + userId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty())
@@ -101,9 +121,9 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatUpdateUserReturnsValidUser() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/" + userId)
                 .content(generateUpdateUserJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -114,10 +134,10 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatUpdateUserChangesUserName() throws Exception {
-        createMockUser(); // Creates user with name MyUser
+        final long userId = createUser(mockMvc); // Creates user with name MyUser
         final String json = generateUpdateUserJson(); // JSON contains name change to MyNewUserName
 
-        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/" + userId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewUserName"));
@@ -162,7 +182,7 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatUpdateUserWithUnexistentGroupIdReturnsHttp400BadRequest() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
         final String json = """
                 {
@@ -170,7 +190,7 @@ public class UserControllerIntegrationTests {
                     "groupIds": [1]
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/" + userId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -188,9 +208,9 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatPatchUserReturnsValidUser() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
                 .content(generatePatchUserJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -201,10 +221,10 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatPatchUserChangesUserName() throws Exception {
-        createMockUser(); // Creates user with name MyUser
+        final long userId = createUser(mockMvc); // Creates user with name MyUser
         final String json = generatePatchUserJson(); // JSON contains name change to MyNewUserName
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewUserName"));
@@ -212,14 +232,14 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatPatchUserWithGroupIds() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
         final String json = """
                 {
                     "groupIds": []
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty());
@@ -227,14 +247,14 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatPatchUserWithEmptyNameReturnsHttp400BadRequest() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
         final String json = """
                 {
                     "name": ""
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -250,9 +270,9 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatDeleteUserReturnsEmptyList() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
@@ -260,24 +280,91 @@ public class UserControllerIntegrationTests {
 
     @Test
     public void testThatDeleteUserReturnsHttp204NoContent() throws Exception {
-        createMockUser();
+        final long userId = createUser(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
-    private void createMockUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content(generateCreateUserJson())
-                .contentType(MediaType.APPLICATION_JSON));
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteUserCascadesIntoGroup() throws Exception {
+        final long groupId = createGroup(mockMvc);
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
+
+        final long userId = createUser(mockMvc);
+        final String patchGroupJson = """
+                {
+                    "userIds": [%s]
+                }
+                    """.formatted(userId);
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
+                .content(patchGroupJson)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isNotEmpty());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
     }
 
-    private String generateCreateUserJson() {
-        return """
-                {
-                    "name": "MyUser"
-                }
-                    """;
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteUserCascadesIntoClient() throws Exception {
+        final long userId = createUser(mockMvc);
+        final long clientId = createClient(mockMvc, userId);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH + "/" + clientId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(userId));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH + "/" + clientId))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteUserCascadesIntoProject() throws Exception {
+        final long userId = createUser(mockMvc);
+        final long projectId = createProject(mockMvc, userId);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH + "/" + projectId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(userId));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(PROJECTS_PATH + "/" + projectId))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteUserCascadesIntoTask() throws Exception {
+        final long userId = createUser(mockMvc);
+        final long projectId = createProject(mockMvc, userId);
+        final long taskId = createTask(mockMvc, userId, projectId);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + taskId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(userId));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + taskId))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteUserCascadesIntoTimeEntries() throws Exception {
+        final long userId = createUser(mockMvc);
+        final long projectId = createProject(mockMvc, userId);
+        final long timeEntryId = createTimeEntry(mockMvc, userId, projectId, false);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH + "/" + timeEntryId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(userId));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
+        mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH + "/" + timeEntryId))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
     private String generateUpdateUserJson() {

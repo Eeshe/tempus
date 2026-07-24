@@ -1,5 +1,10 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.GROUPS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.USERS_PATH;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createGroup;
+import static me.eeshe.tempus.testutil.TestEntityFactory.createUser;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,26 +15,29 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @Transactional
 public class GroupControllerIntegrationTests {
-    private static final String GROUPS_PATH = "/api/v1/groups";
     private final MockMvc mockMvc;
 
     @Autowired
-    public GroupControllerIntegrationTests(MockMvc mockMvc) {
+    public GroupControllerIntegrationTests(final MockMvc mockMvc) {
         this.mockMvc = mockMvc;
     }
 
     @Test
     public void testThatCreateGroupReturnsValidGroup() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .content(generateCreateGroupJson())
+                .content("""
+                        {
+                            "name": "MyGroup"
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
@@ -40,7 +48,11 @@ public class GroupControllerIntegrationTests {
     @Test
     public void testThatCreateGroupReturnsHttp201Created() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .content(generateCreateGroupJson())
+                .content("""
+                        {
+                            "name": "MyGroup"
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -70,7 +82,7 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatListGroupsReturnsNotEmptyList() throws Exception {
-        createMockGroup();
+        createGroup(mockMvc);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
@@ -84,9 +96,9 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatGetGroupReturnsValidGroup() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty())
@@ -101,9 +113,9 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatUpdateGroupReturnsValidGroup() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/" + groupId)
                 .content(generateUpdateGroupJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -113,10 +125,10 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatUpdateGroupChangesGroupName() throws Exception {
-        createMockGroup(); // Creates group with name MyGroup
+        final long groupId = createGroup(mockMvc); // Creates group with name MyGroup
         final String json = generateUpdateGroupJson(); // JSON contains name change to MyNewGroupName
 
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewGroupName"));
@@ -146,14 +158,14 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatUpdateGroupWithNullUserIdsReturnsHttp400BadRequest() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
         final String json = """
                 {
                     "name": "MyGroup",
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -161,7 +173,7 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatUpdateGroupWithUnexistentUserIdReturnsHttp400BadRequest() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
         final String json = """
                 {
@@ -169,7 +181,7 @@ public class GroupControllerIntegrationTests {
                     "userIds": [1]
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.put(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -187,9 +199,9 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatPatchGroupReturnsValidGroup() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
                 .content(generatePatchGroupJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -199,10 +211,10 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatPatchGroupChangesGroupName() throws Exception {
-        createMockGroup(); // Creates group with name MyNewGroup
+        final long groupId = createGroup(mockMvc); // Creates group with name MyNewGroup
         final String json = generatePatchGroupJson(); // JSON contains name change to MyNewGroupName
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewGroupName"));
@@ -210,14 +222,14 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatPatchGroupWithUserIds() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
         final String json = """
                 {
                     "userIds": []
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
@@ -225,14 +237,14 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatPatchGroupWithEmptyNameReturnsHttp400BadRequest() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
         final String json = """
                 {
                     "name": ""
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -248,9 +260,9 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatDeleteGroupReturnsEmptyList() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/" + groupId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
@@ -258,24 +270,34 @@ public class GroupControllerIntegrationTests {
 
     @Test
     public void testThatDeleteGroupReturnsHttp204NoContent() throws Exception {
-        createMockGroup();
+        final long groupId = createGroup(mockMvc);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/" + groupId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
-    private void createMockGroup() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .content(generateCreateGroupJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testThatDeleteGroupCascadesIntoUser() throws Exception {
+        final long userId = createUser(mockMvc);
+        mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/" + userId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty());
 
-    private String generateCreateGroupJson() {
-        return """
+        final long groupId = createGroup(mockMvc);
+        final String patchUserJson = """
                 {
-                    "name": "MyGroup"
+                    "groupIds": [%s]
                 }
-                    """;
+                    """.formatted(groupId);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
+                .content(patchUserJson)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isNotEmpty());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(GROUPS_PATH + "/" + groupId));
+        mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/" + groupId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty());
     }
 
     private String generateUpdateGroupJson() {

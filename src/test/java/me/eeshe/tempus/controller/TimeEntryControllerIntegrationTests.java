@@ -1,5 +1,7 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,6 @@ import jakarta.transaction.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 public class TimeEntryControllerIntegrationTests {
-    private static final String TIME_ENTRIES_PATH = "/api/v1/time-entries";
-    private static final String USERS_PATH = "/api/v1/users";
-    private static final String PROJECTS_PATH = "/api/v1/projects";
-    private static final String GROUPS_PATH = "/api/v1/groups";
     private final MockMvc mockMvc;
 
     @Autowired
@@ -31,10 +29,17 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatCreateTimeEntryReturnsValidTimeEntry() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
         mockMvc.perform(MockMvcRequestBuilders.post(TIME_ENTRIES_PATH)
-                .content(generateCreateTimeEntryJson())
+                .content("""
+                        {
+                            "userId": %d,
+                            "projectId": %d,
+                            "isBillable": true
+                        }
+                        """.formatted(userId, projectId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
@@ -45,10 +50,17 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatCreateTimeEntryReturnsHttp201Created() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
         mockMvc.perform(MockMvcRequestBuilders.post(TIME_ENTRIES_PATH)
-                .content(generateCreateTimeEntryJson())
+                .content("""
+                        {
+                            "userId": %d,
+                            "projectId": %d,
+                            "isBillable": true
+                        }
+                        """.formatted(userId, projectId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -112,7 +124,7 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatCreateTimeEntryWithUnexistentProjectIdReturnsHttp400BadRequest() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         final String json = """
                 {
@@ -129,7 +141,8 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatCreateTimeEntryWithUnexistentGroupIdReturnsHttp400BadRequest() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        createProject(mockMvc, userId);
 
         final String json = """
                 {
@@ -147,7 +160,8 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatCreateTimeEntryWithUnexistentTaskIdReturnsHttp400BadRequest() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        createProject(mockMvc, userId);
 
         final String json = """
                 {
@@ -165,7 +179,9 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatListTimeEntriesReturnsNotEmptyList() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        createTimeEntry(mockMvc, userId, projectId, true);
 
         mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
@@ -179,9 +195,11 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatGetTimeEntryReturnsValidTimeEntry() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH + "/" + timeEntryId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.projectId").isNumber())
@@ -197,9 +215,11 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatPatchTimeEntryReturnsValidTimeEntry() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(generatePatchTimeEntryJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -211,11 +231,13 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatPatchTimeEntryChangesDescription() throws Exception {
-        createMockTimeEntry(); // Creates time entry with no description
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
-        final String json = generatePatchTimeEntryJson(); // JSON contains description change to NewDescription
+        final String json = generatePatchTimeEntryJson();
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("NewDescription"));
@@ -223,16 +245,18 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatPatchTimeEntryChangesIsBillable() throws Exception {
-        createMockTimeEntry(); // Creates time entry with isBillable true
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
         final String json = """
                 {
-                    "projectId": 1,
+                    "projectId": %d,
                     "taskId": null,
                     "isBillable": false
                 }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+                    """.formatted(projectId);
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.isBillable").value(false));
@@ -240,33 +264,30 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatPatchTimeEntryWithGroupId() throws Exception {
-        createMockTimeEntry();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(GROUPS_PATH)
-                .content("""
-                        {
-                            "name": "MyGroup"
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
+        long groupId = createGroup(mockMvc);
 
         final String json = """
                 {
-                    "groupId": 1,
-                    "projectId": 1,
+                    "groupId": %d,
+                    "projectId": %d,
                     "taskId": null,
                     "isBillable": true
                 }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+                    """.formatted(groupId, projectId);
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupId").value(1));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.groupId").value(groupId));
     }
 
     @Test
     public void testThatPatchTimeEntryWithNullProjectIdReturnsHttp400BadRequest() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
         final String json = """
                 {
@@ -275,7 +296,7 @@ public class TimeEntryControllerIntegrationTests {
                     "isBillable": true
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -283,16 +304,18 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatPatchTimeEntryWithNullIsBillableReturnsHttp400BadRequest() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
         final String json = """
                 {
-                    "projectId": 1,
+                    "projectId": %d,
                     "taskId": null,
                     "isBillable": null
                 }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/1")
+                    """.formatted(projectId);
+        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -308,9 +331,11 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatDeleteTimeEntryReturnsEmptyList() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(TIME_ENTRIES_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(TIME_ENTRIES_PATH + "/" + timeEntryId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(TIME_ENTRIES_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
@@ -318,56 +343,12 @@ public class TimeEntryControllerIntegrationTests {
 
     @Test
     public void testThatDeleteTimeEntryReturnsHttp204NoContent() throws Exception {
-        createMockTimeEntry();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(TIME_ENTRIES_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(TIME_ENTRIES_PATH + "/" + timeEntryId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-    }
-
-    private void createMockUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content("""
-                        {
-                            "name": "MockUser"
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private void createMockProject() throws Exception {
-        createMockUser();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private void createMockTimeEntry() throws Exception {
-        createMockProject();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(TIME_ENTRIES_PATH)
-                .content(generateCreateTimeEntryJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private String generateCreateTimeEntryJson() {
-        return """
-                {
-                    "userId": 1,
-                    "projectId": 1,
-                    "isBillable": true
-                }
-                    """;
-    }
-
-    private String generateCreateProjectJson() {
-        return """
-                {
-                    "name": "MyProject",
-                    "userId": 1,
-                    "isPrivate": false
-                }
-                    """;
     }
 
     private String generatePatchTimeEntryJson() {

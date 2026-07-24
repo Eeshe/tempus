@@ -1,5 +1,7 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +20,6 @@ import jakarta.transaction.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 public class ClientControllerIntegrationTests {
-    private static final String CLIENTS_PATH = "/api/v1/clients";
-    private static final String USERS_PATH = "/api/v1/users";
     private final MockMvc mockMvc;
 
     @Autowired
@@ -29,10 +29,16 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatCreateClientReturnsValidClient() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         mockMvc.perform(MockMvcRequestBuilders.post(CLIENTS_PATH)
-                .content(generateCreateClientJson())
+                .content("""
+                        {
+                            "name": "MyClient",
+                            "userId": 1,
+                            "hourlyRate": 25.0
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
@@ -43,10 +49,16 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatCreateClientReturnsHttp201Created() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         mockMvc.perform(MockMvcRequestBuilders.post(CLIENTS_PATH)
-                .content(generateCreateClientJson())
+                .content("""
+                        {
+                            "name": "MyClient",
+                            "userId": 1,
+                            "hourlyRate": 25.0
+                        }
+                        """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -122,7 +134,8 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatListClientsReturnsNotEmptyList() throws Exception {
-        createMockClient();
+        createUser(mockMvc);
+        createClient(mockMvc, 1);
 
         mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
@@ -136,9 +149,10 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatGetClientReturnsValidClient() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH + "/" + clientId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
@@ -154,9 +168,10 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatPatchClientReturnsValidClient() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/" + clientId)
                 .content(generatePatchClientJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -168,10 +183,11 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatPatchClientChangesClientName() throws Exception {
-        createMockClient(); // Creates client with name MyClient
+        long userId = createUser(mockMvc); // Creates user with name MockUser
+        long clientId = createClient(mockMvc, userId); // Creates client with name MyClient
         final String json = generatePatchClientJson(); // JSON contains name change to MyNewClientName
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/" + clientId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewClientName"));
@@ -179,14 +195,15 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatPatchClientWithEmptyNameReturnsHttp400BadRequest() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
         final String json = """
                 {
                     "name": ""
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/" + clientId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -194,14 +211,15 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatPatchClientWithNegativeHourlyRateReturnsHttp400BadRequest() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
         final String json = """
                 {
                     "hourlyRate": -1
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/" + clientId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -209,14 +227,15 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatPatchClientWithHourlyRate() throws Exception {
-        createMockClient(); // Creates client with hourlyRate 25.0
+        long userId = createUser(mockMvc); // Creates user with name MockUser
+        long clientId = createClient(mockMvc, userId); // Creates client with hourlyRate 25.0
 
         final String json = """
                 {
                     "hourlyRate": 50.0
                 }
                     """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(CLIENTS_PATH + "/" + clientId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.hourlyRate").value(50.0));
@@ -232,9 +251,10 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatDeleteClientReturnsEmptyList() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(CLIENTS_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(CLIENTS_PATH + "/" + clientId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(CLIENTS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
@@ -242,38 +262,11 @@ public class ClientControllerIntegrationTests {
 
     @Test
     public void testThatDeleteClientReturnsHttp204NoContent() throws Exception {
-        createMockClient();
+        long userId = createUser(mockMvc);
+        long clientId = createClient(mockMvc, userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(CLIENTS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(CLIENTS_PATH + "/" + clientId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-    }
-
-    private void createMockUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content("""
-                        {
-                            "name": "MockUser"
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private void createMockClient() throws Exception {
-        createMockUser();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(CLIENTS_PATH)
-                .content(generateCreateClientJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private String generateCreateClientJson() {
-        return """
-                {
-                    "name": "MyClient",
-                    "userId": 1,
-                    "hourlyRate": 25.0
-                }
-                    """;
     }
 
     private String generatePatchClientJson() {

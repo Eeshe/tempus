@@ -1,5 +1,7 @@
 package me.eeshe.tempus.controller;
 
+import static me.eeshe.tempus.testutil.TestEntityFactory.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +20,6 @@ import jakarta.transaction.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 public class TaskControllerIntegrationTests {
-    private static final String TASKS_PATH = "/api/v1/tasks";
-    private static final String USERS_PATH = "/api/v1/users";
-    private static final String PROJECTS_PATH = "/api/v1/projects";
     private final MockMvc mockMvc;
 
     @Autowired
@@ -30,10 +29,17 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatCreateTaskReturnsValidTask() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
         mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
-                .content(generateCreateTaskJson())
+                .content("""
+                        {
+                            "name": "MyTask",
+                            "userId": %d,
+                            "projectId": %d
+                        }
+                        """.formatted(userId, projectId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
@@ -44,10 +50,17 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatCreateTaskReturnsHttp201Created() throws Exception {
-        createMockProject();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
 
         mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
-                .content(generateCreateTaskJson())
+                .content("""
+                        {
+                            "name": "MyTask",
+                            "userId": %d,
+                            "projectId": %d
+                        }
+                        """.formatted(userId, projectId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
@@ -126,7 +139,7 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatCreateTaskWithUnexistentProjectIdReturnsHttp400BadRequest() throws Exception {
-        createMockUser();
+        createUser(mockMvc);
 
         final String json = """
                 {
@@ -143,7 +156,9 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatListTasksReturnsNotEmptyList() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        createTask(mockMvc, userId, projectId);
 
         mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty());
@@ -157,9 +172,11 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatGetTaskReturnsValidTask() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long taskId = createTask(mockMvc, userId, projectId);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH + "/" + taskId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
@@ -175,9 +192,11 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatPatchTaskReturnsValidTask() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long taskId = createTask(mockMvc, userId, projectId);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + taskId)
                 .content(generatePatchTaskJson())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
@@ -189,10 +208,12 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatPatchTaskChangesTaskName() throws Exception {
-        createMockTask(); // Creates task with name MyTask
+        long userId = createUser(mockMvc); // Creates user with name MockUser
+        long projectId = createProject(mockMvc, userId); // Creates project with name MyProject
+        long taskId = createTask(mockMvc, userId, projectId); // Creates task with name MyTask
         final String json = generatePatchTaskJson(); // JSON contains name change to MyNewTaskName
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + taskId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewTaskName"));
@@ -200,14 +221,16 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatPatchTaskWithEmptyNameReturnsHttp400BadRequest() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long taskId = createTask(mockMvc, userId, projectId);
         final String json = """
                 {
                     "name": ""
                 }
                     """;
 
-        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/1")
+        mockMvc.perform(MockMvcRequestBuilders.patch(TASKS_PATH + "/" + taskId)
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -223,9 +246,11 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatDeleteTaskReturnsEmptyList() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long taskId = createTask(mockMvc, userId, projectId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/1"));
+        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/" + taskId));
 
         mockMvc.perform(MockMvcRequestBuilders.get(TASKS_PATH))
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
@@ -233,66 +258,18 @@ public class TaskControllerIntegrationTests {
 
     @Test
     public void testThatDeleteTaskReturnsHttp204NoContent() throws Exception {
-        createMockTask();
+        long userId = createUser(mockMvc);
+        long projectId = createProject(mockMvc, userId);
+        long taskId = createTask(mockMvc, userId, projectId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete(TASKS_PATH + "/" + taskId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-    }
-
-    private void createMockProject() throws Exception {
-        createMockUser();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private void createMockUser() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
-                .content("""
-                        {
-                            "name": "MockUser"
-                        }
-                        """)
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private void createMockTask() throws Exception {
-        createMockUser();
-
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(generateCreateProjectJson())
-                .contentType(MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(MockMvcRequestBuilders.post(TASKS_PATH)
-                .content(generateCreateTaskJson())
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-
-    private String generateCreateTaskJson() {
-        return """
-                {
-                    "name": "MyTask",
-                    "userId": 1,
-                    "projectId": 1
-                }
-                    """;
     }
 
     private String generatePatchTaskJson() {
         return """
                 {
                     "name": "MyNewTaskName"
-                }
-                    """;
-    }
-
-    private String generateCreateProjectJson() {
-        return """
-                {
-                    "name": "MyProject",
-                    "userId": 1,
-                    "isPrivate": false
                 }
                     """;
     }
