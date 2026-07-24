@@ -21,7 +21,7 @@ public class TimeEntry {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "group_id", nullable = false, updatable = false)
+    @JoinColumn(name = "group_id")
     private Group group;
 
     @ManyToOne
@@ -77,6 +77,14 @@ public class TimeEntry {
 
     public Group getGroup() {
         return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public Long getGroupId() {
+        return group != null ? group.getId() : null;
     }
 
     public User getUser() {

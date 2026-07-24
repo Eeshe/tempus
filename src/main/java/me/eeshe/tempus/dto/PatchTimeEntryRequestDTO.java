@@ -5,6 +5,7 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import jakarta.validation.constraints.NotNull;
 
 public record PatchTimeEntryRequestDTO(
+        JsonNullable<Long> groupId,
         @NotNull(message = ERROR_MESSAGE_NULL_PROJECT) JsonNullable<Long> projectId,
         @NotNull(message = ERROR_MESSAGE_NULL_TASK) JsonNullable<Long> taskId,
         JsonNullable<String> description,

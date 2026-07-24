@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record TimeEntryDTO(
         long id,
-        long groupId,
+        Long groupId,
         long userId,
         long projectId,
         Long taskId,

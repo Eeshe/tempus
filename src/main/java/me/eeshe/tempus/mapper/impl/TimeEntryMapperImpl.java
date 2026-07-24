@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
+import me.eeshe.tempus.entity.Group;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
@@ -34,7 +35,7 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     public TimeEntryDTO toDTO(TimeEntry timeEntry) {
         return new TimeEntryDTO(
                 timeEntry.getId(),
-                timeEntry.getGroup().getId(),
+                timeEntry.getGroupId(),
                 timeEntry.getUser().getId(),
                 timeEntry.getProject().getId(),
                 timeEntry.getTaskId(),
@@ -46,7 +47,7 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     @Override
     public CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO) {
         return new CreateTimeEntryRequest(
-                groupService.getGroup(createTimeEntryRequestDTO.groupId()),
+                resolveGroup(createTimeEntryRequestDTO.groupId()),
                 userService.getUser(createTimeEntryRequestDTO.userId()),
                 projectService.getProject(createTimeEntryRequestDTO.projectId()),
                 resolveTask(createTimeEntryRequestDTO.taskId()),
@@ -57,10 +58,15 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     @Override
     public PatchTimeEntryRequest fromDTO(PatchTimeEntryRequestDTO patchTimeEntryRequestDTO) {
         return new PatchTimeEntryRequest(
+                patchTimeEntryRequestDTO.groupId().map(this::resolveGroup),
                 patchTimeEntryRequestDTO.projectId().map(projectService::getProject),
                 patchTimeEntryRequestDTO.taskId().map(this::resolveTask),
                 patchTimeEntryRequestDTO.description(),
                 patchTimeEntryRequestDTO.isBillable());
+    }
+
+    private Group resolveGroup(final Long groupId) {
+        return groupId != null ? groupService.getGroup(groupId) : null;
     }
 
     private Task resolveTask(final Long taskId) {

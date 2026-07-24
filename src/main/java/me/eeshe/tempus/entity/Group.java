@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,7 +32,7 @@ public class Group {
     @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "group")
     private Set<TimeEntry> timeEntries = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
@@ -70,6 +69,10 @@ public class Group {
     public void setUsers(Collection<User> users) {
         this.users.clear();
         this.users.addAll(users);
+    }
+
+    public Set<TimeEntry> getTimeEntries() {
+        return timeEntries;
     }
 
     public LocalDateTime getCreatedAt() {

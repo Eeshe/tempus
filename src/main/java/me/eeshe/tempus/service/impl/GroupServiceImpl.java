@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Group;
+import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.GroupNotFoundException;
 import me.eeshe.tempus.repository.GroupRepository;
 import me.eeshe.tempus.request.CreateGroupRequest;
@@ -59,6 +60,10 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void deleteGroup(long groupId) {
+        final Group group = getGroup(groupId);
+        for (TimeEntry timeEntry : group.getTimeEntries()) {
+            timeEntry.setGroup(null);
+        }
         groupRepository.deleteById(groupId);
     }
 }

@@ -44,6 +44,7 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     public TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
         final TimeEntry timeEntry = getTimeEntry(timeEntryId);
 
+        patchTimeEntryRequest.group().ifPresent(timeEntry::setGroup);
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
         patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);

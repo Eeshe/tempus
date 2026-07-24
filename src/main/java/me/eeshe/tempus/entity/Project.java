@@ -39,6 +39,9 @@ public class Project {
     private Client client;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
+    private Set<Task> tasks = new HashSet<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
     private Set<TimeEntry> timeEntries = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
