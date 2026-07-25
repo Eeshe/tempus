@@ -15,14 +15,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@Transactional
-public class GroupControllerIntegrationTests {
+
+public class GroupControllerIntegrationTests extends BaseControllerTest {
     private final MockMvc mockMvc;
 
     @Autowired
@@ -277,7 +275,6 @@ public class GroupControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteGroupCascadesIntoUser() throws Exception {
         final long userId = createUser(mockMvc);
         mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/" + userId))

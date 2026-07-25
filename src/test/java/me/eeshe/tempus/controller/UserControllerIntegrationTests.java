@@ -23,14 +23,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@Transactional
-public class UserControllerIntegrationTests {
+public class UserControllerIntegrationTests extends BaseControllerTest {
     private final MockMvc mockMvc;
 
     @Autowired
@@ -287,7 +284,6 @@ public class UserControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteUserCascadesIntoGroup() throws Exception {
         final long groupId = createGroup(mockMvc);
         mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
@@ -310,7 +306,6 @@ public class UserControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteUserCascadesIntoClient() throws Exception {
         final long userId = createUser(mockMvc);
         final long clientId = createClient(mockMvc, userId);
@@ -324,7 +319,6 @@ public class UserControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteUserCascadesIntoProject() throws Exception {
         final long userId = createUser(mockMvc);
         final long projectId = createProject(mockMvc, userId);
@@ -338,7 +332,6 @@ public class UserControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteUserCascadesIntoTask() throws Exception {
         final long userId = createUser(mockMvc);
         final long projectId = createProject(mockMvc, userId);
@@ -353,7 +346,6 @@ public class UserControllerIntegrationTests {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void testThatDeleteUserCascadesIntoTimeEntries() throws Exception {
         final long userId = createUser(mockMvc);
         final long projectId = createProject(mockMvc, userId);
