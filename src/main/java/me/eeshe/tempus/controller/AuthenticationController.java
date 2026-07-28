@@ -24,7 +24,10 @@ public class AuthenticationController {
 
     @PostMapping
     public ResponseEntity<AuthenticationResponseDTO> authenticate(@RequestBody LoginRequestDTO loginRequestDTO) {
-        final UserDetails userDetails = authenticationService.authenticate(loginRequestDTO.username(), null);
+        final UserDetails userDetails = authenticationService.authenticate(
+                loginRequestDTO.name(),
+                loginRequestDTO.password());
+
         final String token = authenticationService.generateToken(userDetails);
         final AuthenticationResponseDTO authenticationResponseDTO = new AuthenticationResponseDTO(
                 token,

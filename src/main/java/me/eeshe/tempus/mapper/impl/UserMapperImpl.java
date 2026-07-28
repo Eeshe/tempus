@@ -33,7 +33,9 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public CreateUserRequest fromDTO(CreateUserRequestDTO createUserRequestDTO) {
-        return new CreateUserRequest(createUserRequestDTO.name());
+        return new CreateUserRequest(
+                createUserRequestDTO.name(),
+                createUserRequestDTO.password());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.eeshe.tempus.dto;
 
 public record LoginRequestDTO(
-        String username) {
+        String name,
+        String password) {
 }

@@ -16,15 +16,16 @@ public class TestEntityFactory {
     public static final String TIME_ENTRIES_PATH = "/api/v1/time-entries";
 
     public static long createUser(MockMvc mockMvc) throws Exception {
-        return createUser(mockMvc, "MockUser");
+        return createUser(mockMvc, "MockUser", "password");
     }
 
-    public static long createUser(MockMvc mockMvc, String name) throws Exception {
+    public static long createUser(MockMvc mockMvc, String name, String password) throws Exception {
         return postForId(mockMvc, USERS_PATH, """
                 {
-                    "name": "%s"
+                    "name": "%s",
+                    "password": "%s"
                 }
-                """.formatted(name));
+                """.formatted(name, password));
     }
 
     public static long createProject(MockMvc mockMvc, long userId) throws Exception {

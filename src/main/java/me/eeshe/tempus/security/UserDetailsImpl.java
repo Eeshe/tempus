@@ -24,7 +24,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public @Nullable String getPassword() {
-        return null;
+        return user.getPassword();
     }
 
     @Override

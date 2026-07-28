@@ -36,10 +36,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public UserDetails authenticate(String email, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    public UserDetails authenticate(String username, String password) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
-        return userDetailsService.loadUserByUsername(email);
+        return userDetailsService.loadUserByUsername(username);
     }
 
     @Override

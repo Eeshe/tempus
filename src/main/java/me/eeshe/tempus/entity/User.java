@@ -27,6 +27,9 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String password;
+
     @ManyToMany(mappedBy = "users")
     private Set<Group> groups = new HashSet<>();
 
@@ -48,8 +51,9 @@ public class User {
     public User() {
     }
 
-    public User(String name) {
+    public User(String name, String password) {
         this.name = name;
+        this.password = password;
     }
 
     @PrePersist
@@ -71,6 +75,14 @@ public class User {
 
     public void setName(String username) {
         this.name = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Set<Group> getGroups() {
@@ -113,7 +125,6 @@ public class User {
         int result = 1;
         result = prime * result + (int) (id ^ (id >>> 32));
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
         return result;
     }
 
@@ -132,11 +143,6 @@ public class User {
             if (other.name != null)
                 return false;
         } else if (!name.equals(other.name))
-            return false;
-        if (createdAt == null) {
-            if (other.createdAt != null)
-                return false;
-        } else if (!createdAt.equals(other.createdAt))
             return false;
         return true;
     }

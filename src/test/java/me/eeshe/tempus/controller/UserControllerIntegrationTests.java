@@ -40,7 +40,8 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
                 .content("""
                         {
-                            "name": "MyUser"
+                            "name": "MyUser",
+                            "password": "password"
                         }
                         """)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -55,7 +56,8 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post(USERS_PATH)
                 .content("""
                         {
-                            "name": "MyUser"
+                            "name": "MyUser",
+                            "password": "password"
                         }
                         """)
                 .contentType(MediaType.APPLICATION_JSON))
