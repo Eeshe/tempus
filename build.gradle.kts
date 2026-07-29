@@ -23,11 +23,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.hibernate.orm:hibernate-community-dialects")
     implementation("org.openapitools:jackson-databind-nullable:0.2.10")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-    implementation("io.jsonwebtoken:jjwt-impl:0.13.0")
-    implementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
-
 	runtimeOnly("org.xerial:sqlite-jdbc")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -35,7 +30,6 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.openapitools:jackson-databind-nullable:0.2.10")
-    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
