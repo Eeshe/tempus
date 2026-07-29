@@ -33,9 +33,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(CreateUserRequest createUserRequest) {
-        return userRepository.save(new User(
-                createUserRequest.name(),
-                createUserRequest.password()));
+        return userRepository.save(new User(createUserRequest.name()));
     }
 
     @Override
