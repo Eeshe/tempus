@@ -8,5 +8,6 @@ import me.eeshe.tempus.entity.Group;
 
 public record PatchUserRequest(
         String name,
+        String password,
         JsonNullable<List<Group>> groups) {
 }

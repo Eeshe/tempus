@@ -33,13 +33,16 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public CreateUserRequest fromDTO(CreateUserRequestDTO createUserRequestDTO) {
-        return new CreateUserRequest(createUserRequestDTO.name());
+        return new CreateUserRequest(
+                createUserRequestDTO.name(),
+                createUserRequestDTO.password());
     }
 
     @Override
     public UpdateUserRequest fromDTO(UpdateUserRequestDTO updateUserRequestDTO) {
         return new UpdateUserRequest(
                 updateUserRequestDTO.name(),
+                updateUserRequestDTO.password(),
                 updateUserRequestDTO.groupIds().stream().map(groupService::getGroup).toList());
     }
 
@@ -47,6 +50,7 @@ public class UserMapperImpl implements UserMapper {
     public PatchUserRequest fromDTO(PatchUserRequestDTO patchUserRequestDTO) {
         return new PatchUserRequest(
                 patchUserRequestDTO.name(),
+                patchUserRequestDTO.password(),
                 patchUserRequestDTO.groupIds().map(groupIds -> groupIds.stream()
                         .map(groupService::getGroup).toList()));
     }

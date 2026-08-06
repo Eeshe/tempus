@@ -6,5 +6,6 @@ import me.eeshe.tempus.entity.Group;
 
 public record UpdateUserRequest(
         String name,
+        String password,
         List<Group> groups) {
 }

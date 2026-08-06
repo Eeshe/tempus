@@ -24,8 +24,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(nullable = false)
+    private String password;
 
     @ManyToMany(mappedBy = "users")
     private Set<Group> groups = new HashSet<>();
@@ -48,8 +51,9 @@ public class User {
     public User() {
     }
 
-    public User(String name) {
+    public User(String name, String password) {
         this.name = name;
+        this.password = password;
     }
 
     @PrePersist
@@ -71,6 +75,14 @@ public class User {
 
     public void setName(String username) {
         this.name = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Set<Group> getGroups() {

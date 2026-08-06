@@ -33,7 +33,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(CreateUserRequest createUserRequest) {
-        return userRepository.save(new User(createUserRequest.name()));
+        return userRepository.save(new User(
+                createUserRequest.name(),
+                createUserRequest.password()));
     }
 
     @Override
@@ -41,6 +43,7 @@ public class UserServiceImpl implements UserService {
         final User user = getUser(userId);
 
         user.setName(updateUserRequest.name());
+        user.setPassword(updateUserRequest.password());
         user.setGroups(new HashSet<>(updateUserRequest.groups()));
 
         return userRepository.save(user);
@@ -52,6 +55,9 @@ public class UserServiceImpl implements UserService {
 
         if (patchUserRequest.name() != null) {
             user.setName(patchUserRequest.name());
+        }
+        if (patchUserRequest.password() != null) {
+            user.setPassword(patchUserRequest.password());
         }
         patchUserRequest.groups().ifPresent(user::setGroups);
 
