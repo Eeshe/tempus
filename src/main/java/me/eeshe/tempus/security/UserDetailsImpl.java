@@ -1,5 +1,6 @@
 package me.eeshe.tempus.security;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 
@@ -11,10 +12,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import me.eeshe.tempus.entity.User;
 
 public class UserDetailsImpl implements UserDetails {
-    private final User user;
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private final long id;
+    private final String username;
+    private final String password;
 
     public UserDetailsImpl(User user) {
-        this.user = user;
+        this.id = user.getId();
+        this.username = user.getName();
+        this.password = user.getPassword();
     }
 
     @Override
@@ -23,12 +31,12 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     @Override
-    public @Nullable String getPassword() {
-        return user.getPassword();
+    public String getUsername() {
+        return username;
     }
 
     @Override
-    public String getUsername() {
-        return user.getName();
+    public @Nullable String getPassword() {
+        return password;
     }
 }

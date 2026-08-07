@@ -2,10 +2,17 @@ package me.eeshe.tempus.service.impl;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
 import me.eeshe.tempus.repository.UserRepository;
@@ -39,15 +46,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public User loginUser(LoginRequest loginRequest) {
-        authenticationManager.authenticate(
+    public User loginUser(LoginRequest loginRequest, HttpServletRequest request,
+            HttpServletResponse response) {
+        final String username = loginRequest.username();
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.username(),
+                        username,
                         loginRequest.password()));
 
-        final String username = loginRequest.username();
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        new HttpSessionSecurityContextRepository().saveContext(
+                securityContext,
+                request,
+                response);
+
         return userRepository.findByName(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
+    @Override
+    public void logoutUser(HttpServletRequest request, HttpServletResponse response) {
+        new SecurityContextLogoutHandler().logout(
+                request,
+                response,
+                SecurityContextHolder.getContext().getAuthentication());
     }
 
 }

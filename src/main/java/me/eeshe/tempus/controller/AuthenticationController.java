@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.LoginRequestDTO;
 import me.eeshe.tempus.dto.RegisterRequestDTO;
@@ -44,11 +46,26 @@ public class AuthenticationController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<UserDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<UserDTO> login(
+            @Valid @RequestBody LoginRequestDTO loginRequestDTO,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         final LoginRequest loginRequest = authenticationMapper.fromDTO(loginRequestDTO);
-        final User loggedUser = authenticationService.loginUser(loginRequest);
+        final User loggedUser = authenticationService.loginUser(
+                loginRequest,
+                request,
+                response);
         final UserDTO loggedUserDTO = userMapper.toDTO(loggedUser);
 
         return ResponseEntity.ok(loggedUserDTO);
+    }
+
+    @PostMapping(path = "/logout")
+    public ResponseEntity<Void> logout(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        authenticationService.logoutUser(request, response);
+
+        return ResponseEntity.noContent().build();
     }
 }
