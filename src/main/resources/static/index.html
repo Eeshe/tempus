@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Tempus</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <span class="brand">Tempus</span>
+    <a href="index.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="time-entries.html">Time Entries</a>
+    <span class="spacer"></span>
+    <button class="secondary" id="logout-btn">Log out</button>
+  </nav>
+
+  <div class="container">
+    <h1>Time Entries</h1>
+    <div class="status" id="status">Loading time entries...</div>
+    <table id="entries-table" style="display:none;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>Project</th>
+          <th>User</th>
+          <th>Billable</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody id="entries-body"></tbody>
+    </table>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    async function loadEntries() {
+      const statusEl = document.getElementById('status');
+      const table = document.getElementById('entries-table');
+      const body = document.getElementById('entries-body');
+      statusEl.textContent = 'Loading time entries...';
+      table.style.display = 'none';
+
+      try {
+        const entries = await api('/time-entries');
+        body.innerHTML = entries.map(entry => `
+          <tr>
+            <td>${entry.id}</td>
+            <td>${fmtNullable(entry.description)}</td>
+            <td>${entry.projectId}</td>
+            <td>${entry.userId}</td>
+            <td>${fmtBool(entry.isBillable)}</td>
+            <td>${fmtDateTime(entry.startTime)}</td>
+            <td>${fmtDateTime(entry.endTime)}</td>
+          </tr>
+        `).join('');
+
+        statusEl.textContent = entries.length
+          ? 'Loaded ' + entries.length + ' time entr' + (entries.length === 1 ? 'y' : 'ies') + '.'
+          : 'No time entries found.';
+        table.style.display = 'table';
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    loadEntries();
+  </script>
+</body>
+</html>

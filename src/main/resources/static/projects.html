@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects | Tempus</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <span class="brand">Tempus</span>
+    <a href="index.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="time-entries.html">Time Entries</a>
+    <span class="spacer"></span>
+    <button class="secondary" id="logout-btn">Log out</button>
+  </nav>
+
+  <div class="container">
+    <h1>Projects</h1>
+
+    <section>
+      <h2>Create Project</h2>
+      <div class="form-panel">
+        <form id="create-form" class="form-row">
+          <div>
+            <label for="create-name">Name</label>
+            <input type="text" id="create-name" required>
+          </div>
+          <div>
+            <label for="create-user">User</label>
+            <select id="create-user" required></select>
+          </div>
+          <div>
+            <label for="create-client">Client ID (optional)</label>
+            <input type="number" id="create-client">
+          </div>
+          <div>
+            <label for="create-private">Private</label>
+            <input type="checkbox" id="create-private">
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button type="submit">Create</button>
+          </div>
+        </form>
+        <div class="error" id="create-error"></div>
+        <div class="success" id="create-success"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Project List</h2>
+      <div class="status" id="status">Loading projects...</div>
+      <table id="projects-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>User</th>
+            <th>Private</th>
+            <th>Client</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="projects-body"></tbody>
+      </table>
+    </section>
+
+    <section id="patch-section" style="display:none;">
+      <h2>Patch Project</h2>
+      <div class="form-panel">
+        <p class="muted" id="patch-target"></p>
+        <form id="patch-form" class="form-row">
+          <div>
+            <label for="patch-name">Name</label>
+            <input type="text" id="patch-name" placeholder="Leave empty to keep">
+          </div>
+          <div>
+            <label for="patch-client">Client ID</label>
+            <input type="number" id="patch-client" placeholder="Empty = unchanged">
+          </div>
+          <div>
+            <label for="patch-private">Private</label>
+            <input type="checkbox" id="patch-private">
+            <span class="muted">(checked = set to private)</span>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button type="submit">Save</button>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button type="button" class="secondary" id="patch-cancel">Cancel</button>
+          </div>
+        </form>
+        <div class="error" id="patch-error"></div>
+        <div class="success" id="patch-success"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    let users = [];
+    let projects = [];
+    let patchId = null;
+    let patchUsers = [];
+
+    async function renderUsers() {
+      const userOptions = users.map(u =>
+        '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (id ' + u.id + ')</option>'
+      ).join('');
+      document.getElementById('create-user').innerHTML = userOptions;
+    }
+
+    async function renderProjects() {
+      const body = document.getElementById('projects-body');
+      body.innerHTML = projects.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${p.userId}</td>
+          <td>${fmtBool(p.isPrivate)}</td>
+          <td>${fmtNullable(p.clientId)}</td>
+          <td>${fmtDateTime(p.createdAt)}</td>
+          <td><button class="secondary patch-btn" data-id="${p.id}" title="Edit">Patch</button></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('status').textContent = projects.length
+        ? 'Loaded ' + projects.length + ' project(s).'
+        : 'No projects found.';
+      document.getElementById('projects-table').style.display = 'table';
+
+      document.querySelectorAll('.patch-btn').forEach(btn => {
+        btn.addEventListener('click', () => openPatch(Number(btn.dataset.id)));
+      });
+    }
+
+    async function reload() {
+      projects = await loadProjects();
+      renderProjects();
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      document.getElementById('create-error').textContent = '';
+      document.getElementById('create-success').textContent = '';
+
+      const clientId = document.getElementById('create-client').value.trim();
+      const body = {
+        name: document.getElementById('create-name').value.trim(),
+        userId: Number(document.getElementById('create-user').value),
+        isPrivate: document.getElementById('create-private').checked
+      };
+      if (clientId !== '') body.clientId = Number(clientId);
+
+      try {
+        await api('/projects', { method: 'POST', body });
+        document.getElementById('create-success').textContent = 'Project created.';
+        document.getElementById('create-form').reset();
+        await reload();
+      } catch (err) {
+        document.getElementById('create-error').textContent = err.message;
+      }
+    });
+
+    function openPatch(id) {
+      patchId = id;
+      patchCurrent = projects.find(p => p.id === id);
+      document.getElementById('patch-target').textContent =
+        'Updating project: ' + escapeHtml(patchCurrent.name) + ' (id ' + id + ')';
+      document.getElementById('patch-name').value = '';
+      document.getElementById('patch-client').value = '';
+      document.getElementById('patch-private').checked = false;
+      document.getElementById('patch-error').textContent = '';
+      document.getElementById('patch-success').textContent = '';
+      document.getElementById('patch-section').style.display = 'block';
+      document.getElementById('patch-section').scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+
+    document.getElementById('patch-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const errEl = document.getElementById('patch-error');
+      const okEl = document.getElementById('patch-success');
+      errEl.textContent = '';
+      okEl.textContent = '';
+
+      const body = {};
+      const name = document.getElementById('patch-name').value.trim();
+      const clientId = document.getElementById('patch-client').value.trim();
+      const isPrivate = document.getElementById('patch-private').checked;
+
+      if (name !== '') body.name = name;
+      if (clientId !== '') body.clientId = Number(clientId);
+      if (document.getElementById('patch-private').checked !== patchCurrent.isPrivate) {
+        body.isPrivate = isPrivate;
+      }
+
+      try {
+        await api('/projects/' + patchId, { method: 'PATCH', body });
+        okEl.textContent = 'Project updated.';
+        document.getElementById('patch-form').reset();
+        document.getElementById('patch-section').style.display = 'none';
+        await reload();
+      } catch (err) {
+        errEl.textContent = err.message;
+      }
+    });
+
+    document.getElementById('patch-cancel').addEventListener('click', () => {
+      document.getElementById('patch-section').style.display = 'none';
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+
+    (async function init() {
+      try {
+        users = await loadUsers();
+        await renderUsers();
+        await reload();
+      } catch (err) {
+        document.getElementById('status').textContent = err.message;
+      }
+    })();
+  </script>
+</body>
+</html>

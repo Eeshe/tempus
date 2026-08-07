@@ -29,11 +29,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/api/v1/auth/register",
-                        "/api/v1/auth/login",
-                        "/register.html",
-                        "/login.html")
+                        "/api/v1/auth/login")
                 .permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers("/api/v1/**").authenticated()
+                .anyRequest().permitAll())
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(basic -> basic.authenticationEntryPoint(restAuthenticationEntryPoint));
 

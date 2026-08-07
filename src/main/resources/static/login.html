@@ -3,54 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #f5f6fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .card {
-      background: #fff;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
-      width: 100%;
-      max-width: 380px;
-    }
-    h1 { margin: 0 0 1.5rem; font-size: 1.5rem; color: #333; }
-    label { display: block; margin: 1rem 0 .35rem; font-size: .85rem; color: #555; }
-    input {
-      width: 100%;
-      padding: .6rem .75rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    input:focus { outline: none; border-color: #4a6cf7; }
-    button {
-      width: 100%;
-      margin-top: 1.5rem;
-      padding: .7rem;
-      background: #4a6cf7;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    button:hover { background: #3b59d6; }
-    .error { color: #d33; font-size: .85rem; margin-top: 1rem; min-height: 1.2rem; }
-    .link { text-align: center; margin-top: 1rem; font-size: .9rem; color: #777; }
-    .link a { color: #4a6cf7; text-decoration: none; }
-  </style>
+  <title>Login | Tempus</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="auth-body">
   <div class="card">
     <h1>Login</h1>
     <form id="login-form">
@@ -60,44 +16,29 @@
       <label for="password">Password</label>
       <input type="password" id="password" name="password" autocomplete="current-password" required>
 
-      <button type="submit">Log in</button>
+      <button type="submit" class="full">Log in</button>
     </form>
-    <div id="error" class="error"></div>
+    <div class="error" id="error"></div>
     <div class="link">New here? <a href="register.html">Create an account</a></div>
   </div>
 
+  <script src="common.js"></script>
   <script>
     document.getElementById('login-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const errorEl = document.getElementById('error');
       errorEl.textContent = '';
 
-      const payload = {
+      const body = {
         username: document.getElementById('username').value.trim(),
         password: document.getElementById('password').value
       };
 
       try {
-        const res = await fetch('http://localhost:8080/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          let msg = 'Login failed (HTTP ' + res.status + ')';
-          try {
-            const data = await res.json();
-            msg = data.message || data.error || msg;
-          } catch (_) {}
-          errorEl.textContent = msg;
-          return;
-        }
-
-        window.location.href = 'users.html';
+        await api('/auth/login', { method: 'POST', body });
+        window.location.href = 'index.html';
       } catch (err) {
-        errorEl.textContent = 'Network error: ' + err.message;
+        errorEl.textContent = err.message;
       }
     });
   </script>
