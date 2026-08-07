@@ -41,6 +41,8 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
                 timeEntry.getTaskId(),
                 timeEntry.getDescription(),
                 timeEntry.isBillable(),
+                timeEntry.getStartTime(),
+                timeEntry.getEndTime(),
                 timeEntry.getCreatedAt());
     }
 
@@ -52,7 +54,9 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
                 projectService.getProject(createTimeEntryRequestDTO.projectId()),
                 resolveTask(createTimeEntryRequestDTO.taskId()),
                 createTimeEntryRequestDTO.description(),
-                createTimeEntryRequestDTO.isBillable());
+                createTimeEntryRequestDTO.isBillable(),
+                createTimeEntryRequestDTO.startTime(),
+                createTimeEntryRequestDTO.endTime());
     }
 
     @Override
@@ -62,7 +66,9 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
                 patchTimeEntryRequestDTO.projectId().map(projectService::getProject),
                 patchTimeEntryRequestDTO.taskId().map(this::resolveTask),
                 patchTimeEntryRequestDTO.description(),
-                patchTimeEntryRequestDTO.isBillable());
+                patchTimeEntryRequestDTO.isBillable(),
+                patchTimeEntryRequestDTO.startTime(),
+                patchTimeEntryRequestDTO.endTime());
     }
 
     private Group resolveGroup(final Long groupId) {

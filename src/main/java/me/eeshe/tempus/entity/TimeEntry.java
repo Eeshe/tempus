@@ -41,6 +41,11 @@ public class TimeEntry {
     @Column(nullable = false)
     private boolean isBillable;
 
+    @Column(nullable = false)
+    private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -53,13 +58,17 @@ public class TimeEntry {
             Project project,
             Task task,
             String description,
-            boolean isBillable) {
+            boolean isBillable,
+            LocalDateTime startTime,
+            LocalDateTime endTime) {
         this.group = group;
         this.user = user;
         this.project = project;
         this.task = task;
         this.description = description;
         this.isBillable = isBillable;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     @PrePersist
@@ -125,6 +134,22 @@ public class TimeEntry {
 
     public void setBillable(boolean isBillable) {
         this.isBillable = isBillable;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     public LocalDateTime getCreatedAt() {

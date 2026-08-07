@@ -1,5 +1,7 @@
 package me.eeshe.tempus.request;
 
+import java.time.LocalDateTime;
+
 import me.eeshe.tempus.entity.Group;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
@@ -11,5 +13,7 @@ public record CreateTimeEntryRequest(
         Project project,
         Task task,
         String description,
-        boolean isBillable) {
+        boolean isBillable,
+        LocalDateTime startTime,
+        LocalDateTime endTime) {
 }

@@ -37,7 +37,9 @@ public class TimeEntryServiceImpl implements TimeEntryService {
                 createTimeEntryRequest.project(),
                 createTimeEntryRequest.task(),
                 createTimeEntryRequest.description(),
-                createTimeEntryRequest.isBillable()));
+                createTimeEntryRequest.isBillable(),
+                createTimeEntryRequest.startTime(),
+                createTimeEntryRequest.endTime()));
     }
 
     @Override
@@ -49,6 +51,8 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
         patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);
         patchTimeEntryRequest.isBillable().ifPresent(timeEntry::setBillable);
+        patchTimeEntryRequest.startTime().ifPresent(timeEntry::setStartTime);
+        patchTimeEntryRequest.endTime().ifPresent(timeEntry::setEndTime);
 
         return timeEntryRepository.save(timeEntry);
     }

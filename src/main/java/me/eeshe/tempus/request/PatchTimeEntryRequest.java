@@ -1,5 +1,7 @@
 package me.eeshe.tempus.request;
 
+import java.time.LocalDateTime;
+
 import org.openapitools.jackson.nullable.JsonNullable;
 
 import me.eeshe.tempus.entity.Group;
@@ -11,5 +13,7 @@ public record PatchTimeEntryRequest(
         JsonNullable<Project> project,
         JsonNullable<Task> task,
         JsonNullable<String> description,
-        JsonNullable<Boolean> isBillable) {
+        JsonNullable<Boolean> isBillable,
+        JsonNullable<LocalDateTime> startTime,
+        JsonNullable<LocalDateTime> endTime) {
 }

@@ -10,5 +10,7 @@ public record TimeEntryDTO(
         Long taskId,
         String description,
         boolean isBillable,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
         LocalDateTime createdAt) {
 }
