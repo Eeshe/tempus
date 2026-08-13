@@ -30,6 +30,10 @@ public class UserDetailsImpl implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
+    public long getId() {
+        return id;
+    }
+
     @Override
     public String getUsername() {
         return username;
