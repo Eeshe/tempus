@@ -6,6 +6,7 @@ import me.eeshe.tempus.dto.CreateTaskRequestDTO;
 import me.eeshe.tempus.dto.PatchTaskRequestDTO;
 import me.eeshe.tempus.dto.TaskDTO;
 import me.eeshe.tempus.entity.Task;
+import me.eeshe.tempus.mapper.ProjectMapper;
 import me.eeshe.tempus.mapper.TaskMapper;
 import me.eeshe.tempus.request.CreateTaskRequest;
 import me.eeshe.tempus.request.PatchTaskRequest;
@@ -16,19 +17,27 @@ import me.eeshe.tempus.service.UserService;
 public class TaskMapperImpl implements TaskMapper {
     private final UserService userService;
     private final ProjectService projectService;
+    private final ProjectMapper projectMapper;
 
-    public TaskMapperImpl(UserService userService, ProjectService projectService) {
+    public TaskMapperImpl(
+            UserService userService,
+            ProjectService projectService,
+            ProjectMapper projectMapper) {
         this.userService = userService;
         this.projectService = projectService;
+        this.projectMapper = projectMapper;
     }
 
     @Override
     public TaskDTO toDTO(Task task) {
+        if (task == null) {
+            return null;
+        }
         return new TaskDTO(
                 task.getId(),
                 task.getName(),
                 task.getUser().getId(),
-                task.getProject().getId(),
+                projectMapper.toDTO(task.getProject()),
                 task.getCreatedAt());
     }
 
