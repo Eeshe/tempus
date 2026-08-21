@@ -2,6 +2,8 @@ package me.eeshe.tempus.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.TimeEntry;
@@ -21,7 +23,7 @@ public class TimeEntryServiceImpl implements TimeEntryService {
 
     @Override
     public List<TimeEntry> listTimeEntries() {
-        return timeEntryRepository.findAll();
+        return timeEntryRepository.findAll(Sort.by(Direction.DESC, "startTime"));
     }
 
     @Override
