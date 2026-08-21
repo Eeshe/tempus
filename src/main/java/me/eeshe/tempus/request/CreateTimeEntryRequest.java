@@ -1,6 +1,6 @@
 package me.eeshe.tempus.request;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import me.eeshe.tempus.entity.Group;
 import me.eeshe.tempus.entity.Project;
@@ -14,6 +14,6 @@ public record CreateTimeEntryRequest(
         Task task,
         String description,
         boolean isBillable,
-        LocalDateTime startTime,
-        LocalDateTime endTime) {
+        Instant startTime,
+        Instant endTime) {
 }

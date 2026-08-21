@@ -1,6 +1,6 @@
 package me.eeshe.tempus.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,12 +42,12 @@ public class TimeEntry {
     private boolean isBillable;
 
     @Column(nullable = false)
-    private LocalDateTime startTime;
+    private Instant startTime;
 
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public TimeEntry() {
     }
@@ -59,8 +59,8 @@ public class TimeEntry {
             Task task,
             String description,
             boolean isBillable,
-            LocalDateTime startTime,
-            LocalDateTime endTime) {
+            Instant startTime,
+            Instant endTime) {
         this.group = group;
         this.user = user;
         this.project = project;
@@ -73,7 +73,7 @@ public class TimeEntry {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public long getId() {
@@ -136,23 +136,23 @@ public class TimeEntry {
         this.isBillable = isBillable;
     }
 
-    public LocalDateTime getStartTime() {
+    public Instant getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(Instant startTime) {
         this.startTime = startTime;
     }
 
-    public LocalDateTime getEndTime() {
+    public Instant getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(LocalDateTime endTime) {
+    public void setEndTime(Instant endTime) {
         this.endTime = endTime;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 

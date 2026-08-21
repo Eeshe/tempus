@@ -1,6 +1,6 @@
 package me.eeshe.tempus.request;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.openapitools.jackson.nullable.JsonNullable;
 
@@ -14,6 +14,6 @@ public record PatchTimeEntryRequest(
         JsonNullable<Task> task,
         JsonNullable<String> description,
         JsonNullable<Boolean> isBillable,
-        JsonNullable<LocalDateTime> startTime,
-        JsonNullable<LocalDateTime> endTime) {
+        JsonNullable<Instant> startTime,
+        JsonNullable<Instant> endTime) {
 }

@@ -1,6 +1,6 @@
 package me.eeshe.tempus.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class Project {
     private Set<TimeEntry> timeEntries = new HashSet<>();
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public Project() {
     }
@@ -59,7 +59,7 @@ public class Project {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public long getId() {
@@ -102,7 +102,7 @@ public class Project {
         this.client = client;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 

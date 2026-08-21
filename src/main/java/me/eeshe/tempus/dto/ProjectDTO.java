@@ -1,6 +1,6 @@
 package me.eeshe.tempus.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ProjectDTO(
         long id,
@@ -8,5 +8,5 @@ public record ProjectDTO(
         long userId,
         boolean isPrivate,
         Long clientId,
-        LocalDateTime createdAt) {
+        Instant createdAt) {
 }

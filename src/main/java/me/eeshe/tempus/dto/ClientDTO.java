@@ -1,11 +1,11 @@
 package me.eeshe.tempus.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record ClientDTO(
         long id,
         String name,
         long userId,
         Double hourlyRate,
-        LocalDateTime createdAt) {
+        Instant createdAt) {
 }

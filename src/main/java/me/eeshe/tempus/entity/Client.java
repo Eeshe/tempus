@@ -1,6 +1,6 @@
 package me.eeshe.tempus.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +30,7 @@ public class Client {
     private Double hourlyRate;
 
     @Column(nullable = false, updatable = false)
-    LocalDateTime createdAt;
+    Instant createdAt;
 
     public Client() {
     }
@@ -43,7 +43,7 @@ public class Client {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public long getId() {
@@ -74,7 +74,7 @@ public class Client {
         this.hourlyRate = hourlyRate;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 

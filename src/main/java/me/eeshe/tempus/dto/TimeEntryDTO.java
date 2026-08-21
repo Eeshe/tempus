@@ -1,6 +1,6 @@
 package me.eeshe.tempus.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record TimeEntryDTO(
         long id,
@@ -10,7 +10,7 @@ public record TimeEntryDTO(
         TaskDTO task,
         String description,
         boolean isBillable,
-        LocalDateTime startTime,
-        LocalDateTime endTime,
-        LocalDateTime createdAt) {
+        Instant startTime,
+        Instant endTime,
+        Instant createdAt) {
 }
