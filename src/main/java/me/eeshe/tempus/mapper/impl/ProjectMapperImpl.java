@@ -36,10 +36,10 @@ public class ProjectMapperImpl implements ProjectMapper {
     }
 
     @Override
-    public CreateProjectRequest fromDTO(CreateProjectRequestDTO createProjectRequestDTO) {
+    public CreateProjectRequest fromDTO(CreateProjectRequestDTO createProjectRequestDTO, long userId) {
         return new CreateProjectRequest(
                 createProjectRequestDTO.name(),
-                userService.getUser(createProjectRequestDTO.userId()),
+                userService.getUser(userId),
                 createProjectRequestDTO.isPrivate(),
                 resolveClient(createProjectRequestDTO.clientId()));
     }

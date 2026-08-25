@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,6 +23,7 @@ import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.mapper.ProjectMapper;
 import me.eeshe.tempus.request.CreateProjectRequest;
 import me.eeshe.tempus.request.PatchProjectRequest;
+import me.eeshe.tempus.security.UserDetailsImpl;
 import me.eeshe.tempus.service.ProjectService;
 
 @RestController
@@ -52,8 +55,10 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectDTO> createProject(
-            @Valid @RequestBody CreateProjectRequestDTO createProjectRequestDTO) {
-        final CreateProjectRequest createProjectRequest = projectMapper.fromDTO(createProjectRequestDTO);
+            @Valid @RequestBody CreateProjectRequestDTO createProjectRequestDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        final long userId = ((UserDetailsImpl) userDetails).getId();
+        final CreateProjectRequest createProjectRequest = projectMapper.fromDTO(createProjectRequestDTO, userId);
         final Project createdProject = projectService.createProject(createProjectRequest);
         final ProjectDTO createdProjectDTO = projectMapper.toDTO(createdProject);
 
