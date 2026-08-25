@@ -2,6 +2,7 @@ package me.eeshe.tempus.service.impl;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Project;
@@ -9,6 +10,7 @@ import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.repository.ProjectRepository;
 import me.eeshe.tempus.request.CreateProjectRequest;
 import me.eeshe.tempus.request.PatchProjectRequest;
+import me.eeshe.tempus.security.SecurityUtils;
 import me.eeshe.tempus.service.ProjectService;
 
 @Service
@@ -21,7 +23,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<Project> listProjects() {
-        return projectRepository.findAll();
+        final Authentication authentication = SecurityUtils.getCurrentAuthentication();
+        if (SecurityUtils.isAdmin(authentication)) {
+            return projectRepository.findAll();
+        }
+        return projectRepository.findByUserId(SecurityUtils.getUserId(authentication));
     }
 
     @Override
