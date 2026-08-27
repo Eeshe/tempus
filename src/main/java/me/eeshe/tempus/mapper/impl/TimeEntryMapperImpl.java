@@ -58,10 +58,10 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     }
 
     @Override
-    public CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO) {
+    public CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO, long userId) {
         return new CreateTimeEntryRequest(
                 resolveGroup(createTimeEntryRequestDTO.groupId()),
-                userService.getUser(createTimeEntryRequestDTO.userId()),
+                userService.getUser(userId),
                 projectService.getProject(createTimeEntryRequestDTO.projectId()),
                 resolveTask(createTimeEntryRequestDTO.taskId()),
                 createTimeEntryRequestDTO.description(),

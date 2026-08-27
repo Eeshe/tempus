@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,6 +22,7 @@ import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
+import me.eeshe.tempus.security.UserDetailsImpl;
 import me.eeshe.tempus.service.TimeEntryService;
 
 @RestController
@@ -52,8 +54,11 @@ public class TimeEntryController {
 
     @PostMapping
     public ResponseEntity<TimeEntryDTO> createTimeEntry(
-            @Valid @RequestBody CreateTimeEntryRequestDTO createTimeEntryRequestDTO) {
-        final CreateTimeEntryRequest createTimeEntryRequest = timeEntryMapper.fromDTO(createTimeEntryRequestDTO);
+            @Valid @RequestBody CreateTimeEntryRequestDTO createTimeEntryRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final CreateTimeEntryRequest createTimeEntryRequest = timeEntryMapper.fromDTO(
+                createTimeEntryRequestDTO,
+                userDetails.getId());
         final TimeEntry createdTimeEntry = timeEntryService.createTimeEntry(createTimeEntryRequest);
         final TimeEntryDTO createdTimeEntryDTO = timeEntryMapper.toDTO(createdTimeEntry);
 

@@ -11,7 +11,7 @@ public interface TimeEntryMapper {
 
     TimeEntryDTO toDTO(TimeEntry timeEntry);
 
-    CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO);
+    CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO, long userId);
 
     PatchTimeEntryRequest fromDTO(PatchTimeEntryRequestDTO patchTimeEntryRequestDTO);
 }
