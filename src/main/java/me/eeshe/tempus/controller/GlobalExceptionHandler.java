@@ -14,6 +14,7 @@ import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.exception.UserNotFoundException;
+import me.eeshe.tempus.exception.UserProjectAlreadyExistsException;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
 
 @RestControllerAdvice
@@ -72,6 +73,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TimeEntryNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(TimeEntryNotFoundException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserProjectAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(UserProjectAlreadyExistsException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
+import me.eeshe.tempus.exception.UserProjectAlreadyExistsException;
 import me.eeshe.tempus.repository.ProjectRepository;
 import me.eeshe.tempus.request.CreateProjectRequest;
 import me.eeshe.tempus.request.PatchProjectRequest;
@@ -37,6 +38,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project createProject(CreateProjectRequest createProjectRequest) {
+        final long userId = createProjectRequest.user().getId();
+        final String projectName = createProjectRequest.name();
+        projectRepository.findByUserIdAndName(userId, projectName).ifPresent(project -> {
+            throw new UserProjectAlreadyExistsException(userId, projectName);
+        });
         return projectRepository.save(new Project(
                 createProjectRequest.name(),
                 createProjectRequest.user(),
