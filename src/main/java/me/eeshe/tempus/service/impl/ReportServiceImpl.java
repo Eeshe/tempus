@@ -25,9 +25,9 @@ public class ReportServiceImpl implements ReportService {
         final List<TimeEntry> timeEntries = timeEntryRepository.findAll(TimeEntrySpecification.withFilters(
                 reportRequest.startDate(),
                 reportRequest.endDate(),
-                reportRequest.projectIds().orElse(null),
-                reportRequest.descriptions().orElse(null),
-                reportRequest.isBillable().orElse(null)));
+                reportRequest.projectIds(),
+                reportRequest.descriptions(),
+                reportRequest.isBillable()));
 
         final long totalTrackedTimeMillis = timeEntries.stream()
                 .mapToLong(timeEntry -> Duration.between(timeEntry.getStartTime(), timeEntry.getEndTime()).toMillis())
