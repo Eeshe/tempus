@@ -1,7 +1,7 @@
 package me.eeshe.tempus.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +25,7 @@ public class ReportController {
         this.reportMapper = reportMapper;
     }
 
-    @GetMapping
+    @PostMapping
     public ResponseEntity<ReportDTO> getReport(
             @Valid @RequestBody ReportRequestDTO reportRequestDTO) {
         final ReportRequest reportRequest = reportMapper.fromDTO(reportRequestDTO);

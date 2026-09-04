@@ -2,22 +2,20 @@ package me.eeshe.tempus.model;
 
 import java.util.List;
 
-import me.eeshe.tempus.entity.TimeEntry;
-
 public class Report {
-    private final List<TimeEntry> timeEntries;
     private final long totalTrackedTimeMillis;
+    private final List<ProjectReportEntry> projectReportEntries;
 
-    public Report(List<TimeEntry> timeEntries, long totalTrackedTimeMillis) {
-        this.timeEntries = timeEntries;
+    public Report(long totalTrackedTimeMillis, List<ProjectReportEntry> projectReportEntries) {
         this.totalTrackedTimeMillis = totalTrackedTimeMillis;
-    }
-
-    public List<TimeEntry> getTimeEntries() {
-        return timeEntries;
+        this.projectReportEntries = projectReportEntries;
     }
 
     public long getTotalTrackedTimeMillis() {
         return totalTrackedTimeMillis;
+    }
+
+    public List<ProjectReportEntry> getProjectReportEntries() {
+        return projectReportEntries;
     }
 }

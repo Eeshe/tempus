@@ -20,6 +20,8 @@ public class TimeEntrySpecification {
         return (from, criteriaBuilder) -> {
             final List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(criteriaBuilder.isNotNull(from.get("endTime")));
+
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(from.get("startTime"), startDate));
             predicates.add(criteriaBuilder.lessThanOrEqualTo(from.get("endTime"), endDate));
 
