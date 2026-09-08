@@ -6,6 +6,6 @@ public record TaskDTO(
         long id,
         String name,
         long userId,
-        ProjectDTO project,
+        long projectId,
         Instant createdAt) {
 }

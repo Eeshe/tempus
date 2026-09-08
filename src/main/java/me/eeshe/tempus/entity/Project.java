@@ -103,6 +103,10 @@ public class Project {
         this.hourlyRate = hourlyRate;
     }
 
+    public Set<Task> getTasks() {
+        return tasks;
+    }
+
     public Client getClient() {
         return client;
     }
