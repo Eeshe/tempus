@@ -2,16 +2,17 @@ package me.eeshe.tempus.service.impl;
 
 import java.io.File;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import com.zaxxer.hikari.HikariDataSource;
 
+import jakarta.annotation.PostConstruct;
 import me.eeshe.tempus.service.SQLiteSyncWatcher;
 
+@Service
 public class SQLiteSyncWatcherImpl implements SQLiteSyncWatcher {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SQLiteSyncWatcherImpl.class);
 
     @Value("${spring.datasource.url}")
     private String datasourceUrl;
@@ -25,6 +26,7 @@ public class SQLiteSyncWatcherImpl implements SQLiteSyncWatcher {
     }
 
     @Override
+    @PostConstruct
     public void init() {
         final String sqliteFilePath = datasourceUrl.replace("jdbc:sqlite", "")
                 .split("\\?")[0];
@@ -34,6 +36,20 @@ public class SQLiteSyncWatcherImpl implements SQLiteSyncWatcher {
     }
 
     @Override
+    @Scheduled(fixedDelay = 5000)
     public void checkForSQLiteFileChanges() {
+        if (!sqliteFile.exists()) {
+            return;
+        }
+        final long currentLastModified = sqliteFile.lastModified();
+        if (this.lastKnownModified >= currentLastModified) {
+            return;
+        }
+        this.lastKnownModified = currentLastModified;
+        closeCurrentSQLiteConnection();
+    }
+
+    private void closeCurrentSQLiteConnection() {
+        dataSource.getHikariPoolMXBean().softEvictConnections();
     }
 }
