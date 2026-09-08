@@ -33,8 +33,7 @@ public class ClientServiceImpl implements ClientService {
     public Client createClient(CreateClientRequest createClientRequest) {
         return clientRepository.save(new Client(
                 createClientRequest.name(),
-                createClientRequest.user(),
-                createClientRequest.hourlyRate()));
+                createClientRequest.user()));
     }
 
     @Override
@@ -43,7 +42,6 @@ public class ClientServiceImpl implements ClientService {
         if (patchClientRequest.name() != null) {
             client.setName(patchClientRequest.name());
         }
-        patchClientRequest.hourlyRate().ifPresent(client::setHourlyRate);
 
         return clientRepository.save(client);
     }

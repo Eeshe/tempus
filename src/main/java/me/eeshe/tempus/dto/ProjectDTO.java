@@ -1,5 +1,6 @@
 package me.eeshe.tempus.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record ProjectDTO(
@@ -7,6 +8,7 @@ public record ProjectDTO(
         String name,
         long userId,
         boolean isPrivate,
+        BigDecimal hourlyRate,
         Long clientId,
         Instant createdAt) {
 }

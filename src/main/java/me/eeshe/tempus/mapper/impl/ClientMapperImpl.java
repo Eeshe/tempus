@@ -25,7 +25,6 @@ public class ClientMapperImpl implements ClientMapper {
                 client.getId(),
                 client.getName(),
                 client.getUser().getId(),
-                client.getHourlyRate(),
                 client.getCreatedAt());
     }
 
@@ -33,15 +32,13 @@ public class ClientMapperImpl implements ClientMapper {
     public CreateClientRequest fromDTO(CreateClientRequestDTO createClientRequestDTO) {
         return new CreateClientRequest(
                 createClientRequestDTO.name(),
-                userService.getUser(createClientRequestDTO.userId()),
-                createClientRequestDTO.hourlyRate());
+                userService.getUser(createClientRequestDTO.userId()));
     }
 
     @Override
     public PatchClientRequest fromDTO(PatchClientRequestDTO patchClientRequestDTO) {
         return new PatchClientRequest(
-                patchClientRequestDTO.name(),
-                patchClientRequestDTO.hourlyRate());
+                patchClientRequestDTO.name());
     }
 
 }

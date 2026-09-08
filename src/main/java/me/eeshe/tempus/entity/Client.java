@@ -27,18 +27,15 @@ public class Client {
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
-    private Double hourlyRate;
-
     @Column(nullable = false, updatable = false)
     Instant createdAt;
 
     public Client() {
     }
 
-    public Client(String name, User user, Double hourlyRate) {
+    public Client(String name, User user) {
         this.name = name;
         this.user = user;
-        this.hourlyRate = hourlyRate;
     }
 
     @PrePersist
@@ -66,14 +63,6 @@ public class Client {
         return user;
     }
 
-    public Double getHourlyRate() {
-        return hourlyRate;
-    }
-
-    public void setHourlyRate(Double hourlyRate) {
-        this.hourlyRate = hourlyRate;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -84,10 +73,6 @@ public class Client {
         int result = 1;
         result = prime * result + (int) (id ^ (id >>> 32));
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((user == null) ? 0 : user.hashCode());
-        long temp;
-        temp = Double.doubleToLongBits(hourlyRate);
-        result = prime * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
 
@@ -106,13 +91,6 @@ public class Client {
             if (other.name != null)
                 return false;
         } else if (!name.equals(other.name))
-            return false;
-        if (user == null) {
-            if (other.user != null)
-                return false;
-        } else if (!user.equals(other.user))
-            return false;
-        if (Double.doubleToLongBits(hourlyRate) != Double.doubleToLongBits(other.hourlyRate))
             return false;
         return true;
     }

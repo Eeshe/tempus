@@ -4,6 +4,5 @@ import me.eeshe.tempus.entity.User;
 
 public record CreateClientRequest(
         String name,
-        User user,
-        Double hourlyRate) {
+        User user) {
 }

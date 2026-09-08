@@ -31,6 +31,7 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.getName(),
                 project.getUser().getId(),
                 project.isPrivate(),
+                project.getHourlyRate(),
                 project.getClientId(),
                 project.getCreatedAt());
     }
@@ -41,6 +42,7 @@ public class ProjectMapperImpl implements ProjectMapper {
                 createProjectRequestDTO.name(),
                 userService.getUser(userId),
                 createProjectRequestDTO.isPrivate(),
+                createProjectRequestDTO.hourlyRate(),
                 resolveClient(createProjectRequestDTO.clientId()));
     }
 
@@ -49,6 +51,7 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.isPrivate(),
+                patchProjectRequestDTO.hourlyRate(),
                 JsonNullable.of(resolveClient(patchProjectRequestDTO.clientId().orElse(null))));
     }
 

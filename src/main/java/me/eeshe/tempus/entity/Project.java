@@ -1,5 +1,6 @@
 package me.eeshe.tempus.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +35,8 @@ public class Project {
     @Column(nullable = false)
     private boolean isPrivate;
 
+    private BigDecimal hourlyRate;
+
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Client client;
@@ -50,10 +53,12 @@ public class Project {
     public Project() {
     }
 
-    public Project(String name, User user, boolean isPrivate, Client client) {
+    public Project(String name, User user, boolean isPrivate,
+            BigDecimal hourlyRate, Client client) {
         this.name = name;
         this.user = user;
         this.isPrivate = isPrivate;
+        this.hourlyRate = hourlyRate;
         this.client = client;
     }
 
@@ -88,6 +93,14 @@ public class Project {
 
     public void setPrivate(boolean isPrivate) {
         this.isPrivate = isPrivate;
+    }
+
+    public BigDecimal getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(BigDecimal hourlyRate) {
+        this.hourlyRate = hourlyRate;
     }
 
     public Client getClient() {

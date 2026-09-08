@@ -47,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
                 createProjectRequest.name(),
                 createProjectRequest.user(),
                 createProjectRequest.isPrivate(),
+                createProjectRequest.hourlyRate(),
                 createProjectRequest.client()));
     }
 
@@ -57,6 +58,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setName(patchProjectRequest.name());
         }
         patchProjectRequest.isPrivate().ifPresent(project::setPrivate);
+        patchProjectRequest.hourlyRate().ifPresent(project::setHourlyRate);
         patchProjectRequest.client().ifPresent(project::setClient);
 
         return projectRepository.save(project);
