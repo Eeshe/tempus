@@ -9,6 +9,7 @@ public record ReportRequestDTO(
         @NotNull(message = ERROR_MESSAGE_NULL_START_DATE) LocalDate startDate,
         @NotNull(message = ERROR_MESSAGE_NULL_END_DATE) LocalDate endDate,
         List<Long> projectIds,
+        List<Long> taskIds,
         List<String> descriptions,
         Boolean isBillable
 

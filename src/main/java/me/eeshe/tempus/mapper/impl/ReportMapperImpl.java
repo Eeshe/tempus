@@ -37,6 +37,7 @@ public class ReportMapperImpl implements ReportMapper {
                 reportRequestDTO.startDate(),
                 reportRequestDTO.endDate(),
                 reportRequestDTO.projectIds(),
+                reportRequestDTO.taskIds(),
                 reportRequestDTO.descriptions(),
                 reportRequestDTO.isBillable());
     }

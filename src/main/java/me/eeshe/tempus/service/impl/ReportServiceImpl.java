@@ -30,6 +30,7 @@ public class ReportServiceImpl implements ReportService {
                 reportRequest.startDate(),
                 reportRequest.endDate(),
                 reportRequest.projectIds(),
+                reportRequest.taskIds(),
                 reportRequest.descriptions(),
                 reportRequest.isBillable()));
 

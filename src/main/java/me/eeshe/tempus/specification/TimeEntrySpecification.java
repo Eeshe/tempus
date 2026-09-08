@@ -15,6 +15,7 @@ public class TimeEntrySpecification {
             LocalDate startDate,
             LocalDate endDate,
             List<Long> projectIds,
+            List<Long> taskIds,
             List<String> descriptions,
             Boolean isBillable) {
         return (from, criteriaBuilder) -> {
@@ -27,6 +28,9 @@ public class TimeEntrySpecification {
 
             if (projectIds != null && !projectIds.isEmpty()) {
                 predicates.add(from.get("project").get("id").in(projectIds));
+            }
+            if (taskIds != null && !taskIds.isEmpty()) {
+                predicates.add(from.get("task").get("id").in(taskIds));
             }
             if (descriptions != null && !descriptions.isEmpty()) {
                 predicates.add(from.get("description").in(descriptions));

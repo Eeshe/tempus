@@ -7,6 +7,7 @@ public record ReportRequest(
         LocalDate startDate,
         LocalDate endDate,
         List<Long> projectIds,
+        List<Long> taskIds,
         List<String> descriptions,
         Boolean isBillable) {
 }
