@@ -23,9 +23,10 @@ public class TimeEntrySpecification {
 
             predicates.add(criteriaBuilder.isNotNull(from.get("endTime")));
 
-            predicates.add(criteriaBuilder.greaterThanOrEqualTo(from.get("startTime"), startDate.atTime(0, 0)));
-            predicates.add(criteriaBuilder.lessThanOrEqualTo(from.get("endTime"), endDate.atTime(23, 59)));
-
+            if (startDate != null && endDate != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(from.get("startTime"), startDate.atTime(0, 0)));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(from.get("endTime"), endDate.atTime(23, 59)));
+            }
             if (projectIds != null && !projectIds.isEmpty()) {
                 predicates.add(from.get("project").get("id").in(projectIds));
             }
