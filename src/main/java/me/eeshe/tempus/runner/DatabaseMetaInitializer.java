@@ -1,4 +1,4 @@
-package me.eeshe.tempus.config;
+package me.eeshe.tempus.runner;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

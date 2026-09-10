@@ -1,6 +1,5 @@
 package me.eeshe.tempus.service.impl;
 
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -31,7 +30,7 @@ public class DatabaseMetaServiceImpl implements DatabaseMetaService {
     }
 
     @Override
-    public LocalDateTime getCurrentSnapshotTime() {
+    public LocalDateTime getLocalSnapshotTime() {
         final List<LocalDateTime> times = jdbcTemplate.query("SELECT %s FROM %s".formatted(TIME_COLUMN, META_TABLE),
                 (resultSet, rowNumber) -> LocalDateTime.parse(resultSet.getString(TIME_COLUMN)));
         if (times.isEmpty()) {
@@ -41,23 +40,11 @@ public class DatabaseMetaServiceImpl implements DatabaseMetaService {
     }
 
     @Override
-    public void updateCurrentSnapshotTime() {
-        updateCurrentSnapshotTime(LocalDateTime.now());
-    }
-
-    @Override
-    public void updateCurrentSnapshotTime(LocalDateTime time) {
-        jdbcTemplate.update("UPDATE %s SET %s = ?".formatted(
-                META_TABLE,
-                TIME_COLUMN),
-                time.toString());
-    }
-
-    public LocalDateTime getSnapshotTime(Path snapshotFile) {
-        if (!snapshotFile.toFile().exists()) {
+    public LocalDateTime getRemoteSnapshotTime() {
+        if (!SNAPSHOT_FILE.toFile().exists()) {
             return null;
         }
-        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + snapshotFile);
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + SNAPSHOT_FILE);
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(
                         "SELECT current_snapshot_time FROM database_meta")) {
@@ -65,5 +52,38 @@ public class DatabaseMetaServiceImpl implements DatabaseMetaService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public void updateCurrentSnapshotTime() {
+        updateCurrentSnapshotTime(LocalDateTime.now());
+    }
+
+    @Override
+    public void updateCurrentSnapshotTime(LocalDateTime time) {
+        final int updated = jdbcTemplate.update("UPDATE %s SET %s = ?".formatted(
+                META_TABLE,
+                TIME_COLUMN),
+                time.toString());
+        if (updated != 0) {
+            return;
+        }
+        jdbcTemplate.update("INSERT INTO %s (%s) VALUES (?)".formatted(
+                META_TABLE,
+                TIME_COLUMN),
+                time.toString());
+    }
+
+    @Override
+    public boolean isRemoteSnapshotNewer() {
+        final LocalDateTime remoteTime = getRemoteSnapshotTime();
+        if (remoteTime == null) {
+            return false;
+        }
+        final LocalDateTime localTime = getLocalSnapshotTime();
+        if (localTime == null) {
+            return true;
+        }
+        return remoteTime.isAfter(localTime);
     }
 }
