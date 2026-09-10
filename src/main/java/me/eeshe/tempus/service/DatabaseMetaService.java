@@ -1,7 +1,8 @@
 package me.eeshe.tempus.service;
 
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Optional;
 
 public interface DatabaseMetaService {
     Path SNAPSHOT_DIRECTORY = Path.of("sync");
@@ -9,13 +10,13 @@ public interface DatabaseMetaService {
 
     void initializeDatabaseMeta();
 
-    LocalDateTime getLocalSnapshotTime();
+    Optional<Instant> getLocalSnapshotTime();
 
-    LocalDateTime getRemoteSnapshotTime();
+    Optional<Instant> getRemoteSnapshotTime();
 
     void updateCurrentSnapshotTime();
 
-    void updateCurrentSnapshotTime(LocalDateTime time);
+    void updateCurrentSnapshotTime(Instant time);
 
     boolean isRemoteSnapshotNewer();
 }

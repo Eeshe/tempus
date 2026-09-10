@@ -4,8 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -25,62 +26,63 @@ public class DatabaseMetaServiceImpl implements DatabaseMetaService {
 
     @Override
     public void initializeDatabaseMeta() {
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS %s (%s TEXT NOT NULL)"
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER NOT NULL)"
                 .formatted(META_TABLE, TIME_COLUMN));
     }
 
     @Override
-    public LocalDateTime getLocalSnapshotTime() {
-        final List<LocalDateTime> times = jdbcTemplate.query("SELECT %s FROM %s".formatted(TIME_COLUMN, META_TABLE),
-                (resultSet, rowNumber) -> LocalDateTime.parse(resultSet.getString(TIME_COLUMN)));
+    public Optional<Instant> getLocalSnapshotTime() {
+        final List<Instant> times = jdbcTemplate.query("SELECT %s FROM %s".formatted(TIME_COLUMN, META_TABLE),
+                (resultSet, rowNumber) -> Instant.ofEpochMilli(resultSet.getLong(TIME_COLUMN)));
         if (times.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
-        return times.getFirst();
+        return Optional.of(times.getFirst());
     }
 
     @Override
-    public LocalDateTime getRemoteSnapshotTime() {
+    public Optional<Instant> getRemoteSnapshotTime() {
         if (!SNAPSHOT_FILE.toFile().exists()) {
-            return null;
+            return Optional.empty();
         }
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + SNAPSHOT_FILE);
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(
                         "SELECT current_snapshot_time FROM database_meta")) {
-            return resultSet.next() ? LocalDateTime.parse(resultSet.getString(1)) : null;
+            return resultSet.next() ? Optional.of(Instant.ofEpochMilli(resultSet.getLong(1))) : Optional.empty();
         } catch (Exception e) {
-            return null;
+            return Optional.empty();
         }
     }
 
     @Override
     public void updateCurrentSnapshotTime() {
-        updateCurrentSnapshotTime(LocalDateTime.now());
+        updateCurrentSnapshotTime(Instant.now());
     }
 
     @Override
-    public void updateCurrentSnapshotTime(LocalDateTime time) {
+    public void updateCurrentSnapshotTime(Instant instant) {
+        final long epochMilli = instant.toEpochMilli();
         final int updated = jdbcTemplate.update("UPDATE %s SET %s = ?".formatted(
                 META_TABLE,
                 TIME_COLUMN),
-                time.toString());
+                epochMilli);
         if (updated != 0) {
             return;
         }
         jdbcTemplate.update("INSERT INTO %s (%s) VALUES (?)".formatted(
                 META_TABLE,
                 TIME_COLUMN),
-                time.toString());
+                epochMilli);
     }
 
     @Override
     public boolean isRemoteSnapshotNewer() {
-        final LocalDateTime remoteTime = getRemoteSnapshotTime();
+        final Instant remoteTime = getRemoteSnapshotTime().orElse(null);
         if (remoteTime == null) {
             return false;
         }
-        final LocalDateTime localTime = getLocalSnapshotTime();
+        final Instant localTime = getLocalSnapshotTime().orElse(null);
         if (localTime == null) {
             return true;
         }

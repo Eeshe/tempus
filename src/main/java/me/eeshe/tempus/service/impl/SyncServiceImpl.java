@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,10 +34,10 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public SyncData getSyncData() {
-        final ZoneOffset zoneOffset = ZoneOffset.UTC;
-        return new SyncData(
-                databaseMetaService.getLocalSnapshotTime().toInstant(zoneOffset),
-                databaseMetaService.getRemoteSnapshotTime().toInstant(zoneOffset));
+        final Instant localSnapshotTime = databaseMetaService.getLocalSnapshotTime().orElse(null);
+        final Instant remoteSnapshotTime = databaseMetaService.getRemoteSnapshotTime().orElse(null);
+
+        return new SyncData(localSnapshotTime, remoteSnapshotTime);
     }
 
     @Override
