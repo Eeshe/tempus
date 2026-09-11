@@ -10,4 +10,8 @@ public record ReportRequest(
         List<Long> taskIds,
         List<String> descriptions,
         Boolean isBillable) {
+
+    public static ReportRequest fromProjectId(long projectId) {
+        return new ReportRequest(null, null, List.of(projectId), null, null, null);
+    }
 }

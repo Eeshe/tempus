@@ -1,7 +1,5 @@
 package me.eeshe.tempus.controller;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,9 +28,9 @@ public class ReportController {
     }
 
     @GetMapping(path = "/project/{projectId}")
-    public ResponseEntity<ReportDTO> getReport(
+    public ResponseEntity<ReportDTO> getProjectReport(
             @PathVariable long projectId) {
-        final ReportRequest reportRequest = new ReportRequest(null, null, List.of(projectId), null, null, null);
+        final ReportRequest reportRequest = ReportRequest.fromProjectId(projectId);
         final Report report = reportService.generateReport(reportRequest);
         final ReportDTO reportDTO = reportMapper.toDTO(report);
 
