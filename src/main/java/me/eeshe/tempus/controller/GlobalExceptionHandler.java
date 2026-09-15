@@ -13,6 +13,7 @@ import me.eeshe.tempus.exception.GroupNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
+import me.eeshe.tempus.exception.UserClientAlreadyExistsException;
 import me.eeshe.tempus.exception.UserNotFoundException;
 import me.eeshe.tempus.exception.UserProjectAlreadyExistsException;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
@@ -44,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UsernameAlreadyUsedException.class)
-    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(UsernameAlreadyUsedException exception) {
+    public ResponseEntity<ErrorResponseDTO> handleUsernameAlreadyUsedException(UsernameAlreadyUsedException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
@@ -58,28 +59,37 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ProjectNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(ProjectNotFoundException exception) {
+    public ResponseEntity<ErrorResponseDTO> handleProjectNotFoundException(ProjectNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(TaskNotFoundException exception) {
+    public ResponseEntity<ErrorResponseDTO> handleTaskNotFoundException(TaskNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TimeEntryNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(TimeEntryNotFoundException exception) {
+    public ResponseEntity<ErrorResponseDTO> handleTimeEntryNotFoundException(TimeEntryNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UserProjectAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(UserProjectAlreadyExistsException exception) {
+    public ResponseEntity<ErrorResponseDTO> handleUserProjectAlreadyExistsException(
+            UserProjectAlreadyExistsException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserClientAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserClientAlreadyExistsException(
+            UserClientAlreadyExistsException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

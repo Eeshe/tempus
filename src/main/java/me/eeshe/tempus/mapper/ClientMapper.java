@@ -11,7 +11,7 @@ public interface ClientMapper {
 
     ClientDTO toDTO(Client client);
 
-    CreateClientRequest fromDTO(CreateClientRequestDTO createClientRequestDTO);
+    CreateClientRequest fromDTO(CreateClientRequestDTO createClientRequestDTO, long userId);
 
     PatchClientRequest fromDTO(PatchClientRequestDTO patchClientRequestDTO);
 }

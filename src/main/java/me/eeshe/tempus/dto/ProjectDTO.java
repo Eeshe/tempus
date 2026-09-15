@@ -11,6 +11,6 @@ public record ProjectDTO(
         boolean isPrivate,
         BigDecimal hourlyRate,
         List<TaskDTO> tasks,
-        Long clientId,
+        ClientDTO client,
         Instant createdAt) {
 }

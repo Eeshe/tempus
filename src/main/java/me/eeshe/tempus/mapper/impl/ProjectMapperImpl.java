@@ -3,11 +3,13 @@ package me.eeshe.tempus.mapper.impl;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
+import me.eeshe.tempus.dto.ClientDTO;
 import me.eeshe.tempus.dto.CreateProjectRequestDTO;
 import me.eeshe.tempus.dto.PatchProjectRequestDTO;
 import me.eeshe.tempus.dto.ProjectDTO;
 import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.entity.Project;
+import me.eeshe.tempus.mapper.ClientMapper;
 import me.eeshe.tempus.mapper.ProjectMapper;
 import me.eeshe.tempus.mapper.TaskMapper;
 import me.eeshe.tempus.request.CreateProjectRequest;
@@ -20,16 +22,22 @@ public class ProjectMapperImpl implements ProjectMapper {
     private final UserService userService;
     private final ClientService clientService;
     private final TaskMapper taskMapper;
+    private final ClientMapper clientMapper;
 
-    public ProjectMapperImpl(UserService userService, ClientService clientService,
-            TaskMapper taskMapper) {
+    public ProjectMapperImpl(
+            UserService userService,
+            ClientService clientService,
+            TaskMapper taskMapper,
+            ClientMapper clientMapper) {
         this.userService = userService;
         this.clientService = clientService;
         this.taskMapper = taskMapper;
+        this.clientMapper = clientMapper;
     }
 
     @Override
     public ProjectDTO toDTO(Project project) {
+        final ClientDTO clientDTO = project.getClient() == null ? null : clientMapper.toDTO(project.getClient());
         return new ProjectDTO(
                 project.getId(),
                 project.getName(),
@@ -37,7 +45,7 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.isPrivate(),
                 project.getHourlyRate(),
                 project.getTasks().stream().map(taskMapper::toDTO).toList(),
-                project.getClientId(),
+                clientDTO,
                 project.getCreatedAt());
     }
 

@@ -29,10 +29,10 @@ public class ClientMapperImpl implements ClientMapper {
     }
 
     @Override
-    public CreateClientRequest fromDTO(CreateClientRequestDTO createClientRequestDTO) {
+    public CreateClientRequest fromDTO(CreateClientRequestDTO createClientRequestDTO, long userId) {
         return new CreateClientRequest(
                 createClientRequestDTO.name(),
-                userService.getUser(createClientRequestDTO.userId()));
+                userService.getUser(userId));
     }
 
     @Override

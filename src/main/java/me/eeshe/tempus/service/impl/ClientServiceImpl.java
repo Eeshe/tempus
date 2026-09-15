@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.exception.ClientNotFoundException;
+import me.eeshe.tempus.exception.UserClientAlreadyExistsException;
 import me.eeshe.tempus.repository.ClientRepository;
 import me.eeshe.tempus.request.CreateClientRequest;
 import me.eeshe.tempus.request.PatchClientRequest;
@@ -31,6 +32,11 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client createClient(CreateClientRequest createClientRequest) {
+        final long userId = createClientRequest.user().getId();
+        final String clientName = createClientRequest.name();
+        clientRepository.findByUserIdAndName(userId, clientName).ifPresent(project -> {
+            throw new UserClientAlreadyExistsException(userId, clientName);
+        });
         return clientRepository.save(new Client(
                 createClientRequest.name(),
                 createClientRequest.user()));
