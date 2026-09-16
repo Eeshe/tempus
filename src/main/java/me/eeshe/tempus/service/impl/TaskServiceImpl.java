@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.exception.TaskNotFoundException;
+import me.eeshe.tempus.exception.UserProjectTaskAlreadyExistsException;
 import me.eeshe.tempus.repository.TaskRepository;
 import me.eeshe.tempus.request.CreateTaskRequest;
 import me.eeshe.tempus.request.PatchTaskRequest;
@@ -31,6 +32,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task createTask(CreateTaskRequest createTaskRequest) {
+        final long userId = createTaskRequest.user().getId();
+        final String taskName = createTaskRequest.name();
+        final long projectId = createTaskRequest.project().getId();
+        taskRepository.findByUserIdAndNameAndProjectId(userId, taskName, projectId).ifPresent(task -> {
+            throw new UserProjectTaskAlreadyExistsException(userId, taskName, task.getProject().getName());
+        });
         return taskRepository.save(new Task(
                 createTaskRequest.name(),
                 createTaskRequest.user(),

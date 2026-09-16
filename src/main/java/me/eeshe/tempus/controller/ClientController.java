@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -56,9 +55,9 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<ClientDTO> createClient(
             @Valid @RequestBody CreateClientRequestDTO createClientRequestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        final long userId = ((UserDetailsImpl) userDetails).getId();
-        final CreateClientRequest createClientRequest = clientMapper.fromDTO(createClientRequestDTO, userId);
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final CreateClientRequest createClientRequest = clientMapper.fromDTO(createClientRequestDTO,
+                userDetails.getId());
         final Client createdClient = clientService.createClient(createClientRequest);
         final ClientDTO createdClientDTO = clientMapper.toDTO(createdClient);
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,6 +22,7 @@ import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.mapper.TaskMapper;
 import me.eeshe.tempus.request.CreateTaskRequest;
 import me.eeshe.tempus.request.PatchTaskRequest;
+import me.eeshe.tempus.security.UserDetailsImpl;
 import me.eeshe.tempus.service.TaskService;
 
 @RestController
@@ -51,8 +53,10 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@Valid @RequestBody CreateTaskRequestDTO createTaskRequestDTO) {
-        final CreateTaskRequest createTaskRequest = taskMapper.fromDTO(createTaskRequestDTO);
+    public ResponseEntity<TaskDTO> createTask(
+            @Valid @RequestBody CreateTaskRequestDTO createTaskRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final CreateTaskRequest createTaskRequest = taskMapper.fromDTO(createTaskRequestDTO, userDetails.getId());
         final Task createdTask = taskService.createTask(createTaskRequest);
         final TaskDTO createdTaskDTO = taskMapper.toDTO(createdTask);
 

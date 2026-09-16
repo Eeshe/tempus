@@ -11,7 +11,7 @@ public interface TaskMapper {
 
     TaskDTO toDTO(Task task);
 
-    CreateTaskRequest fromDTO(CreateTaskRequestDTO createTaskRequestDTO);
+    CreateTaskRequest fromDTO(CreateTaskRequestDTO createTaskRequestDTO, long userId);
 
     PatchTaskRequest fromDTO(PatchTaskRequestDTO patchTaskRequestDTO);
 }
