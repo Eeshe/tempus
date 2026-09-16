@@ -8,10 +8,7 @@ public record ReportRequest(
         LocalDate endDate,
         List<Long> projectIds,
         List<Long> taskIds,
+        List<Long> clientIds,
         List<String> descriptions,
         Boolean isBillable) {
-
-    public static ReportRequest fromProjectId(long projectId) {
-        return new ReportRequest(null, null, List.of(projectId), null, null, null);
-    }
 }

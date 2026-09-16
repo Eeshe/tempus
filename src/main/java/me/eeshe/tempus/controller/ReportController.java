@@ -1,17 +1,19 @@
 package me.eeshe.tempus.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import me.eeshe.tempus.dto.ClientReportEntryDTO;
+import me.eeshe.tempus.dto.ProjectReportEntryDTO;
 import me.eeshe.tempus.dto.ReportDTO;
 import me.eeshe.tempus.dto.ReportRequestDTO;
 import me.eeshe.tempus.mapper.ReportMapper;
+import me.eeshe.tempus.model.ClientReportEntry;
+import me.eeshe.tempus.model.ProjectReportEntry;
 import me.eeshe.tempus.model.Report;
 import me.eeshe.tempus.request.ReportRequest;
 import me.eeshe.tempus.service.ReportService;
@@ -27,22 +29,22 @@ public class ReportController {
         this.reportMapper = reportMapper;
     }
 
-    @GetMapping(path = "/project/{projectId}")
-    public ResponseEntity<ReportDTO> getProjectReport(
-            @PathVariable long projectId) {
-        final ReportRequest reportRequest = ReportRequest.fromProjectId(projectId);
-        final Report report = reportService.generateReport(reportRequest);
-        final ReportDTO reportDTO = reportMapper.toDTO(report);
+    @PostMapping(path = "/projects")
+    public ResponseEntity<ReportDTO<ProjectReportEntryDTO>> getProjectReport(
+            @Valid @RequestBody ReportRequestDTO reportRequestDTO) {
+        final ReportRequest reportRequest = reportMapper.fromDTO(reportRequestDTO);
+        final Report<ProjectReportEntry> report = reportService.generateProjectReport(reportRequest);
+        final ReportDTO<ProjectReportEntryDTO> reportDTO = reportMapper.toProjectDTO(report);
 
         return ResponseEntity.ok(reportDTO);
     }
 
-    @PostMapping
-    public ResponseEntity<ReportDTO> getReport(
+    @PostMapping(path = "/clients")
+    public ResponseEntity<ReportDTO<ClientReportEntryDTO>> getClientReport(
             @Valid @RequestBody ReportRequestDTO reportRequestDTO) {
         final ReportRequest reportRequest = reportMapper.fromDTO(reportRequestDTO);
-        final Report report = reportService.generateReport(reportRequest);
-        final ReportDTO reportDTO = reportMapper.toDTO(report);
+        final Report<ClientReportEntry> report = reportService.generateClientReport(reportRequest);
+        final ReportDTO<ClientReportEntryDTO> reportDTO = reportMapper.toClientDTO(report);
 
         return ResponseEntity.ok(reportDTO);
     }

@@ -4,11 +4,12 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springframework.stereotype.Service;
 
-import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.model.ClientReportEntry;
 import me.eeshe.tempus.model.ProjectReportEntry;
 import me.eeshe.tempus.model.Report;
 import me.eeshe.tempus.repository.TimeEntryRepository;
@@ -25,34 +26,51 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Report generateReport(ReportRequest reportRequest) {
+    public Report<ProjectReportEntry> generateProjectReport(ReportRequest reportRequest) {
+        return generateReport(
+                reportRequest,
+                (timeEntry) -> timeEntry.getProject(),
+                (entry) -> new ProjectReportEntry(entry.getKey(), entry.getValue()));
+    }
+
+    @Override
+    public Report<ClientReportEntry> generateClientReport(ReportRequest reportRequest) {
+        return generateReport(
+                reportRequest,
+                (timeEntry) -> timeEntry.getProject().getClient(),
+                (entry) -> new ClientReportEntry(entry.getKey(), entry.getValue()));
+    }
+
+    private <T, U> Report<T> generateReport(
+            ReportRequest reportRequest,
+            Function<TimeEntry, U> mapKeyFunction,
+            Function<Map.Entry<U, Long>, T> reportEntryCreateFunction) {
         final List<TimeEntry> timeEntries = timeEntryRepository.findAll(TimeEntrySpecification.withFilters(
                 reportRequest.startDate(),
                 reportRequest.endDate(),
                 reportRequest.projectIds(),
                 reportRequest.taskIds(),
+                reportRequest.clientIds(),
                 reportRequest.descriptions(),
                 reportRequest.isBillable()));
 
-        final Map<Project, Long> projectTrackedTimeMillisMap = new HashMap<>();
+        final Map<U, Long> trackedTimeMillisMap = new HashMap<>();
         long totalTrackedTimeMillis = 0;
         for (TimeEntry timeEntry : timeEntries) {
             final long timeEntryDurationMillis = Duration.between(
                     timeEntry.getStartTime(),
                     timeEntry.getEndTime()).toMillis();
-            projectTrackedTimeMillisMap.compute(timeEntry.getProject(), (_, projectTrackedTimeMillis) -> {
-                if (projectTrackedTimeMillis == null) {
+            trackedTimeMillisMap.compute(mapKeyFunction.apply(timeEntry), (_, trackedTimeMillis) -> {
+                if (trackedTimeMillis == null) {
                     return timeEntryDurationMillis;
                 }
-                return projectTrackedTimeMillis + timeEntryDurationMillis;
+                return trackedTimeMillis + timeEntryDurationMillis;
             });
             totalTrackedTimeMillis += timeEntryDurationMillis;
         }
-        return new Report(
+        return new Report<>(
                 totalTrackedTimeMillis,
-                projectTrackedTimeMillisMap.entrySet().stream().map(entry -> {
-                    return new ProjectReportEntry(entry.getKey(), entry.getValue());
-                }).toList());
+                trackedTimeMillisMap.entrySet().stream()
+                        .map(reportEntryCreateFunction).toList());
     }
-
 }
