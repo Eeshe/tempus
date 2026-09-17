@@ -1,7 +1,9 @@
 package me.eeshe.tempus.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
+import me.eeshe.tempus.dto.PageDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.mapper.PageMapper;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
@@ -30,18 +34,25 @@ import me.eeshe.tempus.service.TimeEntryService;
 public class TimeEntryController {
     private final TimeEntryService timeEntryService;
     private final TimeEntryMapper timeEntryMapper;
+    private final PageMapper pageMapper;
 
-    public TimeEntryController(TimeEntryService timeEntryService, TimeEntryMapper timeEntryMapper) {
+    public TimeEntryController(
+            TimeEntryService timeEntryService,
+            TimeEntryMapper timeEntryMapper,
+            PageMapper pageMapper) {
         this.timeEntryService = timeEntryService;
         this.timeEntryMapper = timeEntryMapper;
+        this.pageMapper = pageMapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<TimeEntryDTO>> listTimeEntries() {
-        final List<TimeEntry> timeEntries = timeEntryService.listTimeEntries();
-        final List<TimeEntryDTO> timeEntryDTOs = timeEntries.stream().map(timeEntryMapper::toDTO).toList();
+    public ResponseEntity<PageDTO<TimeEntryDTO>> listTimeEntries(
+            @PageableDefault(page = 0, size = 2, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
+        final Page<TimeEntry> timeEntryPage = timeEntryService.listTimeEntries(pageable);
+        final Page<TimeEntryDTO> timeEntryDTOPage = timeEntryPage.map(timeEntryMapper::toDTO);
+        final PageDTO<TimeEntryDTO> timeEntryPageDTO = pageMapper.toDTO(timeEntryDTOPage);
 
-        return ResponseEntity.ok(timeEntryDTOs);
+        return ResponseEntity.ok(timeEntryPageDTO);
     }
 
     @GetMapping(path = "/{timeEntryId}")

@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
@@ -8,7 +9,7 @@ import me.eeshe.tempus.request.PatchTimeEntryRequest;
 
 public interface TimeEntryService {
 
-    List<TimeEntry> listTimeEntries();
+    Page<TimeEntry> listTimeEntries(Pageable pageable);
 
     TimeEntry getTimeEntry(long timeEntryId);
 
