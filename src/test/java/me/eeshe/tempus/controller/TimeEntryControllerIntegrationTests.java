@@ -140,25 +140,6 @@ public class TimeEntryControllerIntegrationTests {
     }
 
     @Test
-    public void testThatCreateTimeEntryWithUnexistentGroupIdReturnsHttp400BadRequest() throws Exception {
-        long userId = createUser(mockMvc);
-        createProject(mockMvc, userId);
-
-        final String json = """
-                {
-                    "groupId": 9999,
-                    "userId": 1,
-                    "projectId": 1,
-                    "isBillable": true
-                }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.post(TIME_ENTRIES_PATH)
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-    }
-
-    @Test
     public void testThatCreateTimeEntryWithUnexistentTaskIdReturnsHttp400BadRequest() throws Exception {
         long userId = createUser(mockMvc);
         createProject(mockMvc, userId);
@@ -260,27 +241,6 @@ public class TimeEntryControllerIntegrationTests {
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.isBillable").value(false));
-    }
-
-    @Test
-    public void testThatPatchTimeEntryWithGroupId() throws Exception {
-        long userId = createUser(mockMvc);
-        long projectId = createProject(mockMvc, userId);
-        long timeEntryId = createTimeEntry(mockMvc, userId, projectId, true);
-        long groupId = createGroup(mockMvc);
-
-        final String json = """
-                {
-                    "groupId": %d,
-                    "projectId": %d,
-                    "taskId": null,
-                    "isBillable": true
-                }
-                    """.formatted(groupId, projectId);
-        mockMvc.perform(MockMvcRequestBuilders.patch(TIME_ENTRIES_PATH + "/" + timeEntryId)
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupId").value(groupId));
     }
 
     @Test

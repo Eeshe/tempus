@@ -21,10 +21,6 @@ public class TimeEntry {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
-    private Group group;
-
-    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
@@ -53,7 +49,6 @@ public class TimeEntry {
     }
 
     public TimeEntry(
-            Group group,
             User user,
             Project project,
             Task task,
@@ -61,7 +56,6 @@ public class TimeEntry {
             boolean isBillable,
             Instant startTime,
             Instant endTime) {
-        this.group = group;
         this.user = user;
         this.project = project;
         this.task = task;
@@ -82,18 +76,6 @@ public class TimeEntry {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public Group getGroup() {
-        return group;
-    }
-
-    public void setGroup(Group group) {
-        this.group = group;
-    }
-
-    public Long getGroupId() {
-        return group != null ? group.getId() : null;
     }
 
     public User getUser() {

@@ -11,7 +11,6 @@ public class TestEntityFactory {
     public static final String USERS_PATH = "/api/v1/users";
     public static final String PROJECTS_PATH = "/api/v1/projects";
     public static final String CLIENTS_PATH = "/api/v1/clients";
-    public static final String GROUPS_PATH = "/api/v1/groups";
     public static final String TASKS_PATH = "/api/v1/tasks";
     public static final String TIME_ENTRIES_PATH = "/api/v1/time-entries";
 
@@ -53,18 +52,6 @@ public class TestEntityFactory {
                     "hourlyRate": %.1f
                 }
                 """.formatted(name, userId, hourlyRate));
-    }
-
-    public static long createGroup(MockMvc mockMvc) throws Exception {
-        return createGroup(mockMvc, "MyGroup");
-    }
-
-    public static long createGroup(MockMvc mockMvc, String name) throws Exception {
-        return postForId(mockMvc, GROUPS_PATH, """
-                {
-                    "name": "%s"
-                }
-                """.formatted(name));
     }
 
     public static long createTask(MockMvc mockMvc, long userId, long projectId) throws Exception {

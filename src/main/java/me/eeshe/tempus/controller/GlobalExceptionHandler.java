@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
-import me.eeshe.tempus.exception.GroupNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
@@ -29,13 +28,6 @@ public class GlobalExceptionHandler {
         final ErrorResponseDTO errorResponseDto = new ErrorResponseDTO(errorMessage);
 
         return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(GroupNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleGroupNotFoundException(GroupNotFoundException exception) {
-        return new ResponseEntity<>(
-                new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UserNotFoundException.class)

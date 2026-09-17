@@ -11,7 +11,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -29,9 +28,6 @@ public class User {
 
     @Column(nullable = false)
     private String password;
-
-    @ManyToMany(mappedBy = "users")
-    private Set<Group> groups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Set<Client> clients = new HashSet<>();
@@ -83,27 +79,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Set<Group> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Collection<Group> newGroups) {
-        for (Group group : this.groups) {
-            if (newGroups.contains(group)) {
-                continue;
-            }
-            group.getUsers().remove(this);
-        }
-        for (Group newGroup : newGroups) {
-            if (this.groups.contains(newGroup)) {
-                continue;
-            }
-            newGroup.getUsers().add(this);
-        }
-        this.groups.clear();
-        this.groups.addAll(newGroups);
     }
 
     public Set<Client> getClients() {

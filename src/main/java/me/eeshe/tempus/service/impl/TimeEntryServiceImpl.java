@@ -126,7 +126,6 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     @Override
     public TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
         return timeEntryRepository.save(new TimeEntry(
-                createTimeEntryRequest.group(),
                 createTimeEntryRequest.user(),
                 createTimeEntryRequest.project(),
                 createTimeEntryRequest.task(),
@@ -140,7 +139,6 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     public TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
         final TimeEntry timeEntry = getTimeEntry(timeEntryId);
 
-        patchTimeEntryRequest.group().ifPresent(timeEntry::setGroup);
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
         patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);

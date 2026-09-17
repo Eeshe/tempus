@@ -17,6 +17,5 @@ public abstract class BaseControllerTest {
         jdbcTemplate.execute("DELETE FROM tasks");
         jdbcTemplate.execute("DELETE FROM clients");
         jdbcTemplate.execute("DELETE FROM users");
-        jdbcTemplate.execute("DELETE FROM groups");
     }
 }

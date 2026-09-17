@@ -1,13 +1,11 @@
 package me.eeshe.tempus.controller;
 
 import static me.eeshe.tempus.testutil.TestEntityFactory.CLIENTS_PATH;
-import static me.eeshe.tempus.testutil.TestEntityFactory.GROUPS_PATH;
 import static me.eeshe.tempus.testutil.TestEntityFactory.PROJECTS_PATH;
 import static me.eeshe.tempus.testutil.TestEntityFactory.TASKS_PATH;
 import static me.eeshe.tempus.testutil.TestEntityFactory.TIME_ENTRIES_PATH;
 import static me.eeshe.tempus.testutil.TestEntityFactory.USERS_PATH;
 import static me.eeshe.tempus.testutil.TestEntityFactory.createClient;
-import static me.eeshe.tempus.testutil.TestEntityFactory.createGroup;
 import static me.eeshe.tempus.testutil.TestEntityFactory.createProject;
 import static me.eeshe.tempus.testutil.TestEntityFactory.createTask;
 import static me.eeshe.tempus.testutil.TestEntityFactory.createTimeEntry;
@@ -46,7 +44,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -106,7 +103,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH + "/" + userId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -125,7 +121,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -144,8 +139,7 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
     public void testThatUpdateUserWithEmptyNameReturnsHttp400BadRequest() throws Exception {
         final String json = """
                 {
-                    "name": "",
-                    "groupIds": []
+                    "name": ""
                 }
                     """;
 
@@ -158,37 +152,7 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
     @Test
     public void testThatUpdateUserWithNullNameReturnsHttp400BadRequest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/1")
-                .content("{\"groupIds\": []}")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-    }
-
-    @Test
-    public void testThatUpdateUserWithNullGroupIdsReturnsHttp400BadRequest() throws Exception {
-        final String json = """
-                {
-                    "name": "MyUser"
-                }
-                    """;
-
-        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/1")
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-    }
-
-    @Test
-    public void testThatUpdateUserWithUnexistentGroupIdReturnsHttp400BadRequest() throws Exception {
-        final long userId = createUser(mockMvc);
-
-        final String json = """
-                {
-                    "name": "MyUser",
-                    "groupIds": [1]
-                }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.put(USERS_PATH + "/" + userId)
-                .content(json)
+                .content("{}")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
@@ -212,7 +176,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -225,21 +188,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewUserName"));
-    }
-
-    @Test
-    public void testThatPatchUserWithGroupIds() throws Exception {
-        final long userId = createUser(mockMvc);
-
-        final String json = """
-                {
-                    "groupIds": []
-                }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(USERS_PATH + "/" + userId)
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.groupIds").isEmpty());
     }
 
     @Test
@@ -281,28 +229,6 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-    }
-
-    @Test
-    public void testThatDeleteUserCascadesIntoGroup() throws Exception {
-        final long groupId = createGroup(mockMvc);
-        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
-
-        final long userId = createUser(mockMvc);
-        final String patchGroupJson = """
-                {
-                    "userIds": [%s]
-                }
-                    """.formatted(userId);
-        mockMvc.perform(MockMvcRequestBuilders.patch(GROUPS_PATH + "/" + groupId)
-                .content(patchGroupJson)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isNotEmpty());
-
-        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/" + userId));
-        mockMvc.perform(MockMvcRequestBuilders.get(GROUPS_PATH + "/" + groupId))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.userIds").isEmpty());
     }
 
     @Test
@@ -362,8 +288,7 @@ public class UserControllerIntegrationTests extends BaseControllerTest {
     private String generateUpdateUserJson() {
         return """
                 {
-                    "name": "MyNewUserName",
-                    "groupIds": []
+                    "name": "MyNewUserName"
                 }
                     """;
     }

@@ -16,8 +16,6 @@ public abstract class ControllerTestBase {
         jdbcTemplate.execute("DELETE FROM tasks");
         jdbcTemplate.execute("DELETE FROM projects");
         jdbcTemplate.execute("DELETE FROM clients");
-        jdbcTemplate.execute("DELETE FROM group_users");
-        jdbcTemplate.execute("DELETE FROM groups");
         jdbcTemplate.execute("DELETE FROM users");
         jdbcTemplate.execute("PRAGMA foreign_keys = ON");
     }

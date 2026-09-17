@@ -5,7 +5,6 @@ import java.time.Instant;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateTimeEntryRequestDTO(
-        Long groupId,
         @NotNull(message = ERROR_MESSAGE_NULL_PROJECT) Long projectId,
         Long taskId,
         String description,
