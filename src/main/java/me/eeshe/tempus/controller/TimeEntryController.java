@@ -1,9 +1,8 @@
 package me.eeshe.tempus.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import java.time.Instant;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,16 +13,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
-import me.eeshe.tempus.dto.PageDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
+import me.eeshe.tempus.dto.TimeEntryPageDTO;
 import me.eeshe.tempus.entity.TimeEntry;
-import me.eeshe.tempus.mapper.PageMapper;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
+import me.eeshe.tempus.mapper.TimeEntryPageMapper;
+import me.eeshe.tempus.model.TimeEntryPage;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
 import me.eeshe.tempus.security.UserDetailsImpl;
@@ -34,25 +35,24 @@ import me.eeshe.tempus.service.TimeEntryService;
 public class TimeEntryController {
     private final TimeEntryService timeEntryService;
     private final TimeEntryMapper timeEntryMapper;
-    private final PageMapper pageMapper;
+    private final TimeEntryPageMapper timeEntryPageMapper;
 
     public TimeEntryController(
             TimeEntryService timeEntryService,
             TimeEntryMapper timeEntryMapper,
-            PageMapper pageMapper) {
+            TimeEntryPageMapper timeEntryPageMapper) {
         this.timeEntryService = timeEntryService;
         this.timeEntryMapper = timeEntryMapper;
-        this.pageMapper = pageMapper;
+        this.timeEntryPageMapper = timeEntryPageMapper;
     }
 
     @GetMapping
-    public ResponseEntity<PageDTO<TimeEntryDTO>> listTimeEntries(
-            @PageableDefault(page = 0, size = 2, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
-        final Page<TimeEntry> timeEntryPage = timeEntryService.listTimeEntries(pageable);
-        final Page<TimeEntryDTO> timeEntryDTOPage = timeEntryPage.map(timeEntryMapper::toDTO);
-        final PageDTO<TimeEntryDTO> timeEntryPageDTO = pageMapper.toDTO(timeEntryDTOPage);
+    public ResponseEntity<TimeEntryPageDTO> listTimeEntries(
+            @RequestParam(name = "cursor", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant cursor,
+            @RequestParam(name = "size", defaultValue = "50") int size) {
+        final TimeEntryPage timeEntryPage = timeEntryService.listTimeEntries(cursor, size);
 
-        return ResponseEntity.ok(timeEntryPageDTO);
+        return ResponseEntity.ok(timeEntryPageMapper.toDTO(timeEntryPage));
     }
 
     @GetMapping(path = "/{timeEntryId}")
