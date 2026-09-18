@@ -42,11 +42,11 @@ public class TaskMapperImpl implements TaskMapper {
         return new CreateTaskRequest(
                 createTaskRequestDTO.name(),
                 userService.getUser(userId),
-                projectService.getProject(createTaskRequestDTO.projectId()));
+                projectService.getProject(userId, createTaskRequestDTO.projectId()));
     }
 
     @Override
-    public PatchTaskRequest fromDTO(PatchTaskRequestDTO patchTaskRequestDTO) {
+    public PatchTaskRequest fromDTO(PatchTaskRequestDTO patchTaskRequestDTO, long userId) {
         return new PatchTaskRequest(patchTaskRequestDTO.name());
     }
 

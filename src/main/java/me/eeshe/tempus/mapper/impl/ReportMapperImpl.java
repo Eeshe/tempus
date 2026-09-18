@@ -49,8 +49,9 @@ public class ReportMapperImpl implements ReportMapper {
     }
 
     @Override
-    public ReportRequest fromDTO(ReportRequestDTO reportRequestDTO) {
+    public ReportRequest fromDTO(ReportRequestDTO reportRequestDTO, long userId) {
         return new ReportRequest(
+                userId,
                 reportRequestDTO.startDate(),
                 reportRequestDTO.endDate(),
                 reportRequestDTO.projectIds(),

@@ -15,5 +15,5 @@ public interface ReportMapper {
 
     ReportDTO<ClientReportEntryDTO> toClientDTO(Report<ClientReportEntry> report);
 
-    ReportRequest fromDTO(ReportRequestDTO reportRequestDTO);
+    ReportRequest fromDTO(ReportRequestDTO reportRequestDTO, long userId);
 }

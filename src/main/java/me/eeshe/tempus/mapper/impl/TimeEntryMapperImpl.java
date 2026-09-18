@@ -55,8 +55,8 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     public CreateTimeEntryRequest fromDTO(CreateTimeEntryRequestDTO createTimeEntryRequestDTO, long userId) {
         return new CreateTimeEntryRequest(
                 userService.getUser(userId),
-                projectService.getProject(createTimeEntryRequestDTO.projectId()),
-                resolveTask(createTimeEntryRequestDTO.taskId()),
+                projectService.getProject(userId, createTimeEntryRequestDTO.projectId()),
+                resolveTask(userId, createTimeEntryRequestDTO.taskId()),
                 createTimeEntryRequestDTO.description(),
                 createTimeEntryRequestDTO.isBillable(),
                 createTimeEntryRequestDTO.startTime(),
@@ -64,17 +64,17 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     }
 
     @Override
-    public PatchTimeEntryRequest fromDTO(PatchTimeEntryRequestDTO patchTimeEntryRequestDTO) {
+    public PatchTimeEntryRequest fromDTO(PatchTimeEntryRequestDTO patchTimeEntryRequestDTO, long userId) {
         return new PatchTimeEntryRequest(
-                patchTimeEntryRequestDTO.projectId().map(projectService::getProject),
-                patchTimeEntryRequestDTO.taskId().map(this::resolveTask),
+                patchTimeEntryRequestDTO.projectId().map(id -> projectService.getProject(userId, id)),
+                patchTimeEntryRequestDTO.taskId().map(id -> resolveTask(userId, id)),
                 patchTimeEntryRequestDTO.description(),
                 patchTimeEntryRequestDTO.isBillable(),
                 patchTimeEntryRequestDTO.startTime(),
                 patchTimeEntryRequestDTO.endTime());
     }
 
-    private Task resolveTask(final Long taskId) {
-        return taskId != null ? taskService.getTask(taskId) : null;
+    private Task resolveTask(final long userId, final Long taskId) {
+        return taskId != null ? taskService.getTask(userId, taskId) : null;
     }
 }

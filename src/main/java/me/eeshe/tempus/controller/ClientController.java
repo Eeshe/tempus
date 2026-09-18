@@ -37,16 +37,19 @@ public class ClientController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> listClients() {
-        final List<Client> clients = clientService.listClients();
+    public ResponseEntity<List<ClientDTO>> listClients(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final List<Client> clients = clientService.listClients(userDetails.getId());
         final List<ClientDTO> clientDTOs = clients.stream().map(clientMapper::toDTO).toList();
 
         return ResponseEntity.ok(clientDTOs);
     }
 
     @GetMapping(path = "/{clientId}")
-    public ResponseEntity<ClientDTO> getClient(@PathVariable long clientId) {
-        final Client client = clientService.getClient(clientId);
+    public ResponseEntity<ClientDTO> getClient(
+            @PathVariable long clientId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final Client client = clientService.getClient(userDetails.getId(), clientId);
         final ClientDTO clientDTO = clientMapper.toDTO(client);
 
         return ResponseEntity.ok(clientDTO);
@@ -67,17 +70,20 @@ public class ClientController {
     @PatchMapping(path = "/{clientId}")
     public ResponseEntity<ClientDTO> patchClient(
             @PathVariable long clientId,
-            @Valid @RequestBody PatchClientRequestDTO patchClientRequestDTO) {
-        final PatchClientRequest patchClientRequest = clientMapper.fromDTO(patchClientRequestDTO);
-        final Client patchedClient = clientService.patchClient(clientId, patchClientRequest);
+            @Valid @RequestBody PatchClientRequestDTO patchClientRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final PatchClientRequest patchClientRequest = clientMapper.fromDTO(patchClientRequestDTO, userDetails.getId());
+        final Client patchedClient = clientService.patchClient(userDetails.getId(), clientId, patchClientRequest);
         final ClientDTO patchedClientDTO = clientMapper.toDTO(patchedClient);
 
         return ResponseEntity.ok(patchedClientDTO);
     }
 
     @DeleteMapping(path = "/{clientId}")
-    public ResponseEntity<Void> deleteClient(@PathVariable long clientId) {
-        clientService.deleteClient(clientId);
+    public ResponseEntity<Void> deleteClient(
+            @PathVariable long clientId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        clientService.deleteClient(userDetails.getId(), clientId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

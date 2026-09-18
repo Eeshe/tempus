@@ -8,13 +8,13 @@ import me.eeshe.tempus.request.PatchTaskRequest;
 
 public interface TaskService {
 
-    List<Task> listTasks();
+    List<Task> listTasks(long userId);
 
-    Task getTask(long taskId);
+    Task getTask(long userId, long taskId);
 
     Task createTask(CreateTaskRequest createTaskRequest);
 
-    Task patchTask(long taskId, PatchTaskRequest patchTaskRequest);
+    Task patchTask(long userId, long taskId, PatchTaskRequest patchTaskRequest);
 
-    void deleteTask(long taskId);
+    void deleteTask(long userId, long taskId);
 }

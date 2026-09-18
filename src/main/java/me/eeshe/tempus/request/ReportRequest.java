@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record ReportRequest(
+        long userId,
         LocalDate startDate,
         LocalDate endDate,
         List<Long> projectIds,

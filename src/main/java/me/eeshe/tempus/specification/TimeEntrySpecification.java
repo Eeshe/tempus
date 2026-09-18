@@ -12,6 +12,7 @@ import me.eeshe.tempus.entity.TimeEntry;
 public class TimeEntrySpecification {
 
     public static PredicateSpecification<TimeEntry> withFilters(
+            long userId,
             LocalDate startDate,
             LocalDate endDate,
             List<Long> projectIds,
@@ -22,6 +23,7 @@ public class TimeEntrySpecification {
         return (from, criteriaBuilder) -> {
             final List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(from.get("user").get("id").in(userId));
             predicates.add(criteriaBuilder.isNotNull(from.get("endTime")));
 
             if (startDate != null && endDate != null) {

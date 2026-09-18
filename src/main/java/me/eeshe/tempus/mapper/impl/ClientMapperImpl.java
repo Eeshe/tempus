@@ -36,7 +36,7 @@ public class ClientMapperImpl implements ClientMapper {
     }
 
     @Override
-    public PatchClientRequest fromDTO(PatchClientRequestDTO patchClientRequestDTO) {
+    public PatchClientRequest fromDTO(PatchClientRequestDTO patchClientRequestDTO, long userId) {
         return new PatchClientRequest(
                 patchClientRequestDTO.name());
     }

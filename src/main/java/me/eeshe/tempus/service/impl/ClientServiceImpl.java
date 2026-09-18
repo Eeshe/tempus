@@ -21,13 +21,14 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public List<Client> listClients() {
-        return clientRepository.findAll();
+    public List<Client> listClients(long userId) {
+        return clientRepository.findByUserId(userId);
     }
 
     @Override
-    public Client getClient(long clientId) {
-        return clientRepository.findById(clientId).orElseThrow(() -> new ClientNotFoundException(clientId));
+    public Client getClient(long userId, long clientId) {
+        return clientRepository.findByIdAndUserId(clientId, userId)
+                .orElseThrow(() -> new ClientNotFoundException(clientId));
     }
 
     @Override
@@ -43,18 +44,18 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Client patchClient(long clientId, PatchClientRequest patchClientRequest) {
-        final Client client = getClient(clientId);
+    public Client patchClient(long userId, long clientId, PatchClientRequest patchClientRequest) {
+        final Client client = getClient(userId, clientId);
         if (patchClientRequest.name() != null) {
             client.setName(patchClientRequest.name());
         }
-
         return clientRepository.save(client);
     }
 
     @Override
-    public void deleteClient(long clientId) {
+    public void deleteClient(long userId, long clientId) {
+        getClient(userId, clientId);
+
         clientRepository.deleteById(clientId);
     }
-
 }

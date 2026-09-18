@@ -8,13 +8,13 @@ import me.eeshe.tempus.request.PatchClientRequest;
 
 public interface ClientService {
 
-    List<Client> listClients();
+    List<Client> listClients(long userId);
 
-    Client getClient(long clientId);
+    Client getClient(long userId, long clientId);
 
     Client createClient(CreateClientRequest createClientRequest);
 
-    Client patchClient(long clientId, PatchClientRequest patchClientRequest);
+    Client patchClient(long userId, long clientId, PatchClientRequest patchClientRequest);
 
-    void deleteClient(long clientId);
+    void deleteClient(long userId, long clientId);
 }

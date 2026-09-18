@@ -46,6 +46,7 @@ public class ReportServiceImpl implements ReportService {
             Function<TimeEntry, U> mapKeyFunction,
             Function<Map.Entry<U, Long>, T> reportEntryCreateFunction) {
         final List<TimeEntry> timeEntries = timeEntryRepository.findAll(TimeEntrySpecification.withFilters(
+                reportRequest.userId(),
                 reportRequest.startDate(),
                 reportRequest.endDate(),
                 reportRequest.projectIds(),

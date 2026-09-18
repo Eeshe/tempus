@@ -37,16 +37,19 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskDTO>> getTasks() {
-        final List<Task> tasks = taskService.listTasks();
+    public ResponseEntity<List<TaskDTO>> getTasks(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final List<Task> tasks = taskService.listTasks(userDetails.getId());
         final List<TaskDTO> taskDTOs = tasks.stream().map(taskMapper::toDTO).toList();
 
         return ResponseEntity.ok(taskDTOs);
     }
 
     @GetMapping(path = "/{taskId}")
-    public ResponseEntity<TaskDTO> getTask(@PathVariable long taskId) {
-        final Task task = taskService.getTask(taskId);
+    public ResponseEntity<TaskDTO> getTask(
+            @PathVariable long taskId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final Task task = taskService.getTask(userDetails.getId(), taskId);
         final TaskDTO taskDTO = taskMapper.toDTO(task);
 
         return ResponseEntity.ok(taskDTO);
@@ -66,17 +69,20 @@ public class TaskController {
     @PatchMapping(path = "/{taskId}")
     public ResponseEntity<TaskDTO> patchTask(
             @PathVariable long taskId,
-            @Valid @RequestBody PatchTaskRequestDTO patchTaskRequestDTO) {
-        final PatchTaskRequest patchTaskRequest = taskMapper.fromDTO(patchTaskRequestDTO);
-        final Task patchedTask = taskService.patchTask(taskId, patchTaskRequest);
+            @Valid @RequestBody PatchTaskRequestDTO patchTaskRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final PatchTaskRequest patchTaskRequest = taskMapper.fromDTO(patchTaskRequestDTO, userDetails.getId());
+        final Task patchedTask = taskService.patchTask(userDetails.getId(), taskId, patchTaskRequest);
         final TaskDTO patchedTaskDTO = taskMapper.toDTO(patchedTask);
 
         return ResponseEntity.ok(patchedTaskDTO);
     }
 
     @DeleteMapping(path = "/{taskId}")
-    public ResponseEntity<Void> deleteTask(@PathVariable long taskId) {
-        taskService.deleteTask(taskId);
+    public ResponseEntity<Void> deleteTask(
+            @PathVariable long taskId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        taskService.deleteTask(userDetails.getId(), taskId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

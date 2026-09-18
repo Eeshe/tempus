@@ -49,15 +49,21 @@ public class TimeEntryController {
     @GetMapping
     public ResponseEntity<TimeEntryPageDTO> listTimeEntries(
             @RequestParam(name = "cursor", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant cursor,
-            @RequestParam(name = "size", defaultValue = "50") int size) {
-        final TimeEntryPage timeEntryPage = timeEntryService.listTimeEntries(cursor, size);
+            @RequestParam(name = "size", defaultValue = "50") int size,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final TimeEntryPage timeEntryPage = timeEntryService.listTimeEntries(
+                userDetails.getId(),
+                cursor,
+                size);
 
         return ResponseEntity.ok(timeEntryPageMapper.toDTO(timeEntryPage));
     }
 
     @GetMapping(path = "/{timeEntryId}")
-    public ResponseEntity<TimeEntryDTO> getTimeEntry(@PathVariable long timeEntryId) {
-        final TimeEntry timeEntry = timeEntryService.getTimeEntry(timeEntryId);
+    public ResponseEntity<TimeEntryDTO> getTimeEntry(
+            @PathVariable long timeEntryId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final TimeEntry timeEntry = timeEntryService.getTimeEntry(userDetails.getId(), timeEntryId);
         final TimeEntryDTO timeEntryDTO = timeEntryMapper.toDTO(timeEntry);
 
         return ResponseEntity.ok(timeEntryDTO);
@@ -79,17 +85,21 @@ public class TimeEntryController {
     @PatchMapping(path = "/{timeEntryId}")
     public ResponseEntity<TimeEntryDTO> patchTimeEntry(
             @PathVariable long timeEntryId,
-            @Valid @RequestBody PatchTimeEntryRequestDTO patchTimeEntryRequestDTO) {
-        final PatchTimeEntryRequest patchTimeEntryRequest = timeEntryMapper.fromDTO(patchTimeEntryRequestDTO);
-        final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(timeEntryId, patchTimeEntryRequest);
+            @Valid @RequestBody PatchTimeEntryRequestDTO patchTimeEntryRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final PatchTimeEntryRequest patchTimeEntryRequest = timeEntryMapper.fromDTO(patchTimeEntryRequestDTO, userDetails.getId());
+        final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(userDetails.getId(), timeEntryId,
+                patchTimeEntryRequest);
         final TimeEntryDTO patchedTimeEntryDTO = timeEntryMapper.toDTO(patchedTimeEntry);
 
         return ResponseEntity.ok(patchedTimeEntryDTO);
     }
 
     @DeleteMapping(path = "/{timeEntryId}")
-    public ResponseEntity<TimeEntryDTO> deleteTimeEntry(@PathVariable long timeEntryId) {
-        timeEntryService.deleteTimeEntry(timeEntryId);
+    public ResponseEntity<TimeEntryDTO> deleteTimeEntry(
+            @PathVariable long timeEntryId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        timeEntryService.deleteTimeEntry(userDetails.getId(), timeEntryId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

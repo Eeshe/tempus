@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,16 +37,19 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectDTO>> listProjects() {
-        final List<Project> projects = projectService.listProjects();
+    public ResponseEntity<List<ProjectDTO>> listProjects(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final List<Project> projects = projectService.listProjects(userDetails.getId());
         final List<ProjectDTO> projectDTOs = projects.stream().map(projectMapper::toDTO).toList();
 
         return ResponseEntity.ok(projectDTOs);
     }
 
     @GetMapping(path = "/{projectId}")
-    public ResponseEntity<ProjectDTO> getProject(@PathVariable long projectId) {
-        final Project project = projectService.getProject(projectId);
+    public ResponseEntity<ProjectDTO> getProject(
+            @PathVariable long projectId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final Project project = projectService.getProject(userDetails.getId(), projectId);
         final ProjectDTO projectDTO = projectMapper.toDTO(project);
 
         return ResponseEntity.ok(projectDTO);
@@ -56,30 +58,31 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<ProjectDTO> createProject(
             @Valid @RequestBody CreateProjectRequestDTO createProjectRequestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        final long userId = ((UserDetailsImpl) userDetails).getId();
-        final CreateProjectRequest createProjectRequest = projectMapper.fromDTO(createProjectRequestDTO, userId);
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final CreateProjectRequest createProjectRequest = projectMapper.fromDTO(createProjectRequestDTO, userDetails.getId());
         final Project createdProject = projectService.createProject(createProjectRequest);
         final ProjectDTO createdProjectDTO = projectMapper.toDTO(createdProject);
 
         return new ResponseEntity<>(createdProjectDTO, HttpStatus.CREATED);
-
     }
 
     @PatchMapping(path = "/{projectId}")
     public ResponseEntity<ProjectDTO> patchProject(
             @PathVariable long projectId,
-            @Valid @RequestBody PatchProjectRequestDTO patchProjectRequestDTO) {
-        final PatchProjectRequest patchProjectRequest = projectMapper.fromDTO(patchProjectRequestDTO);
-        final Project patchedProject = projectService.patchProject(projectId, patchProjectRequest);
+            @Valid @RequestBody PatchProjectRequestDTO patchProjectRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final PatchProjectRequest patchProjectRequest = projectMapper.fromDTO(patchProjectRequestDTO, userDetails.getId());
+        final Project patchedProject = projectService.patchProject(userDetails.getId(), projectId, patchProjectRequest);
         final ProjectDTO patchedProjectDTO = projectMapper.toDTO(patchedProject);
 
         return ResponseEntity.ok(patchedProjectDTO);
     }
 
     @DeleteMapping(path = "/{projectId}")
-    public ResponseEntity<Void> deleteProject(@PathVariable long projectId) {
-        projectService.deleteProject(projectId);
+    public ResponseEntity<Void> deleteProject(
+            @PathVariable long projectId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        projectService.deleteProject(userDetails.getId(), projectId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

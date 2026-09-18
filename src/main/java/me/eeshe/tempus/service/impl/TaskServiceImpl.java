@@ -21,13 +21,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> listTasks() {
-        return taskRepository.findAll();
+    public List<Task> listTasks(long userId) {
+        return taskRepository.findByUserId(userId);
     }
 
     @Override
-    public Task getTask(long taskId) {
-        return taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+    public Task getTask(long userId, long taskId) {
+        return taskRepository.findByIdAndUserId(taskId, userId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
     }
 
     @Override
@@ -45,8 +46,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task patchTask(long taskId, PatchTaskRequest patchTaskRequest) {
-        final Task task = getTask(taskId);
+    public Task patchTask(long userId, long taskId, PatchTaskRequest patchTaskRequest) {
+        final Task task = getTask(userId, taskId);
         if (patchTaskRequest.name() != null) {
             task.setName(patchTaskRequest.name());
         }
@@ -54,8 +55,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTask(long taskId) {
+    public void deleteTask(long userId, long taskId) {
+        getTask(userId, taskId);
         taskRepository.deleteById(taskId);
     }
-
 }

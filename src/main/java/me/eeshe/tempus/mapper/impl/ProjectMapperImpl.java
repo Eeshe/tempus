@@ -56,19 +56,19 @@ public class ProjectMapperImpl implements ProjectMapper {
                 userService.getUser(userId),
                 createProjectRequestDTO.isPrivate(),
                 createProjectRequestDTO.hourlyRate(),
-                resolveClient(createProjectRequestDTO.clientId()));
+                resolveClient(userId, createProjectRequestDTO.clientId()));
     }
 
     @Override
-    public PatchProjectRequest fromDTO(PatchProjectRequestDTO patchProjectRequestDTO) {
+    public PatchProjectRequest fromDTO(PatchProjectRequestDTO patchProjectRequestDTO, long userId) {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.isPrivate(),
                 patchProjectRequestDTO.hourlyRate(),
-                JsonNullable.of(resolveClient(patchProjectRequestDTO.clientId().orElse(null))));
+                JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))));
     }
 
-    private Client resolveClient(Long clientId) {
-        return clientId != null ? clientService.getClient(clientId) : null;
+    private Client resolveClient(long userId, Long clientId) {
+        return clientId != null ? clientService.getClient(userId, clientId) : null;
     }
 }

@@ -2,7 +2,6 @@ package me.eeshe.tempus.service.impl;
 
 import java.util.List;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import me.eeshe.tempus.entity.Project;
@@ -11,7 +10,6 @@ import me.eeshe.tempus.exception.UserProjectAlreadyExistsException;
 import me.eeshe.tempus.repository.ProjectRepository;
 import me.eeshe.tempus.request.CreateProjectRequest;
 import me.eeshe.tempus.request.PatchProjectRequest;
-import me.eeshe.tempus.security.SecurityUtils;
 import me.eeshe.tempus.service.ProjectService;
 
 @Service
@@ -23,17 +21,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<Project> listProjects() {
-        final Authentication authentication = SecurityUtils.getCurrentAuthentication();
-        if (SecurityUtils.isAdmin(authentication)) {
-            return projectRepository.findAll();
-        }
-        return projectRepository.findByUserId(SecurityUtils.getUserId(authentication));
+    public List<Project> listProjects(long userId) {
+        return projectRepository.findByUserId(userId);
     }
 
     @Override
-    public Project getProject(long projectId) {
-        return projectRepository.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
+    public Project getProject(long userId, long projectId) {
+        return projectRepository.findByIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
     }
 
     @Override
@@ -52,8 +47,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project patchProject(long projectId, PatchProjectRequest patchProjectRequest) {
-        final Project project = getProject(projectId);
+    public Project patchProject(long userId, long projectId, PatchProjectRequest patchProjectRequest) {
+        final Project project = getProject(userId, projectId);
         if (patchProjectRequest.name() != null) {
             project.setName(patchProjectRequest.name());
         }
@@ -65,7 +60,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void deleteProject(long projectId) {
+    public void deleteProject(long userId, long projectId) {
+        getProject(userId, projectId);
+
         projectRepository.deleteById(projectId);
     }
 }

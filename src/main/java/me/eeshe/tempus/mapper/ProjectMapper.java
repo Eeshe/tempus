@@ -13,5 +13,5 @@ public interface ProjectMapper {
 
     CreateProjectRequest fromDTO(CreateProjectRequestDTO createProjectRequestDTO, long userId);
 
-    PatchProjectRequest fromDTO(PatchProjectRequestDTO patchProjectRequestDTO);
+    PatchProjectRequest fromDTO(PatchProjectRequestDTO patchProjectRequestDTO, long userId);
 }

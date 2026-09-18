@@ -8,13 +8,13 @@ import me.eeshe.tempus.request.PatchProjectRequest;
 
 public interface ProjectService {
 
-    List<Project> listProjects();
+    List<Project> listProjects(long userId);
 
-    Project getProject(long projectId);
+    Project getProject(long userId, long projectId);
 
     Project createProject(CreateProjectRequest createProjectRequest);
 
-    Project patchProject(long projectId, PatchProjectRequest patchProjectRequest);
+    Project patchProject(long userId, long projectId, PatchProjectRequest patchProjectRequest);
 
-    void deleteProject(long projectId);
+    void deleteProject(long userId, long projectId);
 }

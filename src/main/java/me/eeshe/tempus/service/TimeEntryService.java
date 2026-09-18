@@ -9,13 +9,13 @@ import me.eeshe.tempus.request.PatchTimeEntryRequest;
 
 public interface TimeEntryService {
 
-    TimeEntryPage listTimeEntries(Instant cursor, int minPageSize);
+    TimeEntryPage listTimeEntries(long userId, Instant cursor, int minPageSize);
 
-    TimeEntry getTimeEntry(long timeEntryId);
+    TimeEntry getTimeEntry(long userId, long timeEntryId);
 
     TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest);
 
-    TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest);
+    TimeEntry patchTimeEntry(long userId, long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest);
 
-    void deleteTimeEntry(long timeEntryId);
+    void deleteTimeEntry(long userId, long timeEntryId);
 }

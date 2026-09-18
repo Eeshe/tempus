@@ -25,13 +25,13 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public TimeEntryPage listTimeEntries(Instant cursor, int minPageSize) {
+    public TimeEntryPage listTimeEntries(long userId, Instant cursor, int minPageSize) {
         minPageSize = Math.max(1, minPageSize);
         final Instant effectiveCursor = cursor != null ? cursor : Instant.now();
         final long cursorDay = Math.floorDiv(effectiveCursor.toEpochMilli(), MILLIS_PER_DAY);
         final Instant currentCursor = Instant.ofEpochMilli(cursorDay * MILLIS_PER_DAY);
 
-        final List<DailyEntryCount> dayGroups = timeEntryRepository.countAllEntriesByUtcEpochDay();
+        final List<DailyEntryCount> dayGroups = timeEntryRepository.countAllEntriesByUtcEpochDay(userId);
 
         final long totalElements = dayGroups.stream().mapToLong(DailyEntryCount::getEntryCount).sum();
         final int totalPages = countPages(dayGroups, minPageSize);
@@ -73,12 +73,13 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         final Instant from = Instant.ofEpochMilli(oldestDay * MILLIS_PER_DAY);
         final Instant to = Instant.ofEpochMilli((cursorDay + 1) * MILLIS_PER_DAY);
         final List<TimeEntry> content = timeEntryRepository
-                .findByStartTimeGreaterThanEqualAndStartTimeLessThanOrderByStartTimeDesc(from, to);
+                .findByUserIdAndStartTimeGreaterThanEqualAndStartTimeLessThanOrderByStartTimeDesc(userId, from, to);
 
         final boolean last = lastIncluded == dayGroups.size() - 1;
         final Instant nextCursor = last ? null : Instant.ofEpochMilli((oldestDay - 1) * MILLIS_PER_DAY);
 
-        return new TimeEntryPage(content, previousCursor, currentCursor, nextCursor, page, minPageSize, totalElements, totalPages, page == 0, last);
+        return new TimeEntryPage(content, previousCursor, currentCursor, nextCursor, page, minPageSize, totalElements,
+                totalPages, page == 0, last);
     }
 
     private int countPages(List<DailyEntryCount> groups, int minSize) {
@@ -119,8 +120,9 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public TimeEntry getTimeEntry(long timeEntryId) {
-        return timeEntryRepository.findById(timeEntryId).orElseThrow(() -> new TimeEntryNotFoundException(timeEntryId));
+    public TimeEntry getTimeEntry(long userId, long timeEntryId) {
+        return timeEntryRepository.findByIdAndUserId(timeEntryId, userId)
+                .orElseThrow(() -> new TimeEntryNotFoundException(timeEntryId));
     }
 
     @Override
@@ -136,8 +138,8 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public TimeEntry patchTimeEntry(long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
-        final TimeEntry timeEntry = getTimeEntry(timeEntryId);
+    public TimeEntry patchTimeEntry(long userId, long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
+        final TimeEntry timeEntry = getTimeEntry(userId, timeEntryId);
 
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
@@ -150,7 +152,9 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     @Override
-    public void deleteTimeEntry(long timeEntryId) {
+    public void deleteTimeEntry(long userId, long timeEntryId) {
+        getTimeEntry(userId, timeEntryId);
+
         timeEntryRepository.deleteById(timeEntryId);
     }
 }

@@ -13,5 +13,5 @@ public interface TaskMapper {
 
     CreateTaskRequest fromDTO(CreateTaskRequestDTO createTaskRequestDTO, long userId);
 
-    PatchTaskRequest fromDTO(PatchTaskRequestDTO patchTaskRequestDTO);
+    PatchTaskRequest fromDTO(PatchTaskRequestDTO patchTaskRequestDTO, long userId);
 }
