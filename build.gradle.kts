@@ -25,6 +25,7 @@ dependencies {
     implementation("org.openapitools:jackson-databind-nullable:0.2.10")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
+    implementation("com.opencsv:opencsv:5.12.0")
 
 	runtimeOnly("org.xerial:sqlite-jdbc")
 
@@ -35,6 +36,7 @@ dependencies {
     testImplementation("org.openapitools:jackson-databind-nullable:0.2.10")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-session-jdbc-test")
+    testImplementation("com.opencsv:opencsv:5.12.0")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

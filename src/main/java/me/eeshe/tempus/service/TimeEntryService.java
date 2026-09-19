@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service;
 
 import java.time.Instant;
+import java.util.List;
 
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.model.TimeEntryPage;
@@ -14,6 +15,8 @@ public interface TimeEntryService {
     TimeEntry getTimeEntry(long userId, long timeEntryId);
 
     TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest);
+
+    List<TimeEntry> createTimeEntries(List<CreateTimeEntryRequest> createTimeEntryRequests);
 
     TimeEntry patchTimeEntry(long userId, long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest);
 

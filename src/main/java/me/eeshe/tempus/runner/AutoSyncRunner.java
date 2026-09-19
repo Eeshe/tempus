@@ -9,10 +9,10 @@ import me.eeshe.tempus.service.SyncService;
 
 @Component
 @Order(2)
-public class AutoImportRunner implements ApplicationRunner {
+public class AutoSyncRunner implements ApplicationRunner {
     private final SyncService syncService;
 
-    public AutoImportRunner(SyncService syncService) {
+    public AutoSyncRunner(SyncService syncService) {
         this.syncService = syncService;
     }
 

@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,11 @@ public class TaskServiceImpl implements TaskService {
     public Task getTask(long userId, long taskId) {
         return taskRepository.findByIdAndUserId(taskId, userId)
                 .orElseThrow(() -> new TaskNotFoundException(taskId));
+    }
+
+    @Override
+    public Optional<Task> getTask(long userId, String taskName, long projectId) {
+        return taskRepository.findByUserIdAndNameAndProjectId(userId, taskName, projectId);
     }
 
     @Override

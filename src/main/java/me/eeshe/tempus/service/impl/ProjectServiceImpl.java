@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,11 @@ public class ProjectServiceImpl implements ProjectService {
     public Project getProject(long userId, long projectId) {
         return projectRepository.findByIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new ProjectNotFoundException(projectId));
+    }
+
+    @Override
+    public Optional<Project> getProject(long userId, String projectName) {
+        return projectRepository.findByUserIdAndName(userId, projectName);
     }
 
     @Override

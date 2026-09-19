@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,11 @@ public class ClientServiceImpl implements ClientService {
     public Client getClient(long userId, long clientId) {
         return clientRepository.findByIdAndUserId(clientId, userId)
                 .orElseThrow(() -> new ClientNotFoundException(clientId));
+    }
+
+    @Override
+    public Optional<Client> getClient(long userId, String clientName) {
+        return clientRepository.findByUserIdAndName(userId, clientName);
     }
 
     @Override

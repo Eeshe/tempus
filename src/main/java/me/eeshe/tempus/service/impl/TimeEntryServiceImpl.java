@@ -127,14 +127,24 @@ public class TimeEntryServiceImpl implements TimeEntryService {
 
     @Override
     public TimeEntry createTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
-        return timeEntryRepository.save(new TimeEntry(
+        return timeEntryRepository.save(requestToTimeEntry(createTimeEntryRequest));
+    }
+
+    @Override
+    public List<TimeEntry> createTimeEntries(List<CreateTimeEntryRequest> createTimeEntryRequests) {
+        return timeEntryRepository.saveAll(createTimeEntryRequests.stream()
+                .map(this::requestToTimeEntry).toList());
+    }
+
+    private TimeEntry requestToTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
+        return new TimeEntry(
                 createTimeEntryRequest.user(),
                 createTimeEntryRequest.project(),
                 createTimeEntryRequest.task(),
                 createTimeEntryRequest.description(),
                 createTimeEntryRequest.isBillable(),
                 createTimeEntryRequest.startTime(),
-                createTimeEntryRequest.endTime()));
+                createTimeEntryRequest.endTime());
     }
 
     @Override
