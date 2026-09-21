@@ -42,7 +42,6 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.getId(),
                 project.getName(),
                 project.getUser().getId(),
-                project.isPrivate(),
                 project.getHourlyRate(),
                 project.getTasks().stream().map(taskMapper::toDTO).toList(),
                 clientDTO,
@@ -54,7 +53,6 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new CreateProjectRequest(
                 createProjectRequestDTO.name(),
                 userService.getUser(userId),
-                createProjectRequestDTO.isPrivate(),
                 createProjectRequestDTO.hourlyRate(),
                 resolveClient(userId, createProjectRequestDTO.clientId()));
     }
@@ -63,7 +61,6 @@ public class ProjectMapperImpl implements ProjectMapper {
     public PatchProjectRequest fromDTO(PatchProjectRequestDTO patchProjectRequestDTO, long userId) {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
-                patchProjectRequestDTO.isPrivate(),
                 patchProjectRequestDTO.hourlyRate(),
                 JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))));
     }

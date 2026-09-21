@@ -32,9 +32,6 @@ public class Project {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
-    private boolean isPrivate;
-
     private BigDecimal hourlyRate;
 
     @ManyToOne
@@ -53,11 +50,9 @@ public class Project {
     public Project() {
     }
 
-    public Project(String name, User user, boolean isPrivate,
-            BigDecimal hourlyRate, Client client) {
+    public Project(String name, User user, BigDecimal hourlyRate, Client client) {
         this.name = name;
         this.user = user;
-        this.isPrivate = isPrivate;
         this.hourlyRate = hourlyRate;
         this.client = client;
     }
@@ -85,14 +80,6 @@ public class Project {
 
     public User getUser() {
         return user;
-    }
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
     }
 
     public BigDecimal getHourlyRate() {

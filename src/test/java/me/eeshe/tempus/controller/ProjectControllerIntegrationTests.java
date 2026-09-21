@@ -39,15 +39,13 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 .content("""
                         {
                             "name": "MyProject",
-                            "userId": 1,
-                            "isPrivate": false
+                            "userId": 1
                         }
                         """)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.isPrivate").isBoolean())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -59,8 +57,7 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 .content("""
                         {
                             "name": "MyProject",
-                            "userId": 1,
-                            "isPrivate": false
+                            "userId": 1
                         }
                         """)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -72,8 +69,7 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
         final String json = """
                 {
                     "name": "",
-                    "userId": 1,
-                    "isPrivate": false
+                    "userId": 1
                 }
                     """;
         mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
@@ -86,8 +82,7 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
     public void testThatCreateProjectWithNullNameReturnsHttp400BadRequest() throws Exception {
         final String json = """
                 {
-                    "userId": 1,
-                    "isPrivate": false
+                    "userId": 1
                 }
                     """;
         mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
@@ -100,8 +95,7 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
     public void testThatCreateProjectWithNullUserIdReturnsHttp400BadRequest() throws Exception {
         final String json = """
                 {
-                    "name": "MyProject",
-                    "isPrivate": false
+                    "name": "MyProject"
                 }
                     """;
         mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
@@ -115,22 +109,7 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
         final String json = """
                 {
                     "name": "MyProject",
-                    "userId": 9999,
-                    "isPrivate": false
-                }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-    }
-
-    @Test
-    public void testThatCreateProjectWithNullIsPrivateReturnsHttp400BadRequest() throws Exception {
-        final String json = """
-                {
-                    "name": "MyProject",
-                    "userId": 1
+                    "userId": 9999
                 }
                     """;
         mockMvc.perform(MockMvcRequestBuilders.post(PROJECTS_PATH)
@@ -147,7 +126,6 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 {
                     "name": "MyProject",
                     "userId": 1,
-                    "isPrivate": false,
                     "clientId": 9999
                 }
                     """;
@@ -181,7 +159,6 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.isPrivate").isBoolean())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -202,7 +179,6 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").isNotEmpty())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.isPrivate").isBoolean())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isNotEmpty());
     }
 
@@ -216,22 +192,6 @@ public class ProjectControllerIntegrationTests extends BaseControllerTest {
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("MyNewProjectName"));
-    }
-
-    @Test
-    public void testThatPatchProjectWithIsPrivate() throws Exception {
-        long userId = createUser(mockMvc);
-        long projectId = createProject(mockMvc, userId);
-
-        final String json = """
-                {
-                    "isPrivate": true
-                }
-                    """;
-        mockMvc.perform(MockMvcRequestBuilders.patch(PROJECTS_PATH + "/" + projectId)
-                .content(json)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.isPrivate").value(true));
     }
 
     @Test

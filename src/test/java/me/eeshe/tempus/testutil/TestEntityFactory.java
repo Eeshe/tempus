@@ -27,17 +27,12 @@ public class TestEntityFactory {
     }
 
     public static long createProject(MockMvc mockMvc, long userId) throws Exception {
-        return createProject(mockMvc, userId, "MyProject", false);
-    }
-
-    public static long createProject(MockMvc mockMvc, long userId, String name, boolean isPrivate) throws Exception {
         return postForId(mockMvc, PROJECTS_PATH, """
                 {
-                    "name": "%s",
-                    "userId": %d,
-                    "isPrivate": %s
+                    "name": "MyProject",
+                    "userId": %d
                 }
-                """.formatted(name, userId, isPrivate));
+                """.formatted(userId));
     }
 
     public static long createClient(MockMvc mockMvc, long userId) throws Exception {

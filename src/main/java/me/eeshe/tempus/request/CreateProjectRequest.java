@@ -8,7 +8,6 @@ import me.eeshe.tempus.entity.User;
 public record CreateProjectRequest(
         String name,
         User user,
-        boolean isPrivate,
         BigDecimal hourlyRate,
         Client client) {
 }

@@ -8,7 +8,6 @@ import me.eeshe.tempus.entity.Client;
 
 public record PatchProjectRequest(
         String name,
-        JsonNullable<Boolean> isPrivate,
         JsonNullable<BigDecimal> hourlyRate,
         JsonNullable<Client> client) {
 }

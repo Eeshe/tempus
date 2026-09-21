@@ -136,7 +136,6 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
             return projectService.createProject(new CreateProjectRequest(
                     finalProjectName,
                     user,
-                    false,
                     csvTimeEntry.getHourlyRate(),
                     client));
         });

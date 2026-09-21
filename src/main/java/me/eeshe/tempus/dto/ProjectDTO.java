@@ -8,7 +8,6 @@ public record ProjectDTO(
         long id,
         String name,
         long userId,
-        boolean isPrivate,
         BigDecimal hourlyRate,
         List<TaskDTO> tasks,
         ClientDTO client,
