@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.ImportCSVFilesRequestDTO;
+import me.eeshe.tempus.dto.ImportResultDTO;
 import me.eeshe.tempus.mapper.ImportMapper;
+import me.eeshe.tempus.model.ImportResult;
 import me.eeshe.tempus.request.ImportCSVFilesRequest;
 import me.eeshe.tempus.security.UserDetailsImpl;
 import me.eeshe.tempus.service.ImportService;
@@ -26,12 +28,12 @@ public class ImportController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> importCsvFiles(
+    public ResponseEntity<ImportResultDTO> importCsvFiles(
             @Valid ImportCSVFilesRequestDTO importCSVFilesRequestDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         final ImportCSVFilesRequest importCSVFilesRequest = importMapper.fromDTO(importCSVFilesRequestDTO);
-        importService.importCSVFiles(userDetails.getId(), importCSVFilesRequest);
+        final ImportResult importResult = importService.importCSVFiles(userDetails.getId(), importCSVFilesRequest);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(importMapper.toDTO(importResult));
     }
 }

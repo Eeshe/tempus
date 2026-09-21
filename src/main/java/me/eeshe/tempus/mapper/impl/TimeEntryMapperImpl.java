@@ -94,15 +94,15 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     public CreateTimeEntryRequest fromCSVTimeEntry(CSVTimeEntry csvTimeEntry, long userId) {
         final User user = userService.getUser(userId);
 
-        final Client client = resolveOrCreateClient(csvTimeEntry, user);
-        final Project project = resolveOrCreateProject(csvTimeEntry, client, user);
-        final Task task = resolveOrCreateTask(csvTimeEntry, project, user);
-
         final LocalDate date = csvTimeEntry.getDate();
         final ZoneId zoneId = resolveZoneId(csvTimeEntry.getTimezone());
         final Instant startTime = parseInstant(date, csvTimeEntry.getStart(), zoneId)
                 .orElseThrow(() -> new CSVTimeEntryImportException(date, "Start time not provided"));
-        Instant endTime = parseInstant(date, csvTimeEntry.getEnd(), zoneId).orElse(startTime);
+        final Instant endTime = parseInstant(date, csvTimeEntry.getEnd(), zoneId).orElse(startTime);
+
+        final Client client = resolveOrCreateClient(csvTimeEntry, user);
+        final Project project = resolveOrCreateProject(csvTimeEntry, client, user);
+        final Task task = resolveOrCreateTask(csvTimeEntry, project, user);
 
         return new CreateTimeEntryRequest(
                 user,

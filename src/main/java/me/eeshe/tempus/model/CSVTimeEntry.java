@@ -2,6 +2,9 @@ package me.eeshe.tempus.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
@@ -39,6 +42,23 @@ public class CSVTimeEntry {
     private String timezone;
 
     public CSVTimeEntry() {
+    }
+
+    public Optional<String> getValidationError() {
+        final List<String> missingFields = new ArrayList<>();
+        if (date == null) {
+            missingFields.add("date");
+        }
+        if (start == null) {
+            missingFields.add("start time");
+        }
+        if (isBillable == null) {
+            missingFields.add("billable");
+        }
+        if (missingFields.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of("Missing required fields: " + String.join(", ", missingFields));
     }
 
     public LocalDate getDate() {
