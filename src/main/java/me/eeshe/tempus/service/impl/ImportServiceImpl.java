@@ -42,7 +42,7 @@ public class ImportServiceImpl implements ImportService {
                 try {
                     validCreateRequests.add(timeEntryMapper.fromCSVTimeEntry(csvTimeEntry, userId));
                 } catch (CSVTimeEntryImportException e) {
-                    LOGGER.warn("Skipping row '{}' from file '{}':",
+                    LOGGER.warn("Skipping row '{}' from file '{}': {}",
                             csvTimeEntry.getDate(),
                             csvFile.getOriginalFilename(),
                             e.getMessage());

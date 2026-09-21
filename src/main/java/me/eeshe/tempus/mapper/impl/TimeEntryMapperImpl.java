@@ -127,13 +127,14 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
     }
 
     private Project resolveOrCreateProject(CSVTimeEntry csvTimeEntry, Client client, User user) {
-        final String projectName = csvTimeEntry.getProject();
+        String projectName = csvTimeEntry.getProject();
         if (projectName == null || projectName.isBlank()) {
-            throw new CSVTimeEntryImportException(csvTimeEntry.getDate(), "Project name not provided");
+            projectName = "Unnamed Project";
         }
+        final String finalProjectName = projectName;
         return projectService.getProject(user.getId(), projectName).orElseGet(() -> {
             return projectService.createProject(new CreateProjectRequest(
-                    csvTimeEntry.getProject(),
+                    finalProjectName,
                     user,
                     false,
                     csvTimeEntry.getHourlyRate(),
