@@ -1,5 +1,6 @@
 package me.eeshe.tempus.service.impl;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +57,9 @@ public class ReportServiceImpl implements ReportService {
                 reportRequest.isBillable()));
 
         final Map<U, Long> trackedTimeMillisMap = new HashMap<>();
-        long totalTrackedTimeMillis = 0;
+        long totalBillableTrackedTimeMillis = 0;
+        long totalNonBillableTrackedTimeMillis = 0;
+        BigDecimal totalAccumulatedPay = BigDecimal.ZERO;
         for (TimeEntry timeEntry : timeEntries) {
             final long timeEntryDurationMillis = Duration.between(
                     timeEntry.getStartTime(),
@@ -67,10 +70,21 @@ public class ReportServiceImpl implements ReportService {
                 }
                 return trackedTimeMillis + timeEntryDurationMillis;
             });
-            totalTrackedTimeMillis += timeEntryDurationMillis;
+            if (timeEntry.isBillable()) {
+                totalBillableTrackedTimeMillis += timeEntryDurationMillis;
+
+                final BigDecimal timeEntryHourlyRate = timeEntry.getProject().getHourlyRate();
+                if (timeEntryHourlyRate != null) {
+                    totalAccumulatedPay = totalAccumulatedPay.add(timeEntryHourlyRate);
+                }
+            } else {
+                totalNonBillableTrackedTimeMillis += timeEntryDurationMillis;
+            }
         }
         return new Report<>(
-                totalTrackedTimeMillis,
+                totalBillableTrackedTimeMillis,
+                totalNonBillableTrackedTimeMillis,
+                totalAccumulatedPay,
                 trackedTimeMillisMap.entrySet().stream()
                         .map(reportEntryCreateFunction).toList());
     }

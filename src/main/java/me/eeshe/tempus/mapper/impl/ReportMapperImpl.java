@@ -34,6 +34,9 @@ public class ReportMapperImpl implements ReportMapper {
                 .toList();
         return new ReportDTO<>(
                 report.getTotalTrackedTimeMillis(),
+                report.getTotalBillableTrackedTimeMillis(),
+                report.getTotalNonBillableTrackedTimeMillis(),
+                report.getTotalAccumulatedPay(),
                 projectReportEntryDTOs);
     }
 
@@ -45,6 +48,9 @@ public class ReportMapperImpl implements ReportMapper {
                 .toList();
         return new ReportDTO<>(
                 report.getTotalTrackedTimeMillis(),
+                report.getTotalBillableTrackedTimeMillis(),
+                report.getTotalNonBillableTrackedTimeMillis(),
+                report.getTotalAccumulatedPay(),
                 clientReportEntryDTOs);
     }
 
