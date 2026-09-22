@@ -6,7 +6,7 @@ public record ImportResult(
         long importedCount,
         List<SkippedImportEntry> skippedEntries) {
 
-    public int skippedCount() {
+    public long skippedCount() {
         return skippedEntries.size();
     }
 }

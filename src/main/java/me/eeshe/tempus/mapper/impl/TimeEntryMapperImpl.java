@@ -10,6 +10,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -98,7 +99,10 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
         final ZoneId zoneId = resolveZoneId(csvTimeEntry.getTimezone());
         final Instant startTime = parseInstant(date, csvTimeEntry.getStart(), zoneId)
                 .orElseThrow(() -> new CSVTimeEntryImportException(date, "Start time not provided"));
-        final Instant endTime = parseInstant(date, csvTimeEntry.getEnd(), zoneId).orElse(startTime);
+        Instant endTime = parseInstant(date, csvTimeEntry.getEnd(), zoneId).orElse(startTime);
+        if (endTime.isBefore(startTime)) {
+            endTime = endTime.plus(1, ChronoUnit.DAYS);
+        }
 
         final Client client = resolveOrCreateClient(csvTimeEntry, user);
         final Project project = resolveOrCreateProject(csvTimeEntry, client, user);
