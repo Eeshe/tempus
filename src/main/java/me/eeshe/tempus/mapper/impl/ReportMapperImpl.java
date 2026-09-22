@@ -28,29 +28,29 @@ public class ReportMapperImpl implements ReportMapper {
 
     @Override
     public ReportDTO<ProjectReportEntryDTO> toProjectDTO(Report<ProjectReportEntry> report) {
-        final List<ProjectReportEntryDTO> projectReportEntryDTOs = report.getReportEntries().stream()
+        final List<ProjectReportEntryDTO> projectReportEntryDTOs = report.reportEntries().stream()
                 .map(entry -> new ProjectReportEntryDTO(projectMapper.toDTO(entry.project()),
                         entry.trackedTimeMillis()))
                 .toList();
         return new ReportDTO<>(
-                report.getTotalTrackedTimeMillis(),
-                report.getTotalBillableTrackedTimeMillis(),
-                report.getTotalNonBillableTrackedTimeMillis(),
-                report.getTotalAccumulatedPay(),
+                report.totalTrackedTimeMillis(),
+                report.totalBillableTrackedTimeMillis(),
+                report.totalNonBillableTrackedTimeMillis(),
+                report.totalAccumulatedPay(),
                 projectReportEntryDTOs);
     }
 
     @Override
     public ReportDTO<ClientReportEntryDTO> toClientDTO(Report<ClientReportEntry> report) {
-        final List<ClientReportEntryDTO> clientReportEntryDTOs = report.getReportEntries().stream()
+        final List<ClientReportEntryDTO> clientReportEntryDTOs = report.reportEntries().stream()
                 .map(entry -> new ClientReportEntryDTO(clientMapper.toDTO(entry.client()),
                         entry.trackedTimeMillis()))
                 .toList();
         return new ReportDTO<>(
-                report.getTotalTrackedTimeMillis(),
-                report.getTotalBillableTrackedTimeMillis(),
-                report.getTotalNonBillableTrackedTimeMillis(),
-                report.getTotalAccumulatedPay(),
+                report.totalTrackedTimeMillis(),
+                report.totalBillableTrackedTimeMillis(),
+                report.totalNonBillableTrackedTimeMillis(),
+                report.totalAccumulatedPay(),
                 clientReportEntryDTOs);
     }
 

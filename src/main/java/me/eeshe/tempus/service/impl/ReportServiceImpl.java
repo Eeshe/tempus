@@ -61,10 +61,14 @@ public class ReportServiceImpl implements ReportService {
         long totalNonBillableTrackedTimeMillis = 0;
         BigDecimal totalAccumulatedPay = BigDecimal.ZERO;
         for (TimeEntry timeEntry : timeEntries) {
+            final U reportKey = mapKeyFunction.apply(timeEntry);
+            if (reportKey == null) {
+                continue;
+            }
             final long timeEntryDurationMillis = Duration.between(
                     timeEntry.getStartTime(),
                     timeEntry.getEndTime()).toMillis();
-            trackedTimeMillisMap.compute(mapKeyFunction.apply(timeEntry), (_, trackedTimeMillis) -> {
+            trackedTimeMillisMap.compute(reportKey, (_, trackedTimeMillis) -> {
                 if (trackedTimeMillis == null) {
                     return timeEntryDurationMillis;
                 }
