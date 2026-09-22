@@ -1,6 +1,6 @@
 package me.eeshe.tempus.specification;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +13,8 @@ public class TimeEntrySpecification {
 
     public static PredicateSpecification<TimeEntry> withFilters(
             long userId,
-            LocalDate startDate,
-            LocalDate endDate,
+            Instant startDate,
+            Instant endDate,
             List<Long> projectIds,
             List<Long> taskIds,
             List<Long> clientIds,
@@ -27,8 +27,8 @@ public class TimeEntrySpecification {
             predicates.add(criteriaBuilder.isNotNull(from.get("endTime")));
 
             if (startDate != null && endDate != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(from.get("startTime"), startDate.atTime(0, 0)));
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(from.get("endTime"), endDate.atTime(23, 59)));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(from.get("startTime"), startDate));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(from.get("endTime"), endDate));
             }
             if (projectIds != null && !projectIds.isEmpty()) {
                 predicates.add(from.get("project").get("id").in(projectIds));
