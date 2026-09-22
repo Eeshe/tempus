@@ -38,9 +38,6 @@ public class CSVTimeEntry {
     @CsvBindByName(column = "Hourly Rate")
     private BigDecimal hourlyRate;
 
-    @CsvBindByName(column = "Timezone")
-    private String timezone;
-
     public CSVTimeEntry() {
     }
 
@@ -95,9 +92,5 @@ public class CSVTimeEntry {
 
     public BigDecimal getHourlyRate() {
         return hourlyRate;
-    }
-
-    public String getTimezone() {
-        return timezone;
     }
 }

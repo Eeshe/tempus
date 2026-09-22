@@ -1,11 +1,9 @@
 package me.eeshe.tempus.mapper.impl;
 
-import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -96,10 +94,9 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
         final User user = userService.getUser(userId);
 
         final LocalDate date = csvTimeEntry.getDate();
-        final ZoneId zoneId = resolveZoneId(csvTimeEntry.getTimezone());
-        final Instant startTime = parseInstant(date, csvTimeEntry.getStart(), zoneId)
+        final Instant startTime = parseInstant(date, csvTimeEntry.getStart())
                 .orElseThrow(() -> new CSVTimeEntryImportException(date, "Start time not provided"));
-        Instant endTime = parseInstant(date, csvTimeEntry.getEnd(), zoneId).orElse(startTime);
+        Instant endTime = parseInstant(date, csvTimeEntry.getEnd()).orElse(startTime);
         if (endTime.isBefore(startTime)) {
             endTime = endTime.plus(1, ChronoUnit.DAYS);
         }
@@ -158,24 +155,13 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
         });
     }
 
-    private Optional<Instant> parseInstant(LocalDate date, String time, ZoneId zoneId) {
+    private Optional<Instant> parseInstant(LocalDate date, String time) {
         try {
             final LocalTime localTime = LocalTime.parse(time, TIME_FORMATTER);
 
-            return Optional.of(LocalDateTime.of(date, localTime).atZone(zoneId).toInstant());
+            return Optional.of(LocalDateTime.of(date, localTime).atZone(ZoneOffset.UTC).toInstant());
         } catch (DateTimeParseException e) {
             return Optional.empty();
-        }
-    }
-
-    private ZoneId resolveZoneId(String timezone) {
-        if (timezone == null) {
-            return ZoneOffset.UTC;
-        }
-        try {
-            return ZoneId.of(timezone);
-        } catch (DateTimeException e) {
-            return ZoneOffset.UTC;
         }
     }
 
