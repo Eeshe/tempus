@@ -1,1 +1,0 @@
-:root{--nav-height: 3.25rem;--bg: #101318;--surface: #161a22;--fg: #e8eaf0;--muted: #9aa3b2;--border: #262c38;--border-strong: #353c4a;--bad: #f2555c;--bad-bg: rgba(242, 85, 92, .08);--good: #3dd68c;--surface-hover: color-mix(in srgb, var(--fg) 3%, var(--surface))}html{font-size:100%}html,body{margin:0}body{min-height:100dvh;background:var(--bg)}
