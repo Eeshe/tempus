@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 public interface DatabaseMetaService {
-    Path SNAPSHOT_DIRECTORY = Path.of("sync");
+    Path SNAPSHOT_DIRECTORY = Path.of("data/sync");
     Path SNAPSHOT_FILE = SNAPSHOT_DIRECTORY.resolve("snapshot.db");
 
     void initializeDatabaseMeta();
