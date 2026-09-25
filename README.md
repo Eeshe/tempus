@@ -46,7 +46,9 @@ Both of these methods will create a Docker container called `tempus` that stores
 
 #### Docker Command
 
-`docker run -d --name tempus -p 8000:8080 --restart unless-stopped -v ~/Tempus:/app/data eeshe/tempus:latest`
+```
+docker run -d --name tempus -p 8000:8080 --restart unless-stopped -v ~/Tempus:/app/data eeshe/tempus:latest
+```
 
 #### Docker Compose
 
