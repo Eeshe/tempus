@@ -1,0 +1,294 @@
+package me.eeshe.tempus;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+
+import java.time.Instant;
+
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import me.eeshe.tempus.config.SecurityConfig;
+import me.eeshe.tempus.controller.AuthenticationController;
+import me.eeshe.tempus.dto.LoginRequestDTO;
+import me.eeshe.tempus.dto.RegisterRequestDTO;
+import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
+import me.eeshe.tempus.mapper.AuthenticationMapper;
+import me.eeshe.tempus.mapper.UserMapper;
+import me.eeshe.tempus.request.LoginRequest;
+import me.eeshe.tempus.request.RegisterRequest;
+import me.eeshe.tempus.security.RestAuthenticationEntryPoint;
+import me.eeshe.tempus.service.AuthenticationService;
+import me.eeshe.tempus.service.UserService;
+import me.eeshe.tempus.support.ControllerTestBase;
+
+@WebMvcTest(AuthenticationController.class)
+@Import({ SecurityConfig.class, RestAuthenticationEntryPoint.class })
+public class AuthenticationControllerTest extends ControllerTestBase {
+    private static final long USER_ID = 1L;
+    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
+
+    @MockitoBean
+    private AuthenticationMapper authenticationMapper;
+
+    @MockitoBean
+    private UserService userService;
+
+    @MockitoBean
+    private UserMapper userMapper;
+
+    @Nested
+    class CheckAuthenticated {
+        private static final String URL = "/api/v1/auth/me";
+
+        @Test
+        void returnsAuthenticatedUser() {
+            when(userService.getUser(USER_ID)).thenReturn(createTestUser(USER_ID));
+            when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
+
+            assertThat(mockMvc.get().uri(URL).with(user(createPrincipal(USER_ID))))
+                    .hasStatusOk()
+                    .bodyJson()
+                    .extractingPath("$.id").asNumber().isEqualTo(1);
+        }
+
+        @Test
+        void rejectsUnauthenticatedRequest() {
+            assertThat(mockMvc.get().uri(URL)).hasStatus(401);
+
+            verifyNoInteractions(userService);
+        }
+    }
+
+    @Nested
+    class Register {
+        private static final String URL = "/api/v1/auth/register";
+
+        @Test
+        void returnsRegisteredUser() {
+            final RegisterRequest registerRequest = new RegisterRequest("MyUser", "MyPassword");
+
+            when(authenticationMapper.fromDTO(any(RegisterRequestDTO.class))).thenReturn(registerRequest);
+            when(authenticationService.registerUser(registerRequest)).thenReturn(createTestUser(USER_ID));
+            when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
+
+            final String jsonBody = """
+                    {
+                        "username": "MyUser",
+                        "password": "MyPassword"
+                    }
+                        """;
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .extractingPath("$.name").asString().isEqualTo("MyUser");
+
+            verify(authenticationMapper).fromDTO(new RegisterRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationService).registerUser(registerRequest);
+        }
+
+        @Test
+        void rejectsBlankCredentials() {
+            final String jsonBody = """
+                    {
+                        "username": "",
+                        "password": ""
+                    }
+                        """;
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+        @Test
+        void rejectsNullCredentials() {
+            final String jsonBody = """
+                    {
+                        "username": null,
+                        "password": null
+                    }
+                        """;
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+        @Test
+        void rejectsNonProvidedCredentials() {
+            final String jsonBody = "";
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+        @Test
+        void rejectsUsedUsername() {
+            final RegisterRequest registerRequest = new RegisterRequest("MyUser", "MyPassword");
+
+            when(authenticationMapper.fromDTO(any(RegisterRequestDTO.class))).thenReturn(registerRequest);
+            when(authenticationService.registerUser(registerRequest))
+                    .thenThrow(new UsernameAlreadyUsedException("MyUser"));
+
+            final String jsonBody = """
+                    {
+                        "username": "MyUser",
+                        "password": "MyPassword"
+                    }
+                        """;
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(new UsernameAlreadyUsedException("MyUser").getMessage());
+
+            verify(authenticationMapper).fromDTO(new RegisterRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationService).registerUser(registerRequest);
+            verifyNoInteractions(userMapper);
+        }
+    }
+
+    @Nested
+    class Login {
+        private static final String URL = "/api/v1/auth/login";
+
+        @Test
+        void returnsLoggedInUserWithoutCredentials() {
+            final LoginRequest loginRequest = new LoginRequest("MyUser", "MyPassword");
+
+            when(authenticationMapper.fromDTO(any(LoginRequestDTO.class))).thenReturn(loginRequest);
+            when(authenticationService.loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class)))
+                    .thenReturn(createTestUser(USER_ID));
+            when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
+
+            final String jsonBody = """
+                    {
+                        "username": "MyUser",
+                        "password": "MyPassword"
+                    }
+                        """;
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .extractingPath("$.name").asString().isEqualTo("MyUser");
+
+            verify(authenticationMapper).fromDTO(new LoginRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationService).loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class));
+        }
+
+        @Test
+        void rejectsBadCredentials() {
+            final LoginRequest loginRequest = new LoginRequest("MyUser", "MyPassword");
+
+            when(authenticationMapper.fromDTO(any(LoginRequestDTO.class))).thenReturn(loginRequest);
+            when(authenticationService.loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class))).thenThrow(new BadCredentialsException("Bad credentials"));
+
+            final String jsonBody = """
+                    {
+                        "username": "MyUser",
+                        "password": "MyPassword"
+                    }
+                        """;
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(401)
+                    .bodyJson()
+                    .extractingPath("$.message").asString().isEqualTo("Unauthorized");
+
+            verify(authenticationMapper).fromDTO(new LoginRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationService).loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class));
+            verifyNoInteractions(userMapper);
+        }
+
+        @Test
+        void rejectsBlankCredentials() {
+            final String jsonBody = """
+                    {
+                        "username": "",
+                        "password": ""
+                    }
+                        """;
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+        @Test
+        void rejectsNullCredentials() {
+            final String jsonBody = """
+                    {
+                        "username": null,
+                        "password": null
+                    }
+                        """;
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+        @Test
+        void rejectsNonProvidedCredentials() {
+            final String jsonBody = "";
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400);
+
+            verifyNoInteractions(authenticationService);
+        }
+
+    }
+}
