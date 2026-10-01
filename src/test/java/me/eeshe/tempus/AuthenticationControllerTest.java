@@ -90,8 +90,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "MyUser",
                         "password": "MyPassword"
-                    }
-                        """;
+                    }""";
 
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -110,8 +109,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "",
                         "password": ""
-                    }
-                        """;
+                    }""";
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
@@ -126,8 +124,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": null,
                         "password": null
-                    }
-                        """;
+                    }""";
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
@@ -160,8 +157,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "MyUser",
                         "password": "MyPassword"
-                    }
-                        """;
+                    }""";
 
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -198,8 +194,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "MyUser",
                         "password": "MyPassword"
-                    }
-                        """;
+                    }""";
 
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -230,8 +225,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "MyUser",
                         "password": "MyPassword"
-                    }
-                        """;
+                    }""";
 
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -254,8 +248,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": "",
                         "password": ""
-                    }
-                        """;
+                    }""";
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
@@ -270,8 +263,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     {
                         "username": null,
                         "password": null
-                    }
-                        """;
+                    }""";
             assertThat(mockMvc.post().uri(URL)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
