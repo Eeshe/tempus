@@ -79,9 +79,10 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void returnsRegisteredUser() {
-            final RegisterRequest registerRequest = new RegisterRequest("MyUser", "MyPassword");
+            final RegisterRequest registerRequest = createRegisterRequest();
+            final RegisterRequestDTO registerRequestDTO = createRegisterRequestDTO();
 
-            when(authenticationMapper.fromDTO(any(RegisterRequestDTO.class))).thenReturn(registerRequest);
+            when(authenticationMapper.fromDTO(eq(registerRequestDTO))).thenReturn(registerRequest);
             when(authenticationService.registerUser(registerRequest)).thenReturn(createUser(USER_ID));
             when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
 
@@ -99,7 +100,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .bodyJson()
                     .extractingPath("$.name").asString().isEqualTo("MyUser");
 
-            verify(authenticationMapper).fromDTO(new RegisterRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationMapper).fromDTO(registerRequestDTO);
             verify(authenticationService).registerUser(registerRequest);
         }
 
@@ -116,7 +117,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
 
         @Test
@@ -132,7 +133,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
 
         @Test
@@ -143,14 +144,15 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
 
         @Test
         void rejectsUsedUsername() {
-            final RegisterRequest registerRequest = new RegisterRequest("MyUser", "MyPassword");
+            final RegisterRequest registerRequest = createRegisterRequest();
+            final RegisterRequestDTO registerRequestDTO = createRegisterRequestDTO();
 
-            when(authenticationMapper.fromDTO(any(RegisterRequestDTO.class))).thenReturn(registerRequest);
+            when(authenticationMapper.fromDTO(eq(registerRequestDTO))).thenReturn(registerRequest);
             when(authenticationService.registerUser(registerRequest))
                     .thenThrow(new UsernameAlreadyUsedException("MyUser"));
 
@@ -169,7 +171,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .extractingPath("$.error").asString()
                     .isEqualTo(new UsernameAlreadyUsedException("MyUser").getMessage());
 
-            verify(authenticationMapper).fromDTO(new RegisterRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationMapper).fromDTO(registerRequestDTO);
             verify(authenticationService).registerUser(registerRequest);
             verifyNoInteractions(userMapper);
         }
@@ -181,9 +183,10 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void returnsLoggedInUserWithoutCredentials() {
-            final LoginRequest loginRequest = new LoginRequest("MyUser", "MyPassword");
+            final LoginRequest loginRequest = createLoginRequest();
+            final LoginRequestDTO loginRequestDTO = createLoginRequestDTO();
 
-            when(authenticationMapper.fromDTO(any(LoginRequestDTO.class))).thenReturn(loginRequest);
+            when(authenticationMapper.fromDTO(eq(loginRequestDTO))).thenReturn(loginRequest);
             when(authenticationService.loginUser(
                     eq(loginRequest),
                     any(HttpServletRequest.class),
@@ -205,7 +208,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .bodyJson()
                     .extractingPath("$.name").asString().isEqualTo("MyUser");
 
-            verify(authenticationMapper).fromDTO(new LoginRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationMapper).fromDTO(loginRequestDTO);
             verify(authenticationService).loginUser(
                     eq(loginRequest),
                     any(HttpServletRequest.class),
@@ -214,9 +217,10 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsBadCredentials() {
-            final LoginRequest loginRequest = new LoginRequest("MyUser", "MyPassword");
+            final LoginRequest loginRequest = createLoginRequest();
+            final LoginRequestDTO loginRequestDTO = createLoginRequestDTO();
 
-            when(authenticationMapper.fromDTO(any(LoginRequestDTO.class))).thenReturn(loginRequest);
+            when(authenticationMapper.fromDTO(eq(loginRequestDTO))).thenReturn(loginRequest);
             when(authenticationService.loginUser(
                     eq(loginRequest),
                     any(HttpServletRequest.class),
@@ -236,7 +240,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .bodyJson()
                     .extractingPath("$.message").asString().isEqualTo("Unauthorized");
 
-            verify(authenticationMapper).fromDTO(new LoginRequestDTO("MyUser", "MyPassword"));
+            verify(authenticationMapper).fromDTO(loginRequestDTO);
             verify(authenticationService).loginUser(
                     eq(loginRequest),
                     any(HttpServletRequest.class),
@@ -257,7 +261,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
 
         @Test
@@ -273,7 +277,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
 
         @Test
@@ -284,7 +288,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService);
         }
     }
 
@@ -296,7 +300,9 @@ public class AuthenticationControllerTest extends ControllerTestBase {
         void logsOutAuthenticatedUser() {
             assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))).hasStatus(204);
 
-            verify(authenticationService).logoutUser(any(HttpServletRequest.class), any(HttpServletResponse.class));
+            verify(authenticationService).logoutUser(
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class));
         }
 
         @Test
@@ -305,5 +311,21 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
             verifyNoInteractions(authenticationService);
         }
+    }
+
+    private static RegisterRequest createRegisterRequest() {
+        return new RegisterRequest("MyUser", "MyPassword");
+    }
+
+    private static RegisterRequestDTO createRegisterRequestDTO() {
+        return new RegisterRequestDTO("MyUser", "MyPassword");
+    }
+
+    private static LoginRequest createLoginRequest() {
+        return new LoginRequest("MyUser", "MyPassword");
+    }
+
+    private static LoginRequestDTO createLoginRequestDTO() {
+        return new LoginRequestDTO("MyUser", "MyPassword");
     }
 }
