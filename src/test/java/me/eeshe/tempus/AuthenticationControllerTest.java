@@ -6,21 +6,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.time.Instant;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.eeshe.tempus.config.SecurityConfig;
 import me.eeshe.tempus.controller.AuthenticationController;
 import me.eeshe.tempus.dto.LoginRequestDTO;
 import me.eeshe.tempus.dto.RegisterRequestDTO;
@@ -30,13 +27,11 @@ import me.eeshe.tempus.mapper.AuthenticationMapper;
 import me.eeshe.tempus.mapper.UserMapper;
 import me.eeshe.tempus.request.LoginRequest;
 import me.eeshe.tempus.request.RegisterRequest;
-import me.eeshe.tempus.security.RestAuthenticationEntryPoint;
 import me.eeshe.tempus.service.AuthenticationService;
 import me.eeshe.tempus.service.UserService;
 import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(AuthenticationController.class)
-@Import({ SecurityConfig.class, RestAuthenticationEntryPoint.class })
 public class AuthenticationControllerTest extends ControllerTestBase {
     private static final long USER_ID = 1L;
     private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
@@ -59,13 +54,15 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void returnsAuthenticatedUser() {
-            when(userService.getUser(USER_ID)).thenReturn(createTestUser(USER_ID));
+            when(userService.getUser(USER_ID)).thenReturn(createUser(USER_ID));
             when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
 
-            assertThat(mockMvc.get().uri(URL).with(user(createPrincipal(USER_ID))))
+            assertThat(mockMvc.get().uri(URL).with(createPrincipal(USER_ID)))
                     .hasStatusOk()
                     .bodyJson()
                     .extractingPath("$.id").asNumber().isEqualTo(1);
+
+            verify(userService).getUser(USER_ID);
         }
 
         @Test
@@ -85,7 +82,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
             final RegisterRequest registerRequest = new RegisterRequest("MyUser", "MyPassword");
 
             when(authenticationMapper.fromDTO(any(RegisterRequestDTO.class))).thenReturn(registerRequest);
-            when(authenticationService.registerUser(registerRequest)).thenReturn(createTestUser(USER_ID));
+            when(authenticationService.registerUser(registerRequest)).thenReturn(createUser(USER_ID));
             when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
 
             final String jsonBody = """
@@ -191,7 +188,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     eq(loginRequest),
                     any(HttpServletRequest.class),
                     any(HttpServletResponse.class)))
-                    .thenReturn(createTestUser(USER_ID));
+                    .thenReturn(createUser(USER_ID));
             when(userMapper.toDTO(any(User.class))).thenReturn(createTestUserDTO(USER_ID, CREATED_AT));
 
             final String jsonBody = """
@@ -289,6 +286,24 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
             verifyNoInteractions(authenticationService);
         }
+    }
 
+    @Nested
+    class Logout {
+        private static final String URL = "/api/v1/auth/logout";
+
+        @Test
+        void logsOutAuthenticatedUser() {
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))).hasStatus(204);
+
+            verify(authenticationService).logoutUser(any(HttpServletRequest.class), any(HttpServletResponse.class));
+        }
+
+        @Test
+        void rejectsUnauthenticatedUserLogout() {
+            assertThat(mockMvc.post().uri(URL)).hasStatus(401);
+
+            verifyNoInteractions(authenticationService);
+        }
     }
 }
