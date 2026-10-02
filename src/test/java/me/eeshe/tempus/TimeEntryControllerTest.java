@@ -21,13 +21,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import me.eeshe.tempus.controller.TimeEntryController;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
-import me.eeshe.tempus.dto.ProjectDTO;
-import me.eeshe.tempus.dto.TaskDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.dto.TimeEntryPageDTO;
-import me.eeshe.tempus.entity.Project;
-import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.exception.ProjectNotFoundException;
+import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.mapper.TimeEntryPageMapper;
@@ -39,22 +37,11 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(TimeEntryController.class)
 public class TimeEntryControllerTest extends ControllerTestBase {
-    private static final long USER_ID = 1L;
-    private static final long PROJECT_ID = 20L;
-    private static final long TASK_ID = 300L;
     private static final long TIME_ENTRY_ID = 400L;
 
-    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
     private static final Instant START_TIME = Instant.parse("2026-01-02T09:00:00Z");
     private static final Instant END_TIME = Instant.parse("2026-01-02T10:00:00Z");
     private static final Instant CURSOR = Instant.parse("2026-01-01T00:00:00Z");
-
-    private static final String TIME_ENTRY_PROJECT_NULL_ERROR_MESSAGE = "Time entry project can't be null";
-    private static final String TIME_ENTRY_BILLABLE_STATUS_NULL_ERROR_MESSAGE = "Time entry billable status can't be null";
-    private static final String TIME_ENTRY_START_TIME_NULL_ERROR_MESSAGE = "Time entry start time can't be null";
-    private static final String TIME_ENTRY_PROJECT_NULL_IF_PROVIDED_ERROR_MESSAGE = "Time entry project can't be null if provided";
-    private static final String TIME_ENTRY_BILLABLE_STATUS_NULL_IF_PROVIDED_ERROR_MESSAGE = "Time entry billable status can't be null if provided";
-    private static final String TIME_ENTRY_START_TIME_NULL_IF_PROVIDED_ERROR_MESSAGE = "Time entry start time can't be null if provided";
 
     private static final String CREATE_TIME_ENTRY_JSON_BODY = """
             {
@@ -128,6 +115,43 @@ public class TimeEntryControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void sizeOnlyWithoutCursor() {
+            final TimeEntryPage timeEntryPage = createTimeEntryPage();
+
+            when(timeEntryService.listTimeEntries(USER_ID, null, 2)).thenReturn(timeEntryPage);
+            when(timeEntryPageMapper.toDTO(timeEntryPage)).thenReturn(createTimeEntryPageDTO());
+
+            assertThat(mockMvc.get().uri(URL)
+                    .param("size", "2")
+                    .with(createPrincipal(USER_ID)))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryPageDTOJson());
+
+            verify(timeEntryService).listTimeEntries(USER_ID, null, 2);
+        }
+
+        @Test
+        void rejectsInvalidCursor() {
+            assertThat(mockMvc.get().uri(URL)
+                    .param("cursor", "not-a-date")
+                    .with(createPrincipal(USER_ID)))
+                    .hasStatus(400);
+
+            verifyNoInteractions(timeEntryService);
+        }
+
+        @Test
+        void rejectsInvalidSize() {
+            assertThat(mockMvc.get().uri(URL)
+                    .param("size", "abc")
+                    .with(createPrincipal(USER_ID)))
+                    .hasStatus(400);
+
+            verifyNoInteractions(timeEntryService);
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.get().uri(URL)).hasStatus(401);
 
@@ -163,14 +187,15 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentTimeEntry() {
+            final TimeEntryNotFoundException exception = new TimeEntryNotFoundException(TIME_ENTRY_ID);
             when(timeEntryService.getTimeEntry(USER_ID, TIME_ENTRY_ID))
-                    .thenThrow(new TimeEntryNotFoundException(TIME_ENTRY_ID));
+                    .thenThrow(exception);
 
             assertThat(mockMvc.get().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TimeEntryNotFoundException(TIME_ENTRY_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(timeEntryService).getTimeEntry(USER_ID, TIME_ENTRY_ID);
         }
@@ -217,6 +242,54 @@ public class TimeEntryControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void rejectsNonExistentProject() {
+            final CreateTimeEntryRequestDTO createTimeEntryRequestDTO = createCreateTimeEntryRequestDTO();
+            final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenThrow(exception);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(CREATE_TIME_ENTRY_JSON_BODY))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verifyNoInteractions(timeEntryService);
+        }
+
+        @Test
+        void rejectsNonExistentTask() {
+            final CreateTimeEntryRequestDTO createTimeEntryRequestDTO = createCreateTimeEntryRequestDTO();
+            final TaskNotFoundException exception = new TaskNotFoundException(TASK_ID);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenThrow(exception);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(CREATE_TIME_ENTRY_JSON_BODY))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verifyNoInteractions(timeEntryService);
+        }
+
+        @Test
         void rejectsNullProjectId() {
             final String jsonBody = """
                     {
@@ -230,7 +303,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_PROJECT_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_PROJECT);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -248,7 +322,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_PROJECT_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_PROJECT);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -267,7 +342,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_BILLABLE_STATUS_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_BILLABLE);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -285,7 +361,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_BILLABLE_STATUS_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_BILLABLE);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -304,7 +381,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_START_TIME_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_START_TIME);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -322,7 +400,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_START_TIME_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateTimeEntryRequestDTO.ERROR_MESSAGE_NULL_START_TIME);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -567,6 +646,88 @@ public class TimeEntryControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchTimeEntryAllFields() {
+            final TimeEntry patchedTimeEntry = createTimeEntry();
+            final PatchTimeEntryRequestDTO patchTimeEntryRequestDTO = new PatchTimeEntryRequestDTOBuilder()
+                    .projectId(PROJECT_ID)
+                    .taskId(TASK_ID)
+                    .description("MyDescription")
+                    .isBillable(true)
+                    .startTime(START_TIME)
+                    .endTime(END_TIME)
+                    .build();
+            final PatchTimeEntryRequest patchTimeEntryRequest = toPatchTimeEntryRequest(patchTimeEntryRequestDTO);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(patchTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchTimeEntryRequest);
+            when(timeEntryService.patchTimeEntry(
+                    eq(USER_ID),
+                    eq(TIME_ENTRY_ID),
+                    eq(patchTimeEntryRequest))).thenReturn(patchedTimeEntry);
+            when(timeEntryMapper.toDTO(eq(patchedTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            final String jsonBody = """
+                    {
+                        "projectId": %s,
+                        "taskId": %s,
+                        "description": "MyDescription",
+                        "isBillable": true,
+                        "startTime": "%s",
+                        "endTime": "%s"
+                    }""".formatted(PROJECT_ID, TASK_ID, START_TIME, END_TIME);
+
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryDTOJson());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(patchTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verify(timeEntryService).patchTimeEntry(
+                    eq(USER_ID),
+                    eq(TIME_ENTRY_ID),
+                    eq(patchTimeEntryRequest));
+        }
+
+        @Test
+        void patchTimeEntryWithoutChanges() {
+            final TimeEntry patchedTimeEntry = createTimeEntry();
+            final PatchTimeEntryRequestDTO patchTimeEntryRequestDTO = new PatchTimeEntryRequestDTOBuilder()
+                    .build();
+            final PatchTimeEntryRequest patchTimeEntryRequest = toPatchTimeEntryRequest(patchTimeEntryRequestDTO);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(patchTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchTimeEntryRequest);
+            when(timeEntryService.patchTimeEntry(
+                    eq(USER_ID),
+                    eq(TIME_ENTRY_ID),
+                    eq(patchTimeEntryRequest))).thenReturn(patchedTimeEntry);
+            when(timeEntryMapper.toDTO(eq(patchedTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryDTOJson());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(patchTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verify(timeEntryService).patchTimeEntry(
+                    eq(USER_ID),
+                    eq(TIME_ENTRY_ID),
+                    eq(patchTimeEntryRequest));
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID)).hasStatus(401);
 
@@ -579,6 +740,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .description("MyDescription")
                     .build();
             final PatchTimeEntryRequest patchTimeEntryRequest = toPatchTimeEntryRequest(patchTimeEntryRequestDTO);
+            final TimeEntryNotFoundException exception = new TimeEntryNotFoundException(TIME_ENTRY_ID);
 
             when(timeEntryMapper.fromDTO(
                     eq(patchTimeEntryRequestDTO),
@@ -587,7 +749,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
             when(timeEntryService.patchTimeEntry(
                     eq(USER_ID),
                     eq(TIME_ENTRY_ID),
-                    eq(patchTimeEntryRequest))).thenThrow(new TimeEntryNotFoundException(TIME_ENTRY_ID));
+                    eq(patchTimeEntryRequest))).thenThrow(exception);
 
             final String jsonBody = """
                     {
@@ -600,7 +762,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TimeEntryNotFoundException(TIME_ENTRY_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(timeEntryMapper).fromDTO(
                     eq(patchTimeEntryRequestDTO),
@@ -623,7 +785,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TIME_ENTRY_PROJECT_NULL_IF_PROVIDED_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchTimeEntryRequestDTO.ERROR_MESSAGE_NULL_PROJECT);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -641,7 +804,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(TIME_ENTRY_BILLABLE_STATUS_NULL_IF_PROVIDED_ERROR_MESSAGE);
+                    .isEqualTo(PatchTimeEntryRequestDTO.ERROR_MESSAGE_NULL_BILLABLE);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -659,7 +822,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(TIME_ENTRY_START_TIME_NULL_IF_PROVIDED_ERROR_MESSAGE);
+                    .isEqualTo(PatchTimeEntryRequestDTO.ERROR_MESSAGE_NULL_START_TIME);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -686,14 +849,15 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentTimeEntry() {
-            doThrow(new TimeEntryNotFoundException(TIME_ENTRY_ID)).when(timeEntryService)
+            final TimeEntryNotFoundException exception = new TimeEntryNotFoundException(TIME_ENTRY_ID);
+            doThrow(exception).when(timeEntryService)
                     .deleteTimeEntry(USER_ID, TIME_ENTRY_ID);
 
             assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TimeEntryNotFoundException(TIME_ENTRY_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(timeEntryService).deleteTimeEntry(USER_ID, TIME_ENTRY_ID);
         }
@@ -909,58 +1073,4 @@ public class TimeEntryControllerTest extends ControllerTestBase {
         }
     }
 
-    private static Project createProject() {
-        final Project project = new Project("MyProject", createUser(USER_ID), null, null);
-        ReflectionTestUtils.setField(project, "id", PROJECT_ID);
-        ReflectionTestUtils.setField(project, "createdAt", CREATED_AT);
-
-        return project;
-    }
-
-    private static ProjectDTO createProjectDTO() {
-        return new ProjectDTO(
-                PROJECT_ID,
-                "MyProject",
-                USER_ID,
-                null,
-                List.of(),
-                null,
-                CREATED_AT);
-    }
-
-    private static String createProjectDTOJson() {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyProject",
-                    "userId": %s,
-                    "hourlyRate": null,
-                    "tasks": [],
-                    "client": null,
-                    "createdAt": "%s"
-                }""".formatted(PROJECT_ID, USER_ID, CREATED_AT);
-    }
-
-    private static Task createTask() {
-        final Task task = new Task("MyTask", createUser(USER_ID), createProject());
-        ReflectionTestUtils.setField(task, "id", TASK_ID);
-        ReflectionTestUtils.setField(task, "createdAt", CREATED_AT);
-
-        return task;
-    }
-
-    private static TaskDTO createTaskDTO() {
-        return new TaskDTO(TASK_ID, "MyTask", USER_ID, PROJECT_ID, CREATED_AT);
-    }
-
-    private static String createTaskDTOJson() {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyTask",
-                    "userId": %s,
-                    "projectId": %s,
-                    "createdAt": "%s"
-                }""".formatted(TASK_ID, USER_ID, PROJECT_ID, CREATED_AT);
-    }
 }

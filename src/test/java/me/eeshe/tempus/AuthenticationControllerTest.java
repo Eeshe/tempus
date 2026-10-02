@@ -7,13 +7,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +21,7 @@ import me.eeshe.tempus.controller.AuthenticationController;
 import me.eeshe.tempus.dto.LoginRequestDTO;
 import me.eeshe.tempus.dto.RegisterRequestDTO;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.exception.UserNotFoundException;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
 import me.eeshe.tempus.mapper.AuthenticationMapper;
 import me.eeshe.tempus.mapper.UserMapper;
@@ -33,9 +33,6 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(AuthenticationController.class)
 public class AuthenticationControllerTest extends ControllerTestBase {
-    private static final long USER_ID = 1L;
-    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
-
     @MockitoBean
     private AuthenticationService authenticationService;
 
@@ -63,6 +60,21 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .extractingPath("$.id").asNumber().isEqualTo(1);
 
             verify(userService).getUser(USER_ID);
+        }
+
+        @Test
+        void rejectsNonExistentUser() {
+            final UserNotFoundException exception = new UserNotFoundException(USER_ID);
+            when(userService.getUser(USER_ID)).thenThrow(exception);
+
+            assertThat(mockMvc.get().uri(URL).with(createPrincipal(USER_ID)))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(userService).getUser(USER_ID);
+            verifyNoInteractions(userMapper);
         }
 
         @Test
@@ -115,7 +127,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
 
         @Test
@@ -130,7 +142,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
 
         @Test
@@ -141,17 +153,18 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
 
         @Test
         void rejectsUsedUsername() {
             final RegisterRequest registerRequest = createRegisterRequest();
             final RegisterRequestDTO registerRequestDTO = createRegisterRequestDTO();
+            final UsernameAlreadyUsedException exception = new UsernameAlreadyUsedException("MyUser");
 
             when(authenticationMapper.fromDTO(eq(registerRequestDTO))).thenReturn(registerRequest);
             when(authenticationService.registerUser(registerRequest))
-                    .thenThrow(new UsernameAlreadyUsedException("MyUser"));
+                    .thenThrow(exception);
 
             final String jsonBody = """
                     {
@@ -165,7 +178,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new UsernameAlreadyUsedException("MyUser").getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(authenticationMapper).fromDTO(registerRequestDTO);
             verify(authenticationService).registerUser(registerRequest);
@@ -178,7 +191,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
         private static final String URL = "/api/v1/auth/login";
 
         @Test
-        void returnsLoggedInUserWithoutCredentials() {
+        void returnsLoggedInUser() {
             final LoginRequest loginRequest = createLoginRequest();
             final LoginRequestDTO loginRequestDTO = createLoginRequestDTO();
 
@@ -243,6 +256,38 @@ public class AuthenticationControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void rejectsNonExistentUser() {
+            final LoginRequest loginRequest = createLoginRequest();
+            final LoginRequestDTO loginRequestDTO = createLoginRequestDTO();
+
+            when(authenticationMapper.fromDTO(eq(loginRequestDTO))).thenReturn(loginRequest);
+            when(authenticationService.loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class))).thenThrow(new UsernameNotFoundException("MyUser"));
+
+            final String jsonBody = """
+                    {
+                        "username": "MyUser",
+                        "password": "MyPassword"
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(401)
+                    .bodyJson()
+                    .extractingPath("$.message").asString().isEqualTo("Unauthorized");
+
+            verify(authenticationMapper).fromDTO(loginRequestDTO);
+            verify(authenticationService).loginUser(
+                    eq(loginRequest),
+                    any(HttpServletRequest.class),
+                    any(HttpServletResponse.class));
+            verifyNoInteractions(userMapper);
+        }
+
+        @Test
         void rejectsBlankCredentials() {
             final String jsonBody = """
                     {
@@ -254,7 +299,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
 
         @Test
@@ -269,7 +314,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
 
         @Test
@@ -280,7 +325,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400);
 
-            verifyNoInteractions(authenticationMapper, authenticationService);
+            verifyNoInteractions(authenticationMapper, authenticationService, userMapper);
         }
     }
 

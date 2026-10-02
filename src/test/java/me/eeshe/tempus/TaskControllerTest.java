@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -15,13 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import me.eeshe.tempus.controller.TaskController;
 import me.eeshe.tempus.dto.CreateTaskRequestDTO;
 import me.eeshe.tempus.dto.PatchTaskRequestDTO;
-import me.eeshe.tempus.dto.TaskDTO;
-import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
@@ -34,16 +30,6 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(TaskController.class)
 public class TaskControllerTest extends ControllerTestBase {
-    private static final long USER_ID = 1L;
-    private static final long PROJECT_ID = 20L;
-    private static final long TASK_ID = 300L;
-
-    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
-
-    private static final String TASK_NAME_NULL_OR_EMPTY_ERROR_MESSAGE = "Task name can't be null or empty";
-    private static final String TASK_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE = "Task name can't be empty if provided";
-    private static final String TASK_PROJECT_NULL_ERROR_MESSAGE = "Task project can't be null";
-
     private static final String CREATE_TASK_JSON_BODY = """
             {
                 "name": "MyTask",
@@ -76,6 +62,23 @@ public class TaskControllerTest extends ControllerTestBase {
                     .hasStatus(200)
                     .bodyJson()
                     .isEqualTo("[%s]".formatted(createTaskDTOJson()));
+
+            verify(taskService).listTasks(USER_ID);
+        }
+
+        @Test
+        void returnsAuthenticatedUserMultipleTasks() {
+            final Task firstTask = createTask();
+            final Task secondTask = createSecondTask();
+
+            when(taskService.listTasks(USER_ID)).thenReturn(List.of(firstTask, secondTask));
+            when(taskMapper.toDTO(firstTask)).thenReturn(createTaskDTO());
+            when(taskMapper.toDTO(secondTask)).thenReturn(createSecondTaskDTO());
+
+            assertThat(mockMvc.get().uri(URL).with(createPrincipal(USER_ID)))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo("[%s,%s]".formatted(createTaskDTOJson(), createSecondTaskDTOJson()));
 
             verify(taskService).listTasks(USER_ID);
         }
@@ -126,13 +129,14 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsTaskNotFound() {
-            when(taskService.getTask(USER_ID, TASK_ID)).thenThrow(new TaskNotFoundException(TASK_ID));
+            final TaskNotFoundException exception = new TaskNotFoundException(TASK_ID);
+            when(taskService.getTask(USER_ID, TASK_ID)).thenThrow(exception);
 
             assertThat(mockMvc.get().uri(URL, TASK_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TaskNotFoundException(TASK_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(taskService).getTask(USER_ID, TASK_ID);
         }
@@ -182,16 +186,16 @@ public class TaskControllerTest extends ControllerTestBase {
         void rejectsAlreadyExistentUserTask() {
             final CreateTaskRequest createTaskRequest = createTaskRequest();
             final CreateTaskRequestDTO createTaskRequestDTO = createCreateTaskRequestDTO();
+            final UserProjectTaskAlreadyExistsException exception = new UserProjectTaskAlreadyExistsException(
+                    USER_ID,
+                    "MyTask",
+                    "MyProject");
 
             when(taskMapper.fromDTO(
                     eq(createTaskRequestDTO),
                     eq(USER_ID)))
                     .thenReturn(createTaskRequest);
-            when(taskService.createTask(createTaskRequest))
-                    .thenThrow(new UserProjectTaskAlreadyExistsException(
-                            USER_ID,
-                            "MyTask",
-                            "MyProject"));
+            when(taskService.createTask(createTaskRequest)).thenThrow(exception);
 
             assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +203,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new UserProjectTaskAlreadyExistsException(USER_ID, "MyTask", "MyProject").getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(taskMapper).fromDTO(
                     eq(createTaskRequestDTO),
@@ -220,7 +224,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -238,7 +242,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -255,7 +259,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -264,13 +268,13 @@ public class TaskControllerTest extends ControllerTestBase {
         void rejectsNonExistentProject() {
             final CreateTaskRequest createTaskRequest = createTaskRequest();
             final CreateTaskRequestDTO createTaskRequestDTO = createCreateTaskRequestDTO();
+            final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
 
             when(taskMapper.fromDTO(
                     eq(createTaskRequestDTO),
                     eq(USER_ID)))
                     .thenReturn(createTaskRequest);
-            when(taskService.createTask(createTaskRequest))
-                    .thenThrow(new ProjectNotFoundException(PROJECT_ID));
+            when(taskService.createTask(createTaskRequest)).thenThrow(exception);
 
             assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -278,7 +282,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ProjectNotFoundException(PROJECT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(taskMapper).fromDTO(
                     eq(createTaskRequestDTO),
@@ -299,7 +303,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_PROJECT_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_PROJECT);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -317,7 +321,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_PROJECT_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_PROJECT);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -334,7 +338,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_PROJECT_NULL_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateTaskRequestDTO.ERROR_MESSAGE_EMPTY_PROJECT);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -377,6 +381,38 @@ public class TaskControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchTaskWithoutChanges() {
+            final Task patchedTask = createTask();
+            final PatchTaskRequest patchTaskRequest = new PatchTaskRequest(null);
+            final PatchTaskRequestDTO patchTaskRequestDTO = new PatchTaskRequestDTO(null);
+
+            when(taskMapper.fromDTO(
+                    eq(patchTaskRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchTaskRequest);
+            when(taskService.patchTask(
+                    eq(USER_ID),
+                    eq(TASK_ID),
+                    eq(patchTaskRequest))).thenReturn(patchedTask);
+            when(taskMapper.toDTO(eq(patchedTask))).thenReturn(createTaskDTO());
+
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createTaskDTOJson());
+
+            verify(taskMapper).fromDTO(
+                    eq(patchTaskRequestDTO),
+                    eq(USER_ID));
+            verify(taskService).patchTask(
+                    eq(USER_ID),
+                    eq(TASK_ID),
+                    eq(patchTaskRequest));
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.patch().uri(URL, TASK_ID)).hasStatus(401);
 
@@ -387,6 +423,7 @@ public class TaskControllerTest extends ControllerTestBase {
         void rejectsNonExistentTask() {
             final PatchTaskRequest patchTaskRequest = createPatchTaskRequest();
             final PatchTaskRequestDTO patchTaskRequestDTO = createPatchTaskRequestDTO();
+            final TaskNotFoundException exception = new TaskNotFoundException(TASK_ID);
 
             when(taskMapper.fromDTO(
                     eq(patchTaskRequestDTO),
@@ -395,7 +432,7 @@ public class TaskControllerTest extends ControllerTestBase {
             when(taskService.patchTask(
                     eq(USER_ID),
                     eq(TASK_ID),
-                    eq(patchTaskRequest))).thenThrow(new TaskNotFoundException(TASK_ID));
+                    eq(patchTaskRequest))).thenThrow(exception);
 
             assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -403,7 +440,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TaskNotFoundException(TASK_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(taskMapper).fromDTO(
                     eq(patchTaskRequestDTO),
@@ -426,7 +463,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchTaskRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -443,7 +480,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(TASK_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchTaskRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -470,44 +507,17 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentTask() {
-            doThrow(new TaskNotFoundException(TASK_ID)).when(taskService).deleteTask(USER_ID, TASK_ID);
+            final TaskNotFoundException exception = new TaskNotFoundException(TASK_ID);
+            doThrow(exception).when(taskService).deleteTask(USER_ID, TASK_ID);
 
             assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new TaskNotFoundException(TASK_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(taskService).deleteTask(USER_ID, TASK_ID);
         }
-    }
-
-    private static Task createTask() {
-        final Task task = new Task("MyTask", createUser(USER_ID), createProject());
-        ReflectionTestUtils.setField(task, "id", TASK_ID);
-        ReflectionTestUtils.setField(task, "createdAt", CREATED_AT);
-
-        return task;
-    }
-
-    private static TaskDTO createTaskDTO() {
-        return new TaskDTO(
-                TASK_ID,
-                "MyTask",
-                USER_ID,
-                PROJECT_ID,
-                CREATED_AT);
-    }
-
-    private static String createTaskDTOJson() {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyTask",
-                    "userId": %s,
-                    "projectId": %s,
-                    "createdAt": "%s"
-                }""".formatted(TASK_ID, USER_ID, PROJECT_ID, CREATED_AT);
     }
 
     private static CreateTaskRequest createTaskRequest() {
@@ -524,12 +534,5 @@ public class TaskControllerTest extends ControllerTestBase {
 
     private static PatchTaskRequestDTO createPatchTaskRequestDTO() {
         return new PatchTaskRequestDTO("MyTask");
-    }
-
-    private static Project createProject() {
-        final Project project = new Project("MyProject", createUser(USER_ID), null, null);
-        ReflectionTestUtils.setField(project, "id", PROJECT_ID);
-
-        return project;
     }
 }

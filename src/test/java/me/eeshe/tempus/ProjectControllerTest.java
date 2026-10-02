@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -17,14 +16,10 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import me.eeshe.tempus.controller.ProjectController;
-import me.eeshe.tempus.dto.ClientDTO;
 import me.eeshe.tempus.dto.CreateProjectRequestDTO;
 import me.eeshe.tempus.dto.PatchProjectRequestDTO;
-import me.eeshe.tempus.dto.ProjectDTO;
-import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
@@ -37,16 +32,6 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(ProjectController.class)
 public class ProjectControllerTest extends ControllerTestBase {
-    private static final long USER_ID = 1L;
-    private static final long PROJECT_ID = 20L;
-    private static final long CLIENT_ID = 10L;
-
-    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
-
-    private static final String PROJECT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE = "Project name can't be null or empty";
-    private static final String PROJECT_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE = "Project name can't be empty if provided";
-    private static final String PROJECT_HOURLY_RATE_NEGATIVE_ERROR_MESSAGE = "Project hourly rate can't be negative";
-
     private static final String CREATE_PROJECT_JSON_BODY = """
             {
                 "name": "MyProject",
@@ -79,6 +64,23 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .hasStatus(200)
                     .bodyJson()
                     .isEqualTo("[%s]".formatted(createProjectDTOJson()));
+
+            verify(projectService).listProjects(USER_ID);
+        }
+
+        @Test
+        void returnsAuthenticatedUserMultipleProjects() {
+            final Project firstProject = createProject();
+            final Project secondProject = createSecondProject();
+
+            when(projectService.listProjects(USER_ID)).thenReturn(List.of(firstProject, secondProject));
+            when(projectMapper.toDTO(firstProject)).thenReturn(createProjectDTO());
+            when(projectMapper.toDTO(secondProject)).thenReturn(createSecondProjectDTO());
+
+            assertThat(mockMvc.get().uri(URL).with(createPrincipal(USER_ID)))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo("[%s,%s]".formatted(createProjectDTOJson(), createSecondProjectDTOJson()));
 
             verify(projectService).listProjects(USER_ID);
         }
@@ -129,13 +131,14 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentProject() {
-            when(projectService.getProject(USER_ID, PROJECT_ID)).thenThrow(new ProjectNotFoundException(PROJECT_ID));
+            final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
+            when(projectService.getProject(USER_ID, PROJECT_ID)).thenThrow(exception);
 
             assertThat(mockMvc.get().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ProjectNotFoundException(PROJECT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(projectService).getProject(USER_ID, PROJECT_ID);
         }
@@ -185,13 +188,15 @@ public class ProjectControllerTest extends ControllerTestBase {
         void rejectsAlreadyExistentUserProject() {
             final CreateProjectRequest createProjectRequest = createProjectRequest();
             final CreateProjectRequestDTO createProjectRequestDTO = createCreateProjectRequestDTO();
+            final UserProjectAlreadyExistsException exception = new UserProjectAlreadyExistsException(USER_ID,
+                    "MyProject");
 
             when(projectMapper.fromDTO(
                     eq(createProjectRequestDTO),
                     eq(USER_ID)))
                     .thenReturn(createProjectRequest);
             when(projectService.createProject(createProjectRequest))
-                    .thenThrow(new UserProjectAlreadyExistsException(USER_ID, "MyProject"));
+                    .thenThrow(exception);
 
             assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +204,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new UserProjectAlreadyExistsException(USER_ID, "MyProject").getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(projectMapper).fromDTO(
                     eq(createProjectRequestDTO),
@@ -213,11 +218,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     "MyProject",
                     CLIENT_ID,
                     null);
+            final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
 
             when(projectMapper.fromDTO(
                     eq(createProjectRequestDTO),
                     eq(USER_ID)))
-                    .thenThrow(new ClientNotFoundException(CLIENT_ID));
+                    .thenThrow(exception);
 
             final String jsonBody = """
                     {
@@ -231,7 +237,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ClientNotFoundException(CLIENT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(projectMapper).fromDTO(
                     eq(createProjectRequestDTO),
@@ -252,7 +258,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -270,7 +276,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -287,7 +293,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -305,7 +311,8 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_HOURLY_RATE_NEGATIVE_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_NEGATIVE_RATE);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -435,6 +442,122 @@ public class ProjectControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchProjectWithoutChanges() {
+            final Project patchedProject = createProject();
+            final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined());
+            final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined());
+
+            when(projectMapper.fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchProjectRequest);
+            when(projectService.patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest))).thenReturn(patchedProject);
+            when(projectMapper.toDTO(eq(patchedProject))).thenReturn(createProjectDTO());
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson());
+
+            verify(projectMapper).fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest));
+        }
+
+        @Test
+        void patchProjectAllFields() {
+            final BigDecimal hourlyRate = new BigDecimal("100");
+            final Project patchedProject = createProject();
+            final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
+                    "MyProject",
+                    JsonNullable.of(hourlyRate),
+                    JsonNullable.of(createClient()));
+            final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
+                    "MyProject",
+                    JsonNullable.of(hourlyRate),
+                    JsonNullable.of(CLIENT_ID));
+
+            when(projectMapper.fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchProjectRequest);
+            when(projectService.patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest))).thenReturn(patchedProject);
+            when(projectMapper.toDTO(eq(patchedProject))).thenReturn(createProjectDTO(hourlyRate, createClientDTO()));
+
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "hourlyRate": %s,
+                        "clientId": %s
+                    }""".formatted(hourlyRate, CLIENT_ID);
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson(hourlyRate, createClientDTOJson()));
+
+            verify(projectMapper).fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest));
+        }
+
+        @Test
+        void rejectsNonExistentClient() {
+            final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.of(CLIENT_ID));
+            final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
+
+            when(projectMapper.fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenThrow(exception);
+
+            final String jsonBody = """
+                    {
+                        "clientId": %s
+                    }""".formatted(CLIENT_ID);
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(projectMapper).fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID));
+            verifyNoInteractions(projectService);
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.patch().uri(URL, PROJECT_ID)).hasStatus(401);
 
@@ -445,6 +568,7 @@ public class ProjectControllerTest extends ControllerTestBase {
         void rejectsNonExistentProject() {
             final PatchProjectRequest patchProjectRequest = createPatchProjectRequest();
             final PatchProjectRequestDTO patchProjectRequestDTO = createPatchProjectRequestDTO();
+            final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -453,7 +577,7 @@ public class ProjectControllerTest extends ControllerTestBase {
             when(projectService.patchProject(
                     eq(USER_ID),
                     eq(PROJECT_ID),
-                    eq(patchProjectRequest))).thenThrow(new ProjectNotFoundException(PROJECT_ID));
+                    eq(patchProjectRequest))).thenThrow(exception);
 
             assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -461,7 +585,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ProjectNotFoundException(PROJECT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(projectMapper).fromDTO(
                     eq(patchProjectRequestDTO),
@@ -484,7 +608,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchProjectRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -501,7 +625,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_NAME_EMPTY_IF_PROVIDED_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchProjectRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -518,7 +642,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(PROJECT_HOURLY_RATE_NEGATIVE_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchProjectRequestDTO.ERROR_MESSAGE_NEGATIVE_RATE);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -545,78 +669,17 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentProject() {
-            doThrow(new ProjectNotFoundException(PROJECT_ID)).when(projectService).deleteProject(USER_ID, PROJECT_ID);
+            final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
+            doThrow(exception).when(projectService).deleteProject(USER_ID, PROJECT_ID);
 
             assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ProjectNotFoundException(PROJECT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(projectService).deleteProject(USER_ID, PROJECT_ID);
         }
-    }
-
-    private static Project createProject() {
-        final Project project = new Project("MyProject", createUser(USER_ID), null, null);
-        ReflectionTestUtils.setField(project, "id", PROJECT_ID);
-        ReflectionTestUtils.setField(project, "createdAt", CREATED_AT);
-
-        return project;
-    }
-
-    private static ProjectDTO createProjectDTO() {
-        return createProjectDTO(null, null);
-    }
-
-    private static ProjectDTO createProjectDTO(BigDecimal hourlyRate, ClientDTO client) {
-        return new ProjectDTO(
-                PROJECT_ID,
-                "MyProject",
-                USER_ID,
-                hourlyRate,
-                List.of(),
-                client,
-                CREATED_AT);
-    }
-
-    private static String createProjectDTOJson() {
-        return createProjectDTOJson(null, null);
-    }
-
-    private static String createProjectDTOJson(BigDecimal hourlyRate, String clientJson) {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyProject",
-                    "userId": %s,
-                    "hourlyRate": %s,
-                    "tasks": [],
-                    "client": %s,
-                    "createdAt": "%s"
-                }""".formatted(PROJECT_ID, USER_ID, hourlyRate, clientJson == null ? "null" : clientJson, CREATED_AT);
-    }
-
-    private static Client createClient() {
-        final Client client = new Client("MyClient", createUser(USER_ID));
-        ReflectionTestUtils.setField(client, "id", CLIENT_ID);
-        ReflectionTestUtils.setField(client, "createdAt", CREATED_AT);
-
-        return client;
-    }
-
-    private static ClientDTO createClientDTO() {
-        return new ClientDTO(CLIENT_ID, "MyClient", USER_ID, CREATED_AT);
-    }
-
-    private static String createClientDTOJson() {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyClient",
-                    "userId": %s,
-                    "createdAt": "%s"
-                }""".formatted(CLIENT_ID, USER_ID, CREATED_AT);
     }
 
     private static CreateProjectRequest createProjectRequest() {

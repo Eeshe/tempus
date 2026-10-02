@@ -9,6 +9,6 @@ import me.eeshe.tempus.common.validation.annotation.CsvFile;
 
 public record ImportCSVFilesRequestDTO(
         @NotEmpty(message = ERROR_MESSAGE_NO_FILES) List<@CsvFile(message = ERROR_MESSAGE_NOT_CSV) MultipartFile> files) {
-    private static final String ERROR_MESSAGE_NO_FILES = "At least one CSV file must be uploaded";
-    private static final String ERROR_MESSAGE_NOT_CSV = "All uploaded files must be in CSV format";
+    public static final String ERROR_MESSAGE_NO_FILES = "At least one CSV file must be uploaded";
+    public static final String ERROR_MESSAGE_NOT_CSV = "All uploaded files must be in CSV format";
 }

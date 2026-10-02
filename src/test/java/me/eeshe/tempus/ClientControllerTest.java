@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -15,10 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import me.eeshe.tempus.controller.ClientController;
-import me.eeshe.tempus.dto.ClientDTO;
 import me.eeshe.tempus.dto.CreateClientRequestDTO;
 import me.eeshe.tempus.dto.PatchClientRequestDTO;
 import me.eeshe.tempus.entity.Client;
@@ -32,13 +29,6 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(ClientController.class)
 public class ClientControllerTest extends ControllerTestBase {
-    private static final long USER_ID = 1L;
-    private static final long CLIENT_ID = 10L;
-
-    private static final Instant CREATED_AT = Instant.parse("2026-01-01T10:00:00Z");
-
-    private static final String CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE = "Client name can't be null or empty";
-
     private static final String CREATE_CLIENT_JSON_BODY = """
             {
                 "name": "MyClient"
@@ -70,6 +60,23 @@ public class ClientControllerTest extends ControllerTestBase {
                     .hasStatus(200)
                     .bodyJson()
                     .isEqualTo("[%s]".formatted(createClientDTOJson()));
+
+            verify(clientService).listClients(USER_ID);
+        }
+
+        @Test
+        void returnsAuthenticatedUserMultipleClients() {
+            final Client firstClient = createClient();
+            final Client secondClient = createSecondClient();
+
+            when(clientService.listClients(USER_ID)).thenReturn(List.of(firstClient, secondClient));
+            when(clientMapper.toDTO(firstClient)).thenReturn(createClientDTO());
+            when(clientMapper.toDTO(secondClient)).thenReturn(createSecondClientDTO());
+
+            assertThat(mockMvc.get().uri(URL).with(createPrincipal(USER_ID)))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo("[%s,%s]".formatted(createClientDTOJson(), createSecondClientDTOJson()));
 
             verify(clientService).listClients(USER_ID);
         }
@@ -120,13 +127,14 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentClient() {
-            when(clientService.getClient(USER_ID, CLIENT_ID)).thenThrow(new ClientNotFoundException(CLIENT_ID));
+            final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
+            when(clientService.getClient(USER_ID, CLIENT_ID)).thenThrow(exception);
 
             assertThat(mockMvc.get().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ClientNotFoundException(CLIENT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(clientService).getClient(USER_ID, CLIENT_ID);
         }
@@ -176,13 +184,15 @@ public class ClientControllerTest extends ControllerTestBase {
         void rejectsAlreadyExistentUserClient() {
             final CreateClientRequest createClientRequest = createClientRequest();
             final CreateClientRequestDTO createClientRequestDTO = createCreateClientRequestDTO();
+            final UserClientAlreadyExistsException exception = new UserClientAlreadyExistsException(USER_ID,
+                    "MyClient");
 
             when(clientMapper.fromDTO(
                     eq(createClientRequestDTO),
                     eq(USER_ID)))
                     .thenReturn(createClientRequest);
             when(clientService.createClient(createClientRequest))
-                    .thenThrow(new UserClientAlreadyExistsException(USER_ID, "MyClient"));
+                    .thenThrow(exception);
 
             assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -190,7 +200,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new UserClientAlreadyExistsException(USER_ID, "MyClient").getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(clientMapper).fromDTO(
                     eq(createClientRequestDTO),
@@ -210,7 +220,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateClientRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -227,7 +237,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateClientRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -243,7 +253,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(CreateClientRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -286,6 +296,38 @@ public class ClientControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchClientWithoutChanges() {
+            final Client patchedClient = createClient();
+            final PatchClientRequest patchClientRequest = new PatchClientRequest(null);
+            final PatchClientRequestDTO patchClientRequestDTO = new PatchClientRequestDTO(null);
+
+            when(clientMapper.fromDTO(
+                    eq(patchClientRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchClientRequest);
+            when(clientService.patchClient(
+                    eq(USER_ID),
+                    eq(CLIENT_ID),
+                    eq(patchClientRequest))).thenReturn(patchedClient);
+            when(clientMapper.toDTO(eq(patchedClient))).thenReturn(createClientDTO());
+
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createClientDTOJson());
+
+            verify(clientMapper).fromDTO(
+                    eq(patchClientRequestDTO),
+                    eq(USER_ID));
+            verify(clientService).patchClient(
+                    eq(USER_ID),
+                    eq(CLIENT_ID),
+                    eq(patchClientRequest));
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.patch().uri(URL, CLIENT_ID)).hasStatus(401);
 
@@ -296,6 +338,7 @@ public class ClientControllerTest extends ControllerTestBase {
         void rejectsNonExistentClient() {
             final PatchClientRequest patchClientRequest = createPatchClientRequest();
             final PatchClientRequestDTO patchClientRequestDTO = createPatchClientRequestDTO();
+            final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
 
             when(clientMapper.fromDTO(
                     eq(patchClientRequestDTO),
@@ -304,7 +347,7 @@ public class ClientControllerTest extends ControllerTestBase {
             when(clientService.patchClient(
                     eq(USER_ID),
                     eq(CLIENT_ID),
-                    eq(patchClientRequest))).thenThrow(new ClientNotFoundException(CLIENT_ID));
+                    eq(patchClientRequest))).thenThrow(exception);
 
             assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -312,7 +355,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ClientNotFoundException(CLIENT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(clientMapper).fromDTO(
                     eq(patchClientRequestDTO),
@@ -335,7 +378,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchClientRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -352,7 +395,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     .content(jsonBody))
                     .hasStatus(400)
                     .bodyJson()
-                    .extractingPath("$.error").asString().isEqualTo(CLIENT_NAME_NULL_OR_EMPTY_ERROR_MESSAGE);
+                    .extractingPath("$.error").asString().isEqualTo(PatchClientRequestDTO.ERROR_MESSAGE_EMPTY_NAME);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -379,38 +422,17 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsNonExistentClient() {
-            doThrow(new ClientNotFoundException(CLIENT_ID)).when(clientService).deleteClient(USER_ID, CLIENT_ID);
+            final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
+            doThrow(exception).when(clientService).deleteClient(USER_ID, CLIENT_ID);
 
             assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
-                    .isEqualTo(new ClientNotFoundException(CLIENT_ID).getMessage());
+                    .isEqualTo(exception.getMessage());
 
             verify(clientService).deleteClient(USER_ID, CLIENT_ID);
         }
-    }
-
-    private static Client createClient() {
-        final Client client = new Client("MyClient", createUser(USER_ID));
-        ReflectionTestUtils.setField(client, "id", CLIENT_ID);
-        ReflectionTestUtils.setField(client, "createdAt", CREATED_AT);
-
-        return client;
-    }
-
-    private static ClientDTO createClientDTO() {
-        return new ClientDTO(CLIENT_ID, "MyClient", USER_ID, CREATED_AT);
-    }
-
-    private static String createClientDTOJson() {
-        return """
-                {
-                    "id": %s,
-                    "name": "MyClient",
-                    "userId": %s,
-                    "createdAt": "%s"
-                }""".formatted(CLIENT_ID, USER_ID, CREATED_AT);
     }
 
     private static CreateClientRequest createClientRequest() {
