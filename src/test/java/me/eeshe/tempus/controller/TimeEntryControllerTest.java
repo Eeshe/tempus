@@ -18,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import me.eeshe.tempus.controller.TimeEntryController;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
