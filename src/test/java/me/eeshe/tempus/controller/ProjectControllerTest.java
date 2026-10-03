@@ -1,4 +1,4 @@
-package me.eeshe.tempus;
+package me.eeshe.tempus.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
