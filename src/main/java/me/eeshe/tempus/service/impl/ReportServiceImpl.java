@@ -79,7 +79,10 @@ public class ReportServiceImpl implements ReportService {
 
                 final BigDecimal timeEntryHourlyRate = timeEntry.getProject().getHourlyRate();
                 if (timeEntryHourlyRate != null) {
-                    totalAccumulatedPay = totalAccumulatedPay.add(timeEntryHourlyRate);
+                    final BigDecimal timeEntryDurationHours = BigDecimal.valueOf(timeEntryDurationMillis)
+                            .divide(BigDecimal.valueOf(3_600_000L));
+                    totalAccumulatedPay = totalAccumulatedPay.add(
+                            timeEntryHourlyRate.multiply(timeEntryDurationHours));
                 }
             } else {
                 totalNonBillableTrackedTimeMillis += timeEntryDurationMillis;
