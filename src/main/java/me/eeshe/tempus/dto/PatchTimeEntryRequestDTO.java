@@ -13,7 +13,7 @@ public record PatchTimeEntryRequestDTO(
         @NotNull(message = ERROR_MESSAGE_NULL_BILLABLE) JsonNullable<Boolean> isBillable,
         @NotNull(message = ERROR_MESSAGE_NULL_START_TIME) JsonNullable<Instant> startTime,
         JsonNullable<Instant> endTime) {
-    private static final String ERROR_MESSAGE_NULL_PROJECT = "Time entry project can't be null if provided";
-    private static final String ERROR_MESSAGE_NULL_BILLABLE = "Time entry billable status can't be null if provided";
-    private static final String ERROR_MESSAGE_NULL_START_TIME = "Time entry start time can't be null if provided";
+    public static final String ERROR_MESSAGE_NULL_PROJECT = "Time entry project can't be null if provided";
+    public static final String ERROR_MESSAGE_NULL_BILLABLE = "Time entry billable status can't be null if provided";
+    public static final String ERROR_MESSAGE_NULL_START_TIME = "Time entry start time can't be null if provided";
 }

@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleUserNotFoundException(UserNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(UsernameAlreadyUsedException.class)
@@ -48,28 +48,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleClientNotFoundException(ClientNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ProjectNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleProjectNotFoundException(ProjectNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleTaskNotFoundException(TaskNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(TimeEntryNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleTimeEntryNotFoundException(TimeEntryNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(UserProjectAlreadyExistsException.class)
