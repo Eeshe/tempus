@@ -1,6 +1,7 @@
 package me.eeshe.tempus.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,7 @@ public class ReportServiceImpl implements ReportService {
                 final BigDecimal timeEntryHourlyRate = timeEntry.getProject().getHourlyRate();
                 if (timeEntryHourlyRate != null) {
                     final BigDecimal timeEntryDurationHours = BigDecimal.valueOf(timeEntryDurationMillis)
-                            .divide(BigDecimal.valueOf(3_600_000L));
+                            .divide(BigDecimal.valueOf(3_600_000L), 4, RoundingMode.HALF_UP);
                     totalAccumulatedPay = totalAccumulatedPay.add(
                             timeEntryHourlyRate.multiply(timeEntryDurationHours));
                 }
