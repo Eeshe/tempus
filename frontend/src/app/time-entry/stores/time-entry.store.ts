@@ -20,8 +20,10 @@ export class TimeEntryStore {
   private readonly timeEntryService: TimeEntryService = inject(TimeEntryService);
 
   private readonly _timeEntryPage = signal<TimeEntryPage>(createEmptyTimeEntryPage());
+  private readonly _lastStoppedTimeEntry = signal<TimeEntry | null>(null);
 
   readonly timeEntryPage: Signal<TimeEntryPage> = this._timeEntryPage.asReadonly();
+  readonly lastStoppedTimeEntry: Signal<TimeEntry | null> = this._lastStoppedTimeEntry.asReadonly();
   readonly timeEntries: Signal<TimeEntry[]> = computed(() => {
     return this.timeEntryPage().content.sort((timeEntryA, timeEntryB) =>
       timeEntryA.startTime.localeCompare(timeEntryB.startTime, undefined)).reverse()
@@ -105,11 +107,21 @@ export class TimeEntryStore {
     })
   }
 
+  resumeLastStopped(): void {
+    const lastStoppedTimeEntry: TimeEntry | null = this._lastStoppedTimeEntry();
+    if (lastStoppedTimeEntry == null) {
+      return;
+    }
+    this._lastStoppedTimeEntry.set(null);
+    this.resume(lastStoppedTimeEntry);
+  }
+
   add(timeEntry: TimeEntry): void {
     this.loadPage(this._timeEntryPage().currentCursor);
   }
 
   stopActive(timeEntry: TimeEntry): void {
+    this._lastStoppedTimeEntry.set(timeEntry);
     this.patchEndTime(timeEntry, new Date());
   }
 

@@ -80,4 +80,13 @@ export class TimeEntryList extends PagedListBase {
     }
     this.timeEntryStore.stopActive(this.activeTimeEntries()[0]);
   }
+
+  @HostListener("document:keydown.r")
+  resumeLastStoppedTimeEntry(): void {
+    const activeElement: Element | null = document.activeElement;
+    if (activeElement instanceof HTMLInputElement) {
+      return;
+    }
+    this.timeEntryStore.resumeLastStopped();
+  }
 }
