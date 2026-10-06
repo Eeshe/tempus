@@ -1,4 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { SearchInput } from '../../shared/input/search-input/search-input';
 import { CreateTaskFormModal } from '../../task/create-task-form-modal/create-task-form-modal';
 import { Task } from '../../task/models/task.model';
 import { CreateProjectFormModal } from '../create-project-form-modal/create-project-form-modal';
@@ -6,7 +7,7 @@ import { Project } from '../models/project.model';
 import { ProjectPopupSelectorBase } from '../project-popup-selector-base';
 
 @Component({
-  imports: [CreateProjectFormModal, CreateTaskFormModal],
+  imports: [CreateProjectFormModal, CreateTaskFormModal, SearchInput],
   selector: 'app-project-task-selector-button',
   styleUrl: './project-task-selector-button.css',
   templateUrl: './project-task-selector-button.html',
@@ -23,6 +24,10 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
     }
     return `${this.selectedProject()!.name}:${this.selectedTask()!.name}`;
   });
+
+  readonly filteredProjects = computed<Project[]>(() =>
+    this.projects().filter((project) => this.matchesSearch(project.name))
+  );
 
   readonly isCreateProjectFormModalOpen = signal<boolean>(false);
   readonly createTaskFormModalProject = signal<Project | null>(null);

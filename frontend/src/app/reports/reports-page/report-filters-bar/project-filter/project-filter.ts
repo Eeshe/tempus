@@ -1,9 +1,10 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Project } from '../../../../project/models/project.model';
 import { ProjectPopupSelectorBase } from '../../../../project/project-popup-selector-base';
+import { SearchInput } from '../../../../shared/input/search-input/search-input';
 
 @Component({
-  imports: [],
+  imports: [SearchInput],
   selector: 'app-project-filter',
   styleUrl: './project-filter.css',
   templateUrl: './project-filter.html',
@@ -13,8 +14,12 @@ export class ProjectFilter extends ProjectPopupSelectorBase {
 
   readonly selectedProjectsChangeEvent = output<Project[]>();
 
+  readonly filteredProjects = computed<Project[]>(() =>
+    this.projects().filter((project) => this.matchesSearch(project.name))
+  );
+
   readonly allSelected = computed<boolean>(() => {
-    const all: Project[] = this.projects();
+    const all: Project[] = this.filteredProjects();
     const selected: Project[] = this.selectedProjects();
 
     return all.length > 0 && all.length === selected.length;
@@ -34,6 +39,6 @@ export class ProjectFilter extends ProjectPopupSelectorBase {
   }
 
   toggleSelectAll(): void {
-    this.selectedProjectsChangeEvent.emit(this.allSelected() ? [] : [...this.projects()]);
+    this.selectedProjectsChangeEvent.emit(this.allSelected() ? [] : [...this.filteredProjects()]);
   }
 }

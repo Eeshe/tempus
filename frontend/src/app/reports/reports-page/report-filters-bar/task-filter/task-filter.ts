@@ -1,11 +1,12 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Project } from '../../../../project/models/project.model';
 import { ProjectService } from '../../../../services/project.service';
+import { SearchInput } from '../../../../shared/input/search-input/search-input';
 import { PopupSelectorBase } from '../../../../shared/selector/popup-selector-base';
 import { Task } from '../../../../task/models/task.model';
 
 @Component({
-  imports: [],
+  imports: [SearchInput],
   selector: 'app-task-filter',
   styleUrl: './task-filter.css',
   templateUrl: './task-filter.html',
@@ -25,10 +26,10 @@ export class TaskFilter extends PopupSelectorBase {
     const selectedProjectIds: number[] = this.selectedProjects().map((project) => project.id);
 
     const tasks: Task[] = projects.flatMap((project) => project.tasks);
-    if (selectedProjectIds.length === 0) {
-      return tasks;
-    }
-    return tasks.filter((task) => selectedProjectIds.includes(task.projectId));
+    const byProject: Task[] = selectedProjectIds.length === 0
+      ? tasks
+      : tasks.filter((task) => selectedProjectIds.includes(task.projectId));
+    return byProject.filter((task) => this.matchesSearch(task.name));
   });
 
   readonly allSelected = computed<boolean>(() => {

@@ -11,12 +11,25 @@ export abstract class PopupSelectorBase {
 
   readonly isOpen = signal<boolean>(false);
   readonly popupPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+  readonly searchQuery = signal<string>('');
 
   toggle(): void {
-    if (!this.isOpen()) {
-      this.openPopup();
+    if (this.isOpen()) {
+      this.closeSelector();
+      return;
     }
-    this.isOpen.update((isOpen: boolean) => !isOpen);
+    this.openPopup();
+    this.isOpen.set(true);
+  }
+
+  protected closeSelector(): void {
+    this.isOpen.set(false);
+    this.searchQuery.set('');
+  }
+
+  protected matchesSearch(value: string): boolean {
+    const query: string = this.searchQuery().trim().toLowerCase();
+    return query === '' || value.toLowerCase().includes(query);
   }
 
   protected openPopup(): void {
@@ -35,6 +48,6 @@ export abstract class PopupSelectorBase {
     if (!this.isOpen() || this.hostElement.nativeElement.contains(event.target)) {
       return;
     }
-    this.isOpen.set(false);
+    this.closeSelector();
   }
 }

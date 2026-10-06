@@ -21,6 +21,7 @@
 	     [style.left.px]="popupPosition().left"
 	>
 		<div class="selector__popup-header">
+			<app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
 			<button type="button" class="selector__popup-select-all" (click)="toggleSelectAll()">
 				{{ allSelected() ? 'Unselect All' : 'Select All' }}
 			</button>

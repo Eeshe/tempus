@@ -14,6 +14,9 @@
 }
 
 .selector__popup-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.625rem 0.875rem;
   border-bottom: 1px solid var(--border);
 }

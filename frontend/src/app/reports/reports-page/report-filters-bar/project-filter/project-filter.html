@@ -21,13 +21,14 @@
 	     [style.left.px]="popupPosition().left"
 	>
 		<div class="selector__popup-header">
+			<app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
 			<button type="button" class="selector__popup-select-all" (click)="toggleSelectAll()">
 				{{ allSelected() ? 'Unselect All' : 'Select All' }}
 			</button>
 		</div>
 
 		<div class="selector__popup-list">
-			@for (project of projects(); track project.id) {
+			@for (project of filteredProjects(); track project.id) {
 			<label class="selector__popup-item">
 				<input type="checkbox" class="selector__popup-checkbox" [checked]="isSelected(project)" (change)="toggleProject(project)">
 				<span class="selector__popup-check"></span>

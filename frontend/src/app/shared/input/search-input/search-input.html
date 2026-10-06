@@ -1,0 +1,8 @@
+<input
+  class="search-input"
+  type="text"
+  autocomplete="off"
+  [placeholder]="placeholder()"
+  [value]="draft()"
+  (input)="updateDraft($event)"
+/>

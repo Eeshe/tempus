@@ -2,8 +2,9 @@
 
 <div class="selector__popup" [class.selector__popup--open]="isOpen()"
      [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
+  <app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
   <div class="selector__popup-list">
-    @for (project of projects(); track project.id) {
+    @for (project of filteredProjects(); track project.id) {
       <button type="button" class="project-item" [attr.title]="project.name" (click)="changeProject(project)">{{ project.name }}</button>
     }
   </div>
