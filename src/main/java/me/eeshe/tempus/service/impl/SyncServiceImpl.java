@@ -42,9 +42,6 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void exportSnapshot() {
-        if (databaseMetaService.isRemoteSnapshotNewer()) {
-            return;
-        }
         databaseMetaService.updateCurrentSnapshotTime();
         try {
             Files.createDirectories(DatabaseMetaService.SNAPSHOT_DIRECTORY);
