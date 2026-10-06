@@ -34,7 +34,6 @@
   text-align: left;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   cursor: pointer;

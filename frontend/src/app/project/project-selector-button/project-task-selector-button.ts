@@ -26,7 +26,7 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
   });
 
   readonly filteredProjects = computed<Project[]>(() =>
-    this.projects().filter((project) => this.matchesSearch(project.name))
+    this.projects().filter((project) => this.matchesSearch(project.name) && !project.isArchived)
   );
 
   readonly isCreateProjectFormModalOpen = signal<boolean>(false);
@@ -79,9 +79,5 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
       }
       return next;
     });
-  }
-
-  protected override filterProjects(projects: Project[]): Project[] {
-    return projects.filter(project => !project.isArchived);
   }
 }

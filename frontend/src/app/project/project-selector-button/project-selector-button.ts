@@ -13,7 +13,7 @@ export class ProjectSelectorButton extends ProjectPopupSelectorBase {
   readonly selectedProject = input<Project | null>();
 
   readonly filteredProjects = computed<Project[]>(() =>
-    this.projects().filter((project) => this.matchesSearch(project.name))
+    this.projects().filter((project) => this.matchesSearch(project.name) && !project.isArchived)
   );
 
   readonly projectSelectEvent = output<Project>();
