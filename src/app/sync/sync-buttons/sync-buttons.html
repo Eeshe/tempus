@@ -31,10 +31,13 @@
 	<button type="button"
 	        class="sync-action sync-action--export"
 	        [title]="'Last export: ' + formattedLastExportTime()"
-	        [disabled]="canImport()"
 	        (click)="triggerExport()"
 	>
 		<span class="sync-action__icon sync-action__icon--export"></span>
 		<span class="sync-action__label">Export</span>
 	</button>
 </div>
+
+@if (isExportConfirmationOpen()) {
+<app-delete-confirmation-modal [toDeleteName]="exportConfirmationName()" (confirmationOptionSelectEvent)="handleExportConfirmation($event)" (closeEvent)="closeExportConfirmation()"/>
+}

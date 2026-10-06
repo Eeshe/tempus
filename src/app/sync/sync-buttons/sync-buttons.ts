@@ -1,11 +1,12 @@
 import { afterNextRender, Component, computed, HostListener, inject, signal } from '@angular/core';
 import { timer } from 'rxjs';
+import { DeleteConfirmationModal } from '../../shared/delete-confirmation-modal/delete-confirmation-modal';
 import { PopupSelectorBase } from '../../shared/selector/popup-selector-base';
 import { SyncData } from '../model/sync-data.model';
 import { SyncDataService } from '../service/sync-data.service';
 
 @Component({
-  imports: [],
+  imports: [DeleteConfirmationModal],
   selector: 'app-sync-buttons',
   styleUrl: './sync-buttons.css',
   templateUrl: './sync-buttons.html',
@@ -19,6 +20,7 @@ export class SyncButtons extends PopupSelectorBase {
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly syncData = signal<SyncData | null>(null);
+  readonly isExportConfirmationOpen = signal<boolean>(false);
 
   readonly canImport = computed<boolean>(() => {
     const syncData: SyncData | null = this.syncData();
@@ -36,6 +38,10 @@ export class SyncButtons extends PopupSelectorBase {
   );
   readonly formattedLastExportTime = computed<string>(() =>
     this.formatSnapshotTime(this.syncData()?.localSnapshotTime ?? null),
+  );
+
+  readonly exportConfirmationName = computed<string>(() =>
+    `the newer snapshot from ${this.formattedLastImportTime()}`,
   );
 
   private formatSnapshotTime(dateStr: string | null): string {
@@ -133,6 +139,26 @@ export class SyncButtons extends PopupSelectorBase {
   }
 
   triggerExport(): void {
+    if (this.canImport()) {
+      this.closePopup();
+      this.isExportConfirmationOpen.set(true);
+      return;
+    }
+    this.performExport();
+  }
+
+  handleExportConfirmation(confirmed: boolean): void {
+    if (confirmed) {
+      this.performExport();
+    }
+    this.closeExportConfirmation();
+  }
+
+  closeExportConfirmation(): void {
+    this.isExportConfirmationOpen.set(false);
+  }
+
+  private performExport(): void {
     this.syncDataService.triggerExport().subscribe(() => {
       this.updateSyncData();
       this.closePopup();
