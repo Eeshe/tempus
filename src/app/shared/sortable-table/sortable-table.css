@@ -27,6 +27,10 @@
   text-align: left;
 }
 
+.sortable-table__header:first-child {
+  padding-left: 0.75rem;
+}
+
 .sortable-table__header--left {
   text-align: left;
 }
@@ -43,6 +47,10 @@
   border-bottom: 1px solid var(--border);
 }
 
+.sortable-table__row:nth-child(even) {
+  background-color: color-mix(in srgb, #000 22%, transparent);
+}
+
 .sortable-table__row:last-child {
   border-bottom: none;
 }
@@ -55,6 +63,10 @@
   padding: 0.625rem 0;
   font-size: 0.9375rem;
   color: var(--fg);
+}
+
+.sortable-table__cell:first-child {
+  padding-left: 0.75rem;
 }
 
 .sortable-table__cell--left {
