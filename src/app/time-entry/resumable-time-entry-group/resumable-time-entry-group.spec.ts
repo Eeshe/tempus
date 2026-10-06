@@ -12,7 +12,7 @@ describe('ResumableTimeEntryGroup', () => {
     {
       id: 1,
       userId: 1,
-      project: { id: 1, name: 'Tempus', userId: 1, isPrivate: false, hourlyRate: 0, tasks: [], clientId: 1, createdAt: '2026-01-01T00:00:00Z' },
+      project: { id: 1, name: 'Tempus', userId: 1, isPrivate: false, isArchived: false, hourlyRate: 0, tasks: [], clientId: 1, createdAt: '2026-01-01T00:00:00Z' },
       task: null,
       description: 'Test description',
       isBillable: false,

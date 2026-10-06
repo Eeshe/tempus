@@ -75,4 +75,8 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
       return next;
     });
   }
+
+  protected override filterProjects(projects: Project[]): Project[] {
+    return projects.filter(project => !project.isArchived);
+  }
 }

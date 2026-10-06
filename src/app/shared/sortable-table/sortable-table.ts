@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input, output, signal, TemplateRef } from '@angular/core';
 
 export interface SortableColumn<T> {
@@ -10,7 +10,7 @@ export interface SortableColumn<T> {
 }
 
 @Component({
-  imports: [NgTemplateOutlet],
+  imports: [NgClass, NgTemplateOutlet],
   selector: 'app-sortable-table',
   styleUrl: './sortable-table.css',
   templateUrl: './sortable-table.html',
@@ -21,6 +21,8 @@ export class SortableTable<T> {
   readonly trackBy = input.required<(index: number, entry: T) => unknown>();
   readonly cellTemplates = input.required<Record<string, TemplateRef<unknown>>>();
   readonly clickable = input<boolean>(false);
+  readonly sortGroup = input<(entry: T) => number>(() => 0);
+  readonly rowClass = input<(entry: T) => string | null>(() => null);
 
   readonly rowClickEvent = output<T>();
 
@@ -35,11 +37,17 @@ export class SortableTable<T> {
   readonly sortedRows = computed<T[]>(() => {
     const rows = this.rows();
     const column = this.columns().find((column) => column.key === this.activeSortColumn());
+    const sortGroup = this.sortGroup();
     if (column == null) {
-      return rows;
+      return [...rows].sort((entryA, entryB) => sortGroup(entryA) - sortGroup(entryB));
     }
     const sign: number = this.sortDirection() === 'asc' ? 1 : -1;
     return [...rows].sort((entryA, entryB) => {
+      const groupComparison = sortGroup(entryA) - sortGroup(entryB);
+      if (groupComparison !== 0) {
+        return groupComparison;
+      }
+
       const valueA = column.sortValue(entryA);
       const valueB = column.sortValue(entryB);
 

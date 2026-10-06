@@ -3,6 +3,8 @@
     [columns]="columns"
     [rows]="projectReports()"
     [trackBy]="trackBy"
+    [sortGroup]="computeProjectSortGroup"
+    [rowClass]="computeProjectRowClass"
     [cellTemplates]="{
       project: projectCell,
       duration: durationCell,

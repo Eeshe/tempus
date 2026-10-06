@@ -21,6 +21,7 @@
       <tr
         class="sortable-table__row"
         [class.sortable-table__row--clickable]="clickable()"
+        [ngClass]="rowClass()(entry)"
         (click)="clickable() && rowClickEvent.emit(entry)"
       >
         @for (column of columns(); track column.key) {

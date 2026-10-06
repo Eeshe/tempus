@@ -14,10 +14,15 @@ export abstract class ProjectPopupSelectorBase extends PopupSelectorBase {
   protected override openPopup(): void {
     super.openPopup();
 
-    this.projectService.listProjects().subscribe((fetchedProjects) =>
+    this.projectService.listProjects().subscribe((fetchedProjects) => {
+      const visibleProjects: Project[] = this.filterProjects(fetchedProjects);
       this.projects.set(
-        fetchedProjects.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-      )
-    );
+        visibleProjects.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+      );
+    });
+  }
+
+  protected filterProjects(projects: Project[]): Project[] {
+    return projects;
   }
 }
