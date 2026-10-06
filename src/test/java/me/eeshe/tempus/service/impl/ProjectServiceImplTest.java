@@ -124,6 +124,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             assertThat(projectCaptor.getValue().getUser()).isEqualTo(user);
             assertThat(projectCaptor.getValue().getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(projectCaptor.getValue().getClient()).isEqualTo(client);
+            assertThat(projectCaptor.getValue().isArchived()).isFalse();
             assertThat(project).isEqualTo(savedProject);
         }
 
@@ -156,7 +157,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined()));
+                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined()));
 
             assertThat(patchedProject.getName()).isEqualTo("MyNewProject");
 
@@ -171,7 +172,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.of(HOURLY_RATE), JsonNullable.undefined()));
+                    null, JsonNullable.of(HOURLY_RATE), JsonNullable.undefined(), JsonNullable.undefined()));
 
             assertThat(patchedProject.getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
@@ -188,7 +189,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.undefined(), JsonNullable.of(client)));
+                    null, JsonNullable.undefined(), JsonNullable.of(client), JsonNullable.undefined()));
 
             assertThat(patchedProject.getClient()).isEqualTo(client);
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
@@ -204,11 +205,27 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.undefined(), JsonNullable.undefined()));
+                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined()));
 
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
             assertThat(patchedProject.getHourlyRate()).isNull();
             assertThat(patchedProject.getClient()).isNull();
+            assertThat(patchedProject.isArchived()).isFalse();
+
+            verify(projectRepository).save(project);
+        }
+
+        @Test
+        void patchesArchivedAndSaves() {
+            final Project project = createProject();
+
+            when(projectRepository.findByIdAndUserId(PROJECT_ID, USER_ID)).thenReturn(Optional.of(project));
+            when(projectRepository.save(project)).thenReturn(project);
+
+            final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
+                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.of(true)));
+
+            assertThat(patchedProject.isArchived()).isTrue();
 
             verify(projectRepository).save(project);
         }
@@ -218,7 +235,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.findByIdAndUserId(PROJECT_ID, USER_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined())))
+                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined())))
                     .isInstanceOf(ProjectNotFoundException.class)
                     .hasMessage("Project with ID 20 does not exist");
 

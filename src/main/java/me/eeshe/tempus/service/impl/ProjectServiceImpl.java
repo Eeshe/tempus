@@ -59,6 +59,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         patchProjectRequest.hourlyRate().ifPresent(project::setHourlyRate);
         patchProjectRequest.client().ifPresent(project::setClient);
+        patchProjectRequest.isArchived().ifPresent(project::setArchived);
 
         return projectRepository.save(project);
     }

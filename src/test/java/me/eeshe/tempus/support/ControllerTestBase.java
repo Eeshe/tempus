@@ -70,7 +70,13 @@ public abstract class ControllerTestBase extends EntityTestBase {
 
     protected static ProjectDTO createProjectDTO(
             long id, String name, Instant createdAt, BigDecimal hourlyRate, ClientDTO client) {
-        return new ProjectDTO(id, name, USER_ID, hourlyRate, List.of(), client, createdAt);
+        return createProjectDTO(id, name, createdAt, hourlyRate, client, false);
+    }
+
+    protected static ProjectDTO createProjectDTO(
+            long id, String name, Instant createdAt, BigDecimal hourlyRate, ClientDTO client,
+            boolean isArchived) {
+        return new ProjectDTO(id, name, USER_ID, hourlyRate, List.of(), client, createdAt, isArchived);
     }
 
     protected static ProjectDTO createProjectDTO() {
@@ -87,6 +93,12 @@ public abstract class ControllerTestBase extends EntityTestBase {
 
     protected static String createProjectDTOJson(
             long id, String name, Instant createdAt, BigDecimal hourlyRate, String clientJson) {
+        return createProjectDTOJson(id, name, createdAt, hourlyRate, clientJson, false);
+    }
+
+    protected static String createProjectDTOJson(
+            long id, String name, Instant createdAt, BigDecimal hourlyRate, String clientJson,
+            boolean isArchived) {
         return """
                 {
                     "id": %s,
@@ -95,8 +107,10 @@ public abstract class ControllerTestBase extends EntityTestBase {
                     "hourlyRate": %s,
                     "tasks": [],
                     "client": %s,
-                    "createdAt": "%s"
-                }""".formatted(id, name, USER_ID, hourlyRate, clientJson == null ? "null" : clientJson, createdAt);
+                    "createdAt": "%s",
+                    "isArchived": %s
+                }""".formatted(id, name, USER_ID, hourlyRate, clientJson == null ? "null" : clientJson, createdAt,
+                isArchived);
     }
 
     protected static String createProjectDTOJson() {

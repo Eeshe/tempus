@@ -45,7 +45,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.getHourlyRate(),
                 project.getTasks().stream().map(taskMapper::toDTO).toList(),
                 clientDTO,
-                project.getCreatedAt());
+                project.getCreatedAt(),
+                project.isArchived());
     }
 
     @Override
@@ -62,7 +63,8 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.hourlyRate(),
-                JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))));
+                JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))),
+                patchProjectRequestDTO.isArchived());
     }
 
     private Client resolveClient(long userId, Long clientId) {

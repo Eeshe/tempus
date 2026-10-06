@@ -54,7 +54,15 @@ public abstract class RepositoryTestBase {
     }
 
     protected Project createProject(String name, User user, BigDecimal hourlyRate, Client client) {
-        return projectRepository.save(new Project(name, user, hourlyRate, client));
+        return createProject(name, user, hourlyRate, client, false);
+    }
+
+    protected Project createProject(
+            String name, User user, BigDecimal hourlyRate, Client client, boolean isArchived) {
+        final Project project = new Project(name, user, hourlyRate, client);
+        project.setArchived(isArchived);
+
+        return projectRepository.save(project);
     }
 
     protected Task createTask(String name, User user, Project project) {
