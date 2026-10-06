@@ -1,0 +1,28 @@
+<div class="active-entries">
+  @for(activeTimeEntry of activeTimeEntries(); track activeTimeEntry.id) {
+  <app-active-time-entry [activeTimeEntry]="activeTimeEntry"/>
+  }
+</div>
+
+@for(dayGroup of dayGroupedTimeEntries(); track dayGroup.formattedDate) {
+  @if(countTotalTimeEntries(dayGroup.endedEntries) > 0) {
+    <section class="day">
+      <header class="day-header">
+        <span class="day-header__date">{{ dayGroup.formattedDate }}</span>
+        <span class="day-header__total">
+          <span class="day-header__total-label">Total</span>
+          <span class="day-header__total-value">{{ isTodayGroup(dayGroup) ?
+          ( todayFormattedTime$ | async ) : dayGroup.formattedTotalTime }}</span>
+        </span>
+      </header>
+      <div class="day-groups">
+        @for(timeEntryGroup of dayGroup.allEntries; track timeEntryGroup[0]) {
+          @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1])) {
+            <app-resumable-time-entry-group [timeEntries]="timeEntryGroup[1]"/>
+          }
+        }
+      </div>
+    </section>
+  }
+}
+<app-page-navigator [page]="timeEntryPage()" (previousPageEvent)="decreasePage()" (nextPageEvent)="increasePage()"/>

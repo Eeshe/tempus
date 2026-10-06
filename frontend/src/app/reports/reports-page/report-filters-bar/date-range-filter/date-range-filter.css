@@ -1,0 +1,70 @@
+@import '../../../../shared/selector/selector-shared.css';
+
+:host {
+  display: contents;
+}
+
+.selector {
+  position: relative;
+}
+
+.selector__trigger-value {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.selector__popup {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.selector__popup-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-right: 1rem;
+  border-right: 1px solid var(--border);
+}
+
+.selector__popup-preset {
+  padding: 0.375rem 0.625rem;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.selector__popup-preset:hover {
+  background: var(--border);
+  color: var(--fg);
+}
+
+.selector__popup-preset:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.selector__popup-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 14rem;
+}
+
+.selector__popup-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.selector__popup-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+}

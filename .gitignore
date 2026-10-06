@@ -1,39 +1,87 @@
-HELP.md
-.gradle
-build/
-git!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+# Backend ignores
+backend/HELP.md
+backend/.gradle
+backend/build/
+backend/git!gradle/wrapper/gradle-wrapper.jar
+backend/!**/src/main/**/build/
+backend/!**/src/test/**/build/
 
 ### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+backend/.apt_generated
+backend/.classpath
+backend/.factorypath
+backend/.project
+backend/.settings
+backend/.springBeans
+backend/.sts4-cache
+backend/bin/
+backend/!**/src/main/**/bin/
+backend/!**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+backend/.idea
+backend/*.iws
+backend/*.iml
+backend/*.ipr
+backend/out/
+backend/!**/src/main/**/out/
+backend/!**/src/test/**/out/
 
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+backend/nbproject/private/
+backend/nbbuild/
+backend/dist/
+backend/nbdist/
+backend/.nb-gradle/
 
 ### VS Code ###
-.vscode/
+backend/.vscode/
 
-data/
+backend/data/
+
+# Frontend ignores
+
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+frontend/dist
+frontend/tmp
+frontend/out-tsc
+frontend/bazel-out
+
+# Node
+frontend/node_modules
+frontend/npm-debug.log
+frontend/yarn-error.log
+
+# IDEs and editors
+frontend/.idea/
+frontend/.project
+frontend/.classpath
+frontend/.c9/
+frontend/*.launch
+frontend/.settings/
+frontend/*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+frontend/!.vscode/settings.json
+frontend/!.vscode/tasks.json
+frontend/!.vscode/launch.json
+frontend/!.vscode/extensions.json
+frontend/!.vscode/mcp.json
+frontend/.history/*
+
+# Miscellaneous
+frontend/.angular/cache
+frontend/.sass-cache/
+frontend/connect.lock
+frontend/coverage
+frontend/libpeerconnection.log
+frontend/testem.log
+frontend/typings
+frontend/__screenshots__/
+
+# System files
+frontend/.DS_Store
+frontend/Thumbs.db

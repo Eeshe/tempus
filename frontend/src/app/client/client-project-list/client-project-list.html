@@ -1,0 +1,16 @@
+<app-sortable-table
+  [columns]="columns"
+  [rows]="projectReports()"
+  [trackBy]="trackBy"
+  [cellTemplates]="{
+    project: projectCell,
+    duration: durationCell,
+  }"
+>
+  <ng-template #projectCell let-projectReport>
+    {{ projectReport.project.name }}
+  </ng-template>
+  <ng-template #durationCell let-projectReport>
+    {{ projectReport.trackedTimeMillis | msToHHMMSS }}
+  </ng-template>
+</app-sortable-table>

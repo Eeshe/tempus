@@ -1,0 +1,31 @@
+.active-entry__description {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.active-entry__description-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.3125rem;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.active-entry__description-input:hover {
+  border-color: var(--border-strong);
+}
+
+.active-entry__description-input:focus {
+  border-color: var(--good);
+}
+

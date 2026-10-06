@@ -1,0 +1,28 @@
+<header class="total-header">
+  <span class="total-header__label">TOTAL</span>
+  <span class="total-header__value">{{ formattedTotalTrackedTime() }}</span>
+
+  <span class="total-header__label">BILLABLE</span>
+  <span class="total-header__value">{{ formattedTotalBillableTrackedTime() }}</span>
+
+  <span class="total-header__label">NON-BILLABLE</span>
+  <span class="total-header__value">{{ formattedTotalNonBillableTrackedTime() }}</span>
+
+  <span class="total-header__label">ACCUMULATED PAY</span>
+  <span class="total-header__value">USD{{ formattedTotalAccumulatedPay() }}</span>
+</header>
+<div class="details-container">
+  <app-sortable-table
+    [columns]="columns"
+    [rows]="report().reportEntries"
+    [trackBy]="trackBy"
+    [cellTemplates]="{ project: projectCell, duration: durationCell }"
+  >
+    <ng-template #projectCell let-entry>
+      {{ entry.project.name }}
+    </ng-template>
+    <ng-template #durationCell let-entry>
+      {{ entry.trackedTimeMillis | msToHHMMSS }}
+    </ng-template>
+  </app-sortable-table>
+</div>

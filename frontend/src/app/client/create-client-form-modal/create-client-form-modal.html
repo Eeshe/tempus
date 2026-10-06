@@ -1,0 +1,28 @@
+<app-modal header="Create client" size="sm" (closeEvent)="close()">
+  <form (submit)="onSubmit($event)">
+    <div class="field">
+      <label for="name">Client Name</label>
+      <input id="name" [formField]="clientForm.name" />
+      @if (clientForm.name().invalid() && clientForm.name().touched()) {
+        <div class="error">
+          @for (error of clientForm.name().errors(); track error.kind) {
+            <span>{{ error.message }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (clientForm().errors().length > 0) {
+      <div class="form-error" role="alert">
+        @for (error of clientForm().errors(); track error.kind) {
+          <span>{{ error.message }}</span>
+        }
+      </div>
+    }
+
+    <div class="actions">
+      <button type="button" class="secondary" (click)="close()">Cancel</button>
+      <button type="submit" [disabled]="clientForm().invalid()">Create client</button>
+    </div>
+  </form>
+</app-modal>

@@ -1,0 +1,35 @@
+<div class="time-group">
+  @if (timeEntries().length > 1) {
+    <div class="time-group__header" [class.time-group__header--separated]="isExpanded()" (click)="toggleCollapsible($event)">
+      <div class="time-group__header-left">
+        <button class="time-group__toggle" type="button" (click)="toggleCollapsible()" [attr.aria-expanded]="isExpanded()">
+          <svg class="time-group__chevron" [class.time-group__chevron--open]="isExpanded()" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+          </svg>
+          <span class="time-group__count">{{ endedTimeEntries().length }}</span>
+        </button>
+        <div class="time-group__titles">
+          <app-time-entry-description [description]="timeEntries()[0].description ?? ''" (descriptionChangeEvent)="updateGroupDescription($event)"/>
+          <app-project-task-selector-button [selectedProject]="timeEntries()[0].project" [selectedTask]="timeEntries()[0].task" (projectSelectEvent)="updateGroupProject($event)" (taskSelectEvent)="updateGroupTask($event.newProject, $event.newTask)"/>
+        </div>
+      </div>
+      <div class="time-group__header-right">
+        <span class="time-group__billable" [class.time-group__billable--yes]="timeEntries()[0].isBillable" (click)="updateGroupBillable(!timeEntries()[0].isBillable)">$</span>
+        <span class="time-group__range">{{formattedStartToEndTime()}}</span>
+        <span class="time-group__duration" [class.time-group__active]="hasActiveTimeEntry()">{{ formattedTotalDuration$ | async }}</span>
+        <button class="time-group__icon time-group__icon--continue" type="button" (click)="resumeTimeEntry(timeEntries()[0])" aria-label="Continue entry"></button>
+        <button class="time-group__icon time-group__icon--delete" type="button" (click)="deleteGroup()" aria-label="Delete group"></button>
+      </div>
+    </div>
+  }
+
+  @if (timeEntries().length === 1 || isExpanded()) {
+  <div class="time-group__content">
+    @for(timeEntry of endedTimeEntries(); track timeEntry.id) {
+      @if(timeEntry.endTime !== null) {
+        <app-resumable-time-entry [timeEntry]="timeEntry"/>
+      }
+    }
+  </div>
+  }
+</div>

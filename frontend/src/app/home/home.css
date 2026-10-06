@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  min-height: calc(100dvh - var(--nav-height));
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.home-container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.page-title {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 0;
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}

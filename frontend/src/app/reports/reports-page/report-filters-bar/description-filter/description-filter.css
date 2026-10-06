@@ -1,0 +1,122 @@
+@import '../../../../shared/selector/selector-shared.css';
+
+:host {
+  display: contents;
+}
+
+.selector {
+  position: relative;
+}
+
+.selector__popup {
+  flex-direction: column;
+  min-width: 14rem;
+}
+
+.selector__popup-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.selector__popup-text {
+  flex: 1;
+  min-width: 0;
+  padding: 0.375rem 0.625rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.selector__popup-text::placeholder {
+  color: var(--muted);
+}
+
+.selector__popup-text:hover {
+  border-color: var(--border-strong);
+}
+
+.selector__popup-text:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+}
+
+.selector__popup-add {
+  --icon: url('/icons/plus.svg');
+
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  background-color: var(--muted);
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+  cursor: pointer;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.selector__popup-add:hover {
+  background-color: var(--good);
+  filter: drop-shadow(0 0 3px var(--good));
+}
+
+.selector__popup-add:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.selector__popup-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 16rem;
+}
+
+.selector__popup-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.875rem;
+}
+
+.selector__popup-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selector__popup-remove {
+  --icon: url('/icons/delete.svg');
+
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background-color: var(--bad);
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.selector__popup-remove:hover {
+  transform: scale(1.12);
+}
+
+.selector__popup-remove:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}

@@ -1,0 +1,3 @@
+<div class="active-entry__description">
+	<input #descriptionInput class="active-entry__description-input" type="text" [value]="description()" (blur)="saveDescriptionChanges(descriptionInput.value)" (keyup.escape)="descriptionInput.blur()" (keyup.enter)="descriptionInput.blur()" placeholder="Add description" spellcheck="false">
+</div>

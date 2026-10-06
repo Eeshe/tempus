@@ -1,0 +1,90 @@
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.page-navigator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+}
+
+.page-navigator__button {
+  --icon: url('/icons/chevron.svg');
+  --chevron-rotation: 0deg;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.page-navigator__button::after {
+  content: '';
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: var(--muted);
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+  transform: rotate(var(--chevron-rotation));
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.page-navigator__button:not(:disabled):hover {
+  transform: scale(1.08);
+}
+
+.page-navigator__button:not(:disabled):hover::after {
+  background-color: var(--good);
+}
+
+.page-navigator__button:disabled {
+  cursor: default;
+}
+
+.page-navigator__button:disabled::after {
+  opacity: 0.35;
+}
+
+.page-navigator__button:focus-visible {
+  outline: none;
+}
+
+.page-navigator__button:focus-visible::after {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.page-navigator__button--prev {
+  --chevron-rotation: 90deg;
+}
+
+.page-navigator__button--next {
+  --chevron-rotation: -90deg;
+}
+
+.page-navigator__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.page-navigator__label-text {
+  color: var(--muted);
+}
+
+.page-navigator__label-value {
+  color: var(--fg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

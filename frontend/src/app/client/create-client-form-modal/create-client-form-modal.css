@@ -1,0 +1,116 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 0.875rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field input::placeholder {
+  color: var(--muted);
+}
+
+.field input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+}
+
+.field .error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--bad);
+}
+
+.field:has(.error) input {
+  border-color: var(--bad);
+}
+
+.field:has(.error) input:focus {
+  box-shadow: 0 0 0 3px var(--bad-bg);
+}
+
+.form-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--bad);
+  background: var(--bad-bg);
+  border: 1px solid rgba(242, 85, 92, 0.25);
+  border-radius: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+button[type="submit"] {
+  padding: 0.75rem 1.25rem;
+  background: var(--fg);
+  color: var(--bg);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+button[type="submit"]:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.secondary {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.secondary:hover {
+  border-color: var(--border-strong);
+  color: var(--good);
+}

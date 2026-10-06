@@ -1,0 +1,23 @@
+<div class="inline-edit">
+	<input #inputElement class="inline-edit__input" type="text" autocomplete="off" spellcheck="false" [value]="draft()" [placeholder]="placeholder()" (input)="updateDraft($event)" (keydown)="onKeydown($event)" (blur)="acceptInput()">
+	<div class="inline-edit__actions">
+		<button type="button"
+		        class="inline-edit__button inline-edit__button--accept"
+		        aria-label="Confirm"
+		        title="Confirm"
+		        (mousedown)="$event.preventDefault()"
+		        (click)="acceptInput()"
+		>
+			<span class="inline-edit__icon inline-edit__icon--accept" aria-hidden="true"></span>
+		</button>
+		<button type="button"
+		        class="inline-edit__button inline-edit__button--cancel"
+		        aria-label="Cancel"
+		        title="Cancel"
+		        (mousedown)="$event.preventDefault()"
+		        (click)="cancelInput()"
+		>
+			<span class="inline-edit__icon inline-edit__icon--cancel" aria-hidden="true"></span>
+		</button>
+	</div>
+</div>

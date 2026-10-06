@@ -1,0 +1,43 @@
+<button #triggerButton
+        type="button"
+        class="sync-trigger"
+        [class.sync-trigger--ready]="canImport()"
+        aria-label="Sync"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="isOpen()"
+        [class.sync-trigger--open]="isOpen()"
+        (click)="onTriggerClick()"
+></button>
+
+<div #popup
+     class="selector__popup sync__popup"
+     role="dialog"
+     aria-label="Sync actions"
+     [class.selector__popup--open]="isOpen()"
+     [style.top.px]="popupPosition().top"
+     [style.left.px]="popupPosition().left"
+>
+	<button type="button"
+	        class="sync-action sync-action--import"
+	        [class.sync-action--ready]="canImport()"
+	        [title]="'Current snapshot: ' + formattedLastImportTime()"
+	        [disabled]="!canImport()"
+	        (click)="triggerImport()"
+	>
+		<span class="sync-action__icon sync-action__icon--import"></span>
+		<span class="sync-action__label">Import</span>
+	</button>
+
+	<button type="button"
+	        class="sync-action sync-action--export"
+	        [title]="'Last export: ' + formattedLastExportTime()"
+	        (click)="triggerExport()"
+	>
+		<span class="sync-action__icon sync-action__icon--export"></span>
+		<span class="sync-action__label">Export</span>
+	</button>
+</div>
+
+@if (isExportConfirmationOpen()) {
+<app-delete-confirmation-modal [toDeleteName]="exportConfirmationName()" (confirmationOptionSelectEvent)="handleExportConfirmation($event)" (closeEvent)="closeExportConfirmation()"/>
+}

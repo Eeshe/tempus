@@ -1,0 +1,31 @@
+<app-sortable-table [columns]="columns"
+                    [rows]="tasks()"
+                    [trackBy]="trackBy"
+                    [cellTemplates]="{
+                     task: taskCell
+    }"
+>
+	<ng-template #taskCell let-task>
+    <div class="task-list__actions">
+      <div class="task-list__name">
+        @if (editedTask()?.id !== task.id) {
+          <span>{{ task.name }}</span>
+        } @else {
+          <app-inline-edit-input [value]="task.name" (acceptEvent)="editTaskName($event)" (cancelEvent)="stopEditingTaskName()"/>
+        }
+      </div>
+      <div class="task-list__buttons">
+        <button type="button" class="task-list__icon-button task-list__edit-button" (click)="editedTask.set(task)" aria-label="Edit task" title="Edit">
+          <span class="task-list__glyph task-list__glyph--edit" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="task-list__icon-button task-list__delete-button" (click)="openDeleteConfirmationModal(task)" aria-label="Delete task" title="Delete">
+          <span class="task-list__glyph task-list__glyph--delete" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+	</ng-template>
+</app-sortable-table>
+
+@if (deleteConfirmationModalTask() != null) {
+<app-delete-confirmation-modal [toDeleteName]="deleteConfirmationModalTask()!.name" (closeEvent)="closeDeleteConfirmationModal()" (confirmationOptionSelectEvent)="handleDeleteConfirmation($event)"/>
+}

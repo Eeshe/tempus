@@ -1,0 +1,78 @@
+@import '../../shared/selector/selector-shared.css';
+
+:host {
+  display: inline-block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.selector__popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 80vh;
+  padding: 0.75rem 1rem;
+  color: var(--fg);
+  white-space: nowrap;
+  width: 12rem;
+}
+
+.selector__popup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-height: calc(10 * 1.65rem + 9 * 0.5rem);
+}
+
+.client-item {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--fg);
+  text-align: left;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.client-item:hover,
+.client-item:focus-visible {
+  text-decoration: underline;
+  color: var(--good);
+}
+
+.client-item:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.popup__new {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.75rem 0 0;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  font: inherit;
+  color: var(--muted);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.popup__new:hover,
+.popup__new:focus-visible {
+  color: var(--good);
+}
+
+.popup__new:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}

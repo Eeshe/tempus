@@ -1,0 +1,10 @@
+<button #triggerButton type="button" class="project-item" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{ selectedProject()?.name ?? 'Select a Project' }}</button>
+
+<div class="selector__popup" [class.selector__popup--open]="isOpen()"
+     [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
+  <div class="selector__popup-list">
+    @for (project of projects(); track project.id) {
+      <button type="button" class="project-item" [attr.title]="project.name" (click)="changeProject(project)">{{ project.name }}</button>
+    }
+  </div>
+</div>

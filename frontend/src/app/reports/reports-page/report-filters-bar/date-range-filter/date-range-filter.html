@@ -1,0 +1,55 @@
+<div class="selector">
+  <button
+    #triggerButton
+    type="button"
+    class="selector__trigger"
+    [class.selector__trigger--open]="isOpen()"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="isOpen()"
+    (click)="toggle()"
+  >
+    Date Range
+    <span class="selector__trigger-value">
+      {{ startDate() ?? 'Start' }} — {{ endDate() ?? 'End' }}
+    </span>
+  </button>
+
+  <div
+    class="selector__popup"
+    [class.selector__popup--open]="isOpen()"
+    [style.top.px]="popupPosition().top"
+    [style.left.px]="popupPosition().left"
+  >
+    <div class="selector__popup-presets">
+      <button type="button" class="selector__popup-preset" (click)="setPreset('today')">Today</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('yesterday')">Yesterday</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisWeek')">This Week</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastWeek')">Last Week</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisMonth')">This Month</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastMonth')">Last Month</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisYear')">This Year</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastYear')">Last Year</button>
+    </div>
+
+    <div class="selector__popup-dates">
+      <div class="selector__popup-date-field">
+        <label class="selector__popup-label">Start Date</label>
+        <app-date-input
+          [value]="startDate()"
+          (valueChange)="onStartDateChange($event)"
+          [invalid]="startDateInvalid()"
+          (touch)="onStartDateTouch()"
+        />
+      </div>
+      <div class="selector__popup-date-field">
+        <label class="selector__popup-label">End Date</label>
+        <app-date-input
+          [value]="endDate()"
+          (valueChange)="onEndDateChange($event)"
+          [invalid]="endDateInvalid()"
+          (touch)="onEndDateTouch()"
+        />
+      </div>
+    </div>
+  </div>
+</div>

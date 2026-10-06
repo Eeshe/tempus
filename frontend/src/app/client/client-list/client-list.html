@@ -1,0 +1,24 @@
+<div class="details-container">
+  <app-sortable-table
+    [columns]="columns"
+    [rows]="clientReports()"
+    [trackBy]="trackBy"
+    [cellTemplates]="{
+      client: clientCell,
+      duration: durationCell,
+    }"
+    [clickable]="true"
+    (rowClickEvent)="openClientModal($event.client)"
+  >
+    <ng-template #clientCell let-clientReport>
+      {{ clientReport.client.name }}
+    </ng-template>
+    <ng-template #durationCell let-clientReport>
+      {{ clientReport.trackedTimeMillis | msToHHMMSS }}
+    </ng-template>
+  </app-sortable-table>
+</div>
+
+@if (openModalClient() != null) {
+  <app-client-modal [client]="openModalClient()!" (closeEvent)="closeClientModal()"/>
+}

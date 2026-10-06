@@ -1,0 +1,37 @@
+<button #triggerButton type="button" class="project-item" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{displayText()}}</button>
+
+<div class="selector__popup" [class.selector__popup--open]="isOpen()"
+     [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
+  <div class="selector__popup-list">
+    @for (project of projects(); track project.id) {
+      <div class="project-group">
+        <div class="project-row">
+          <button type="button" class="project-item" [attr.title]="project.name" (click)="changeTimeEntryProject(project)">{{ project.name }}</button>
+          <button type="button" class="project-toggle"
+                  [class.project-toggle--expanded]="isProjectExpanded(project)"
+                  [attr.aria-expanded]="isProjectExpanded(project)"
+                  [attr.aria-label]="'Toggle tasks for ' + project.name"
+                  (click)="toggleProjectTasks(project)"></button>
+        </div>
+
+        @if (isProjectExpanded(project)) {
+          <div class="project-tasks">
+            @for (task of project.tasks; track task.id) {
+              <button type="button" class="task-item" [attr.title]="task.name" (click)="changeTimeEntryTask(project, task)">{{ task.name }}</button>
+            }
+            <button type="button" class="popup__new popup__new--task" (click)="setCreateTaskFormModalProject(project)">New Task</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <button type="button" class="popup__new" (click)="toggleCreateProjectForm()">New Project</button>
+</div>
+
+@if (isCreateProjectFormModalOpen()) {
+<app-create-project-form-modal (closeEvent)="toggleCreateProjectForm()" (projectCreateEvent)="addCreatedProject($event)"/>
+}
+
+@if (createTaskFormModalProject() != null) {
+<app-create-task-form-modal [selectedProject]="createTaskFormModalProject()!" (closeEvent)="setCreateTaskFormModalProject(null)" (taskCreateEvent)="addCreatedTask($event.project, $event.task)"/>
+}

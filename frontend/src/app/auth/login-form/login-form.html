@@ -1,0 +1,45 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
+
+<form (submit)="onSubmit($event)">
+  <div class="card">
+    <div class="header">
+      <h1>Log In</h1>
+    </div>
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" [formField]="loginForm.username">
+      @if(loginForm.username().invalid() && loginForm.username().touched()) {
+      <div class="error">
+        @for(error of loginForm.username().errors(); track error.kind) {
+        <span>{{error.message}}</span>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" [formField]="loginForm.password">
+      @if(loginForm.password().invalid() && loginForm.password().touched()) {
+      <div class="error">
+        @for(error of loginForm.password().errors(); track error.kind) {
+        <span>{{error.message}}</span>
+        }
+      </div>
+      }
+    </div>
+
+    @if (loginForm().errors().length > 0) {
+      <div class="form-error" role="alert">
+        @for (error of loginForm().errors(); track error.kind) {
+          <span>{{ error.message }}</span>
+        }
+      </div>
+    }
+
+    <button type="submit" [disabled]="loginForm().invalid()">Log in</button>
+
+    <p class="footer">Don't have an account yet? <a routerLink="/register">Create one</a></p>
+  </div>
+</form>

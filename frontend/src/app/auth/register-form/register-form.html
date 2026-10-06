@@ -1,0 +1,57 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
+
+<form (submit)="onSubmit($event)">
+  <div class="card">
+    <div class="header">
+      <h1>Create account</h1>
+    </div>
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" [formField]="registerForm.username" />
+      @if (registerForm.username().invalid() && registerForm.username().touched()) {
+        <div class="error">
+          @for (error of registerForm.username().errors(); track error.kind) {
+            <span>{{error.message}}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" [formField]="registerForm.password" />
+      @if (registerForm.password().invalid() && registerForm.password().touched()) {
+        <div class="error">
+          @for (error of registerForm.password().errors(); track error.kind) {
+            <span>{{error.message}}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="passwordConfirmation">Password Confirmation</label>
+      <input id="passwordConfirmation" type="password" [formField]="registerForm.passwordConfirmation" />
+      @if (registerForm.passwordConfirmation().invalid() && registerForm.passwordConfirmation().touched()) {
+        <div class="error">
+          @for (error of registerForm.passwordConfirmation().errors(); track error.kind) {
+            <span>{{error.message}}</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (registerForm().errors().length > 0) {
+      <div class="form-error" role="alert">
+        @for (error of registerForm().errors(); track error.kind) {
+          <span>{{ error.message }}</span>
+        }
+      </div>
+    }
+
+    <button type="submit" [disabled]="registerForm().invalid()">Register</button>
+
+    <p class="footer">Already have an account? <a routerLink="/login">Log in</a></p>
+  </div>
+</form>

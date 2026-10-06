@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.time-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 0.875rem;
+  text-align: center;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.time-input::placeholder {
+  color: var(--muted);
+}
+
+.time-input:hover:not(.invalid) {
+  border-color: var(--border-strong);
+}
+
+.time-input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+}
+
+.time-input.invalid {
+  border-color: var(--bad);
+}
+
+.time-input.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(242, 85, 92, 0.08);
+}

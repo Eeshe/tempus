@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+button {
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--good);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+button:hover {
+  opacity: 0.88;
+}

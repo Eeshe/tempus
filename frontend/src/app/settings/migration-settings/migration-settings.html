@@ -1,0 +1,10 @@
+<section class="migration">
+  <h2 class="migration__title">Migration</h2>
+  <button type="button" class="migration__import-button" (click)="toggleImportModal()">
+    Import from Clockify
+  </button>
+</section>
+
+@if (isImportModalOpen()) {
+  <app-import-modal (closeEvent)="toggleImportModal()" />
+}

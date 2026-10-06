@@ -1,0 +1,67 @@
+<app-modal header="Create project" size="sm" (closeEvent)="close()">
+  <form (submit)="onSubmit($event)">
+    <div class="row">
+      <div class="field">
+        <label for="name">Project Name</label>
+        <input id="name" [formField]="projectForm.name" />
+        @if (projectForm.name().invalid() && projectForm.name().touched()) {
+          <div class="error">
+            @for (error of projectForm.name().errors(); track error.kind) {
+              <span>{{ error.message }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="field">
+        <label for="hourlyRate">Hourly Rate</label>
+        <div class="input-group">
+          <span class="prefix" aria-hidden="true">$</span>
+          <input id="hourlyRate" type="number" step="0.01" inputmode="decimal"
+                 placeholder="0.00" [formField]="projectForm.hourlyRate" />
+        </div>
+        @if (projectForm.hourlyRate().invalid() && projectForm.hourlyRate().touched()) {
+          <div class="error">
+            @for (error of projectForm.hourlyRate().errors(); track error.kind) {
+              <span>{{ error.message }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="clientId">Client</label>
+        <app-client-selector-button [selectedClient]="projectModel().client" (clientSelectEvent)="changeClient($event)"/>
+        @if (projectForm.client().invalid() && projectForm.client().touched()) {
+          <div class="error">
+            @for (error of projectForm.client().errors(); track error.kind) {
+              <span>{{ error.message }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="field checkbox-field">
+        <label for="isPrivate">Private</label>
+        <div class="control">
+          <input id="isPrivate" type="checkbox" [formField]="projectForm.isPrivate" />
+        </div>
+      </div>
+    </div>
+
+    @if (projectForm().errors().length > 0) {
+      <div class="form-error" role="alert">
+        @for (error of projectForm().errors(); track error.kind) {
+          <span>{{ error.message }}</span>
+        }
+      </div>
+    }
+
+    <div class="actions">
+      <button type="button" class="secondary" (click)="close()">Cancel</button>
+      <button type="submit" [disabled]="projectForm().invalid()">Create project</button>
+    </div>
+  </form>
+</app-modal>

@@ -1,0 +1,1 @@
+<input #inputElement class="time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="HHmm" maxlength="5" [class.invalid]="invalid()" [value]="value() ?? ''" (input)="onInput($event)" (blur)="onBlur()" (keyup.enter)="onBlur()" (keyup.escape)="onBlur()" (click)="selectAllText()">

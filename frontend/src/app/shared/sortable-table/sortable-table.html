@@ -1,0 +1,39 @@
+<table class="sortable-table">
+  <thead>
+    <tr>
+      @for (column of columns(); track column.key) {
+        <th
+          class="sortable-table__header sortable-table__header--{{ column.align }}"
+          (click)="toggleSort(column.key)"
+        >
+          {{ column.label }}
+          <span class="sortable-table__header-arrow" aria-hidden="true">
+            @if (activeSortColumn() === column.key) {
+              {{ sortDirection() === 'asc' ? '▲' : '▼' }}
+            }
+          </span>
+        </th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (entry of sortedRows(); track trackBy()($index, entry)) {
+      <tr
+        class="sortable-table__row"
+        [class.sortable-table__row--clickable]="clickable()"
+        [ngClass]="rowClass()(entry)"
+        (click)="clickable() && rowClickEvent.emit(entry)"
+      >
+        @for (column of columns(); track column.key) {
+          <td class="sortable-table__cell sortable-table__cell--{{ column.cellAlign ?? column.align }}">
+            <ng-container
+              [ngTemplateOutlet]="cellTemplates()[column.key]"
+              [ngTemplateOutletContext]="{ $implicit: entry }"
+            />
+            <span class="sortable-table__cell-arrow" aria-hidden="true"></span>
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+</table>

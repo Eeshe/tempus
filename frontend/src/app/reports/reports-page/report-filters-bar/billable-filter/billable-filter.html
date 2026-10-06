@@ -1,0 +1,55 @@
+<div class="selector">
+	<button #triggerButton
+	        type="button"
+	        class="selector__trigger"
+	        [class.selector__trigger--open]="isOpen()"
+	        aria-haspopup="dialog"
+	        [attr.aria-expanded]="isOpen()"
+	        (click)="toggle()"
+	>
+		Billable
+		@if (isBillable() === null) {
+		<span class="selector__indicator--all">-</span>
+		} @else {
+		<span class="selector__indicator"
+		      [class.selector__indicator--yes]="isBillable() === true"
+		      [class.selector__indicator--no]="isBillable() === false"
+		></span>
+		}
+	</button>
+
+	<div class="selector__popup"
+	     [class.selector__popup--open]="isOpen()"
+	     [style.top.px]="popupPosition().top"
+	     [style.left.px]="popupPosition().left"
+	>
+		<div class="selector__popup-list" role="group" aria-label="Billable">
+			<button type="button"
+			        class="selector__popup-option"
+			        [class.selector__popup-option--selected]="isSelected(null)"
+			        (click)="select(null)"
+			>
+				<span class="selector__popup-name">All</span>
+				<span class="selector__popup-check"></span>
+			</button>
+
+			<button type="button"
+			        class="selector__popup-option"
+			        [class.selector__popup-option--selected]="isSelected(true)"
+			        (click)="select(true)"
+			>
+				<span class="selector__popup-name">Yes</span>
+				<span class="selector__popup-check"></span>
+			</button>
+
+			<button type="button"
+			        class="selector__popup-option"
+			        [class.selector__popup-option--selected]="isSelected(false)"
+			        (click)="select(false)"
+			>
+				<span class="selector__popup-name">No</span>
+				<span class="selector__popup-check"></span>
+			</button>
+		</div>
+	</div>
+</div>

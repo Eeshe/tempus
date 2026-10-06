@@ -1,0 +1,93 @@
+:host {
+  display: block;
+}
+
+.inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inline-edit__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.25rem 0;
+  text-align: left;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.inline-edit__input::placeholder {
+  color: var(--muted);
+}
+
+.inline-edit__input:hover {
+  border-bottom-color: var(--border-strong);
+}
+
+.inline-edit__input:focus {
+  border-bottom-color: var(--border-strong);
+}
+
+.inline-edit__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.inline-edit__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.inline-edit__button:hover {
+  background: var(--bg);
+}
+
+.inline-edit__button--accept:hover {
+  color: var(--good);
+}
+
+.inline-edit__button--cancel:hover {
+  color: var(--bad);
+}
+
+.inline-edit__icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+}
+
+.inline-edit__icon--accept {
+  --icon: url('/icons/check.svg');
+}
+
+.inline-edit__icon--cancel {
+  --icon: url('/icons/close.svg');
+}
+
+.inline-edit__button:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}

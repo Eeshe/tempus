@@ -1,0 +1,39 @@
+<div class="selector">
+	<button #triggerButton
+	        type="button"
+	        class="selector__trigger"
+	        [class.selector__trigger--open]="isOpen()"
+	        aria-haspopup="dialog"
+	        [attr.aria-expanded]="isOpen()"
+	        (click)="toggle()"
+	>
+		Tasks
+		<span class="selector__badge"
+		      [class.selector__badge--visible]="selectedTasks().length > 0"
+		>
+			{{ selectedTasks().length }}
+		</span>
+	</button>
+
+	<div class="selector__popup"
+	     [class.selector__popup--open]="isOpen()"
+	     [style.top.px]="popupPosition().top"
+	     [style.left.px]="popupPosition().left"
+	>
+		<div class="selector__popup-header">
+			<button type="button" class="selector__popup-select-all" (click)="toggleSelectAll()">
+				{{ allSelected() ? 'Unselect All' : 'Select All' }}
+			</button>
+		</div>
+
+		<div class="selector__popup-list">
+			@for (task of availableTasks(); track task.id) {
+			<label class="selector__popup-item">
+				<input type="checkbox" class="selector__popup-checkbox" [checked]="isSelected(task)" (change)="toggleTask(task)">
+				<span class="selector__popup-check"></span>
+				<span class="selector__popup-name">{{ task.name }}</span>
+			</label>
+			}
+		</div>
+	</div>
+</div>

@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.settings {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.settings__sidebar {
+  flex: 0 0 12rem;
+}
+
+.settings__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settings__nav-item {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.settings__nav-item:hover {
+  color: var(--fg);
+  background: var(--border);
+}
+
+.settings__nav-item--active {
+  color: var(--bg);
+  background: var(--good);
+}
+
+.settings__nav-item--active:hover {
+  color: var(--bg);
+  background: var(--good);
+}
+
+.settings__nav-item:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.settings__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}

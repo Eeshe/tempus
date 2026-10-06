@@ -1,0 +1,28 @@
+.details-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1.5rem 1.25rem;
+}
+
+.total-header {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.total-header__label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.total-header__value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}

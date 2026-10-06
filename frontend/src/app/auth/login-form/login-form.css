@@ -1,0 +1,145 @@
+form {
+  box-sizing: border-box;
+  min-height: calc(100dvh - var(--nav-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.card {
+  width: 100%;
+  max-width: 25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2.25rem 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 0.875rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field input::placeholder {
+  color: var(--muted);
+}
+
+.field input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+}
+
+.field .error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--bad);
+}
+
+.field:has(.error) input {
+  border-color: var(--bad);
+}
+
+.field:has(.error) input:focus {
+  box-shadow: 0 0 0 3px var(--bad-bg);
+}
+
+.form-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--bad);
+  background: var(--bad-bg);
+  border: 1px solid rgba(242, 85, 92, 0.25);
+  border-radius: 0.5rem;
+}
+
+button[type="submit"] {
+  margin-top: 0.25rem;
+  padding: 0.75rem;
+  background: var(--fg);
+  color: var(--bg);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+button[type="submit"]:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.footer {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.footer a {
+  color: var(--fg);
+  text-underline-offset: 3px;
+}
+
+.footer a:hover {
+  color: var(--good);
+}

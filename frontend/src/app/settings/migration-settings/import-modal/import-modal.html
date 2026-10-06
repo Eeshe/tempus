@@ -1,0 +1,77 @@
+<app-modal header="Import from Clockify" (closeEvent)="close()">
+  @switch (phase()) {
+    @case ('select') {
+      <input
+        #fileInput
+        type="file"
+        class="dropzone__input"
+        multiple
+        accept=".csv,text/csv"
+        (change)="addSelectedFiles($event)"
+        hidden
+      />
+      <div
+        class="dropzone"
+        [class.dropzone--active]="isDragging()"
+        role="button"
+        tabindex="0"
+        (click)="fileInput.click()"
+        (keydown.enter)="fileInput.click()"
+        (keydown.space)="fileInput.click()"
+        (dragover)="enableDragging($event)"
+        (dragleave)="disableDragging()"
+        (drop)="addDraggedFiles($event)"
+      >
+        <span class="dropzone__text">Click to select or drop CSV files here</span>
+      </div>
+    }
+
+    @case ('confirm') {
+      <p class="message">You are about to import {{ fileCount() }} CSV files</p>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="close()">Cancel</button>
+        <button type="button" class="primary" (click)="confirmImport()">Confirm</button>
+      </div>
+    }
+
+    @case ('importing') {
+      <div class="importing" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Importing your time entries...</span>
+      </div>
+    }
+
+    @case ('done') {
+      @if (importResult(); as result) {
+        @if (result.importedCount > 0) {
+          <p class="message message--success">
+            Successfully imported {{ result.importedCount }} entries
+          </p>
+        }
+        @if (result.skippedEntries.length > 0) {
+          <div class="errors">
+            <p class="errors__title">There were the following import errors ({{result.skippedEntries.length}})</p>
+            <ul class="errors__list">
+              @for (entry of result.skippedEntries; track $index) {
+                <li class="errors__item">
+                  <span class="errors__file">{{ entry.fileName }} (row {{ entry.rowNumber }})</span>
+                  <span class="errors__reason">{{ entry.reason }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+      <div class="actions">
+        <button type="button" class="primary" (click)="close()">Close</button>
+      </div>
+    }
+
+    @case ('error') {
+      <p class="message message--error" role="alert">Import failed. Please try again.</p>
+      <div class="actions">
+        <button type="button" class="secondary" (click)="close()">Close</button>
+      </div>
+    }
+  }
+</app-modal>

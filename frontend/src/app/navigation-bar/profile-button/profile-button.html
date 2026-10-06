@@ -1,0 +1,28 @@
+<button #triggerButton
+        type="button"
+        class="profile-trigger"
+        aria-label="Profile"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="isOpen()"
+        [class.profile-trigger--open]="isOpen()"
+        (click)="toggle()"
+></button>
+
+<div #popup
+     class="selector__popup profile__popup"
+     role="dialog"
+     aria-label="Profile menu"
+     [class.selector__popup--open]="isOpen()"
+     [style.top.px]="popupPosition().top"
+     [style.left.px]="popupPosition().left"
+>
+	<a class="profile-action" routerLink="/settings" (click)="toggle()">
+		<span class="profile-action__icon profile-action__icon--settings"></span>
+		<span class="profile-action__label">Settings</span>
+	</a>
+
+	<button type="button" class="profile-action profile-action--logout" (click)="logout()">
+		<span class="profile-action__icon profile-action__icon--logout"></span>
+		<span class="profile-action__label">Logout</span>
+	</button>
+</div>

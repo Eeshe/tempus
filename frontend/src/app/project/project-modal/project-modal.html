@@ -1,0 +1,71 @@
+<app-modal size="lg" (closeEvent)="close()">
+  @if (!isEditingName()) {
+    <div modalTitle class="project-modal__title">
+      <span>{{ project().name }}</span>
+      <button type="button" class="project-modal__icon-button project-modal__edit-button" (click)="startProjectNameEdit()" aria-label="Edit project name" title="Edit">
+        <span class="project-modal__glyph project-modal__glyph--edit" aria-hidden="true"></span>
+      </button>
+    </div>
+  } @else {
+    <app-inline-edit-input modalTitle [value]="project().name" (acceptEvent)="editProjectName($event)" (cancelEvent)="stopProjectNameEdit()"/>
+  }
+
+  <div class="project-modal__field">
+    <span class="project-modal__field-label">Client</span>
+    <app-client-selector-button [selectedClient]="project().client" (clientSelectEvent)="editProjectClient($event)"/>
+  </div>
+
+  <div class="project-modal__field">
+    <span class="project-modal__field-label">Hourly Rate</span>
+    <div class="project-modal__rate-input">
+      <span class="project-modal__rate-prefix" aria-hidden="true">$</span>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        inputmode="decimal"
+        placeholder="0.00"
+        [value]="hourlyRateDraft()"
+        (input)="updateHourlyRateDraft($event)"
+        (keydown.enter)="acceptChanges($event)"
+        (keydown.escape)="discardChanges($event)"
+        (blur)="commitHourlyRate()"
+      />
+    </div>
+    @if (hourlyRateError(); as error) {
+      <span class="project-modal__field-error">{{ error }}</span>
+    }
+  </div>
+
+  <div class="project-modal__field project-modal__field--archived">
+    <div class="project-modal__field-label-row">
+      <label class="project-modal__field-label" for="projectArchived">Archived</label>
+      <span class="project-modal__info" role="img"
+            [attr.aria-label]="archivedInfoTooltip"
+            [title]="archivedInfoTooltip">
+        <span class="project-modal__glyph project-modal__glyph--info" aria-hidden="true"></span>
+      </span>
+    </div>
+    <div class="project-modal__checkbox">
+      <input
+        id="projectArchived"
+        type="checkbox"
+        [checked]="project().isArchived"
+        (change)="toggleProjectArchived($event)"
+      />
+    </div>
+  </div>
+
+  <div class="project-modal__table">
+    <app-task-list [tasks]="project().tasks" (taskEditEvent)="editProjectTask($event)" (taskDeleteEvent)="deleteProjectTask($event)"/>
+  </div>
+  <p class="project-modal__table-footer"><i>If you want to see task metrics, use the <a routerLink="/reports">Reports Page</a>.</i></p>
+
+  <div class="project-modal__footer">
+    <button type="button" class="project-modal__delete-button" (click)="toggleDeleteConfirmationModal()">Delete</button>
+  </div>
+</app-modal>
+
+@if (isDeleteConfirmationModalOpen()) {
+<app-delete-confirmation-modal [toDeleteName]="project().name" (confirmationOptionSelectEvent)="handleDeleteConfirmation($event)" (closeEvent)="toggleDeleteConfirmationModal()"/>
+}

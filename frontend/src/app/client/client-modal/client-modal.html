@@ -1,0 +1,24 @@
+<app-modal size="lg" (closeEvent)="close()">
+  @if (!isEditingName()) {
+    <div modalTitle class="client-modal__title">
+      <span>{{ client().name }}</span>
+      <button type="button" class="client-modal__icon-button client-modal__edit-button" (click)="startNameEdit()" aria-label="Edit client name" title="Edit">
+        <span class="client-modal__glyph client-modal__glyph--edit" aria-hidden="true"></span>
+      </button>
+    </div>
+  } @else {
+    <app-inline-edit-input modalTitle [value]="client().name" (acceptEvent)="editName($event)" (cancelEvent)="stopNameEdit()"/>
+  }
+
+  <div class="client-modal__table">
+    <app-client-project-list [client]="client()"/>
+  </div>
+
+  <div class="client-modal__footer">
+    <button type="button" class="client-modal__delete-button" (click)="toggleDeleteConfirmationModal()">Delete</button>
+  </div>
+</app-modal>
+
+@if (isDeleteConfirmationModalOpen()) {
+<app-delete-confirmation-modal [toDeleteName]="client().name" (confirmationOptionSelectEvent)="handleDeleteConfirmation($event)" (closeEvent)="toggleDeleteConfirmationModal()"/>
+}

@@ -1,0 +1,15 @@
+<button #triggerButton type="button" class="client-item" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{ displayText() }}</button>
+
+<div class="selector__popup" [class.selector__popup--open]="isOpen()" [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
+	<div class="selector__popup-list">
+		<button type="button" class="client-item" (click)="changeClient(null)">None</button>
+		@for (client of clients(); track client.id) {
+		<button type="button" class="client-item" [attr.title]="client.name" (click)="changeClient(client)">{{ client.name }}</button>
+		}
+	</div>
+	<button type="button" class="popup__new" (click)="toggleCreateClientFormModal()">New Client</button>
+</div>
+
+@if (isCreateClientModalOpen()) {
+<app-create-client-form-modal (closeEvent)="toggleCreateClientFormModal()" (clientCreateEvent)="changeClient($event)"/>
+}

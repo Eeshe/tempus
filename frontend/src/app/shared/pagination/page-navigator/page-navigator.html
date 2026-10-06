@@ -1,0 +1,20 @@
+<div class="page-navigator">
+  <button
+    class="page-navigator__button page-navigator__button--prev"
+    type="button"
+    aria-label="Previous page"
+    [disabled]="page().first"
+    (click)="previousPageEvent.emit()"
+  ></button>
+  <span class="page-navigator__label">
+    <span class="page-navigator__label-text">Page</span>
+    <span class="page-navigator__label-value">{{ page().page + 1 }}/{{ formattedTotalPages() }}</span>
+  </span>
+  <button
+    class="page-navigator__button page-navigator__button--next"
+    type="button"
+    aria-label="Next page"
+    [disabled]="page().last"
+    (click)="nextPageEvent.emit()"
+  ></button>
+</div>

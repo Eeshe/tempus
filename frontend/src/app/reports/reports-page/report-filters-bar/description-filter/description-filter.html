@@ -1,0 +1,53 @@
+<div class="selector">
+  <button
+    #triggerButton
+    type="button"
+    class="selector__trigger"
+    [class.selector__trigger--open]="isOpen()"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="isOpen()"
+    (click)="toggle()"
+  >
+    Descriptions
+    <span
+      class="selector__badge"
+      [class.selector__badge--visible]="descriptions().length > 0"
+    >
+      {{ descriptions().length }}
+    </span>
+  </button>
+
+  <div
+    class="selector__popup"
+    [class.selector__popup--open]="isOpen()"
+    [style.top.px]="popupPosition().top"
+    [style.left.px]="popupPosition().left"
+  >
+    <div class="selector__popup-input">
+      <input
+        #descriptionInput
+        type="text"
+        class="selector__popup-text"
+        placeholder="Add description..."
+        [value]="inputValue()"
+        (input)="onInput($event)"
+        (keydown.enter)="addDescription()"
+      />
+      <button type="button" class="selector__popup-add" (click)="addDescription()" aria-label="Add description"></button>
+    </div>
+
+    <div class="selector__popup-list">
+      @for (description of descriptions(); track description) {
+        <div class="selector__popup-item">
+          <span class="selector__popup-name">{{ description }}</span>
+          <button
+            type="button"
+            class="selector__popup-remove"
+            (click)="removeDescription(description)"
+            aria-label="Remove description"
+          ></button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

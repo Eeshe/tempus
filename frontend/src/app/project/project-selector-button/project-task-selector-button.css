@@ -1,0 +1,164 @@
+@import '../../shared/selector/selector-shared.css';
+
+:host {
+  display: inline-block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.selector__popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 80vh;
+  padding: 0.75rem 1rem;
+  color: var(--fg);
+  white-space: nowrap;
+  width: 12rem;
+}
+
+.selector__popup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-height: calc(10 * 1.65rem + 9 * 0.5rem);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.project-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.project-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+
+.project-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-item,
+.task-item {
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--fg);
+  text-align: left;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.task-item {
+  padding-left: 1.25rem;
+}
+
+.project-row .project-item {
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.project-toggle {
+  --icon: url('/icons/chevron.svg');
+  --toggle-size: 1.5rem;
+
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  height: var(--toggle-size);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.project-toggle::after {
+  content: '';
+  width: var(--toggle-size);
+  height: var(--toggle-size);
+  background-color: var(--muted);
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.project-toggle:hover::after,
+.project-toggle:focus-visible::after {
+  background-color: var(--good);
+}
+
+.project-toggle:focus-visible {
+  outline: none;
+}
+
+.project-toggle:focus-visible::after {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.project-toggle--expanded::after {
+  transform: rotate(180deg);
+}
+
+.project-item:hover,
+.project-item:focus-visible,
+.task-item:hover,
+.task-item:focus-visible {
+  color: var(--good);
+}
+
+.project-item:focus-visible,
+.task-item:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.popup__new {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.75rem 0 0;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  font: inherit;
+  color: var(--muted);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.popup__new:hover,
+.popup__new:focus-visible {
+  color: var(--good);
+}
+
+.popup__new:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+.popup__new--task {
+  padding: 0 0 0 1.25rem;
+  border-top: none;
+}

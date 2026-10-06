@@ -1,0 +1,40 @@
+<div class="details-container">
+  <app-sortable-table
+    [columns]="columns"
+    [rows]="projectReports()"
+    [trackBy]="trackBy"
+    [sortGroup]="computeProjectSortGroup"
+    [rowClass]="computeProjectRowClass"
+    [cellTemplates]="{
+      project: projectCell,
+      duration: durationCell,
+      client: clientCell,
+      hourlyRate: hourlyRateCell,
+      accumulatedPay: accumulatedPayCell,
+    }"
+    [clickable]="true"
+    (rowClickEvent)="openProjectModal($event.project)"
+  >
+    <ng-template #projectCell let-projectReport>
+      {{ projectReport.project.name }}
+    </ng-template>
+    <ng-template #durationCell let-projectReport>
+      {{ projectReport.trackedTimeMillis | msToHHMMSS }}
+    </ng-template>
+    <ng-template #clientCell let-projectReport>
+      {{ projectReport.project.client == null ? '-' : projectReport.project.client.name }}
+    </ng-template>
+    <ng-template #hourlyRateCell let-projectReport>
+      {{ projectReport.project.hourlyRate ?? '-' }}
+    </ng-template>
+    <ng-template #accumulatedPayCell let-projectReport>
+      {{
+        calculateAccumulatedPay(projectReport) == -1 ? '-' : calculateAccumulatedPay(projectReport)
+      }}
+    </ng-template>
+  </app-sortable-table>
+</div>
+
+@if (openModalProject() != null) {
+  <app-project-modal [project]="openModalProject()!" (closeEvent)="closeProjectModal()" (projectDeleteEvent)="closeProjectModal()"/>
+}

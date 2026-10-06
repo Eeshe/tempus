@@ -1,0 +1,16 @@
+<nav class="nav">
+  <img class="nav__brand" src="/icons/tempus.svg" alt="Tempus" />
+  @if (isAuthenticated()) {
+    <div class="nav__links">
+      <a class="nav__link" routerLink="/home" routerLinkActive="nav__link--active">Home</a>
+      <a class="nav__link" routerLink="/reports" routerLinkActive="nav__link--active">Reports</a>
+      <a class="nav__link" routerLink="/projects" routerLinkActive="nav__link--active">Projects</a>
+      <a class="nav__link" routerLink="/clients" routerLinkActive="nav__link--active">Clients</a>
+    </div>
+
+    <div class="nav__actions">
+      <app-sync-buttons />
+      <app-profile-button />
+    </div>
+  }
+</nav>

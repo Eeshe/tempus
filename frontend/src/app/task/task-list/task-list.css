@@ -1,0 +1,72 @@
+.task-list__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.task-list__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  color: var(--fg);
+}
+
+.task-list__buttons {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-list__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.task-list__icon-button:hover {
+  background: var(--bg);
+}
+
+.task-list__edit-button {
+  color: var(--muted);
+}
+
+.task-list__edit-button:hover {
+  color: var(--good);
+}
+
+.task-list__delete-button {
+  color: var(--bad);
+}
+
+.task-list__glyph {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
+}
+
+.task-list__glyph--edit {
+  --icon: url('/icons/edit.svg');
+}
+
+.task-list__glyph--delete {
+  --icon: url('/icons/delete.svg');
+}
+
+.task-list__icon-button:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
