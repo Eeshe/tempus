@@ -37,6 +37,25 @@
     }
   </div>
 
+  <div class="project-modal__field project-modal__field--archived">
+    <div class="project-modal__field-label-row">
+      <label class="project-modal__field-label" for="projectArchived">Archived</label>
+      <span class="project-modal__info" role="img"
+            [attr.aria-label]="archivedInfoTooltip"
+            [title]="archivedInfoTooltip">
+        <span class="project-modal__glyph project-modal__glyph--info" aria-hidden="true"></span>
+      </span>
+    </div>
+    <div class="project-modal__checkbox">
+      <input
+        id="projectArchived"
+        type="checkbox"
+        [checked]="project().isArchived"
+        (change)="toggleProjectArchived($event)"
+      />
+    </div>
+  </div>
+
   <div class="project-modal__table">
     <app-task-list [tasks]="project().tasks" (taskEditEvent)="editProjectTask($event)" (taskDeleteEvent)="deleteProjectTask($event)"/>
   </div>

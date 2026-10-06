@@ -65,6 +65,11 @@ export class ProjectReportStore {
       this.replace(patchedProject));
   }
 
+  editProjectArchived(project: Project, isArchived: boolean): void {
+    this.projectService.patchProjectArchived(project, isArchived).subscribe(patchedProject =>
+      this.replace(patchedProject));
+  }
+
   editProjectTask(project: Project, task: Task): void {
     this.taskService.patchTaskName(task, task.name).subscribe(patchedTask => {
       const updatedProject: Project = {

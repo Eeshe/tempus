@@ -33,6 +33,9 @@ export class ProjectModal extends ModalBase {
 
   readonly isEditingName = signal<boolean>(false);
   readonly isDeleteConfirmationModalOpen = signal<boolean>(false);
+  readonly archivedInfoTooltip =
+    'Archiving a project removes it from the project selection when creating a new time entry. ' +
+    'You can still see previous time entries of that project both in the home and reports page';
   readonly hourlyRateDraft = linkedSignal<string>(() =>
     this.project().hourlyRate?.toString() ?? '');
   readonly hourlyRateError = signal<string | null>(null);
@@ -52,6 +55,11 @@ export class ProjectModal extends ModalBase {
 
   editProjectClient(newClient: Client | null): void {
     this.projectReportStore.editProjectClient(this.project(), newClient);
+  }
+
+  toggleProjectArchived(event: Event): void {
+    const isArchived = (event.target as HTMLInputElement).checked;
+    this.projectReportStore.editProjectArchived(this.project(), isArchived);
   }
 
   updateHourlyRateDraft(event: Event): void {

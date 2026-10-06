@@ -59,6 +59,10 @@
   cursor: pointer;
 }
 
+.sortable-table__row--archived .sortable-table__cell {
+  color: var(--muted);
+}
+
 .sortable-table__cell {
   padding: 0.625rem 0;
   font-size: 0.9375rem;

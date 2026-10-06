@@ -14,6 +14,7 @@ interface CreateProjectRequest {
 interface PatchProjectRequest {
   name: string | null;
   isPrivate: boolean | null;
+  isArchived: boolean | null;
   clientId: number | null;
   hourlyRate: number | null;
 }
@@ -56,6 +57,13 @@ export class ProjectService {
   patchProjectHourlyRate(project: Project, newHourlyRate: number | null): Observable<Project> {
     const patchProjectRequest: Partial<PatchProjectRequest> = {
       hourlyRate: newHourlyRate,
+    }
+    return this.http.patch<Project>(`${this.url}/${project.id}`, patchProjectRequest, { withCredentials: true });
+  }
+
+  patchProjectArchived(project: Project, newIsArchived: boolean): Observable<Project> {
+    const patchProjectRequest: Partial<PatchProjectRequest> = {
+      isArchived: newIsArchived,
     }
     return this.http.patch<Project>(`${this.url}/${project.id}`, patchProjectRequest, { withCredentials: true });
   }

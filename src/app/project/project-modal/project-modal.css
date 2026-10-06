@@ -47,12 +47,39 @@
   flex-shrink: 0;
 }
 
+.project-modal__field--archived {
+  width: fit-content;
+  align-items: center;
+}
+
 .project-modal__field-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.project-modal__field-label-row {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.project-modal__info {
+  position: absolute;
+  left: 100%;
+  margin-left: 0.375rem;
+  display: inline-flex;
+  color: var(--muted);
+  cursor: help;
+}
+
+.project-modal__glyph--info {
+  --icon: url('/icons/info.svg');
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .project-modal__field-value {
@@ -123,6 +150,24 @@
 .project-modal__field-error {
   font-size: 0.8rem;
   color: var(--bad);
+}
+
+.project-modal__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.75rem 0;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+
+.project-modal__checkbox input {
+  width: auto;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--fg);
+  cursor: pointer;
+  transform: scale(1.5);
 }
 
 .project-modal__table {

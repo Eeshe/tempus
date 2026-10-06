@@ -54,6 +54,14 @@ export class ProjectList {
 
   readonly openModalProjectId = signal<number | null>(null);
 
+  computeProjectSortGroup(projectReport: ProjectReport): number {
+    return projectReport.project.isArchived ? 1 : 0;
+  }
+
+  computeProjectRowClass(projectReport: ProjectReport): string | null {
+    return projectReport.project.isArchived ? 'sortable-table__row--archived' : null;
+  }
+
   readonly openModalProject = computed<Project | null>(() => {
     const projectId = this.openModalProjectId();
     if (projectId === null) {
