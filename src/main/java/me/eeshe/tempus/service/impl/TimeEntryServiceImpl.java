@@ -28,8 +28,8 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     public TimeEntryPage listTimeEntries(long userId, Instant cursor, int minPageSize) {
         minPageSize = Math.max(1, minPageSize);
         final Instant effectiveCursor = cursor != null ? cursor : Instant.now();
-        final long cursorDay = Math.floorDiv(effectiveCursor.toEpochMilli(), MILLIS_PER_DAY);
-        final Instant currentCursor = Instant.ofEpochMilli(cursorDay * MILLIS_PER_DAY);
+        final long cursorEpoch = Math.floorDiv(effectiveCursor.toEpochMilli(), MILLIS_PER_DAY);
+        final Instant currentCursor = Instant.ofEpochMilli(cursorEpoch * MILLIS_PER_DAY);
 
         final List<DailyEntryCount> dayGroups = timeEntryRepository.countAllEntriesByUtcEpochDay(userId);
 
@@ -37,7 +37,7 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         final int totalPages = countPages(dayGroups, minPageSize);
 
         int startIndex = 0;
-        while (startIndex < dayGroups.size() && dayGroups.get(startIndex).getEpochDay() > cursorDay) {
+        while (startIndex < dayGroups.size() && dayGroups.get(startIndex).getEpochDay() > cursorEpoch) {
             startIndex++;
         }
 
@@ -68,18 +68,27 @@ public class TimeEntryServiceImpl implements TimeEntryService {
             endIndex++;
         }
         final int lastIncluded = endIndex - 1;
-        final long oldestDay = dayGroups.get(lastIncluded).getEpochDay();
+        final long oldestDayEpoch = dayGroups.get(lastIncluded).getEpochDay();
 
-        final Instant from = Instant.ofEpochMilli(oldestDay * MILLIS_PER_DAY);
-        final Instant to = Instant.ofEpochMilli((cursorDay + 1) * MILLIS_PER_DAY);
+        final Instant from = Instant.ofEpochMilli(oldestDayEpoch * MILLIS_PER_DAY);
+        final Instant to = Instant.ofEpochMilli((cursorEpoch + 1) * MILLIS_PER_DAY);
         final List<TimeEntry> content = timeEntryRepository
                 .findByUserIdAndStartTimeGreaterThanEqualAndStartTimeLessThanOrderByStartTimeDesc(userId, from, to);
 
         final boolean last = lastIncluded == dayGroups.size() - 1;
-        final Instant nextCursor = last ? null : Instant.ofEpochMilli((oldestDay - 1) * MILLIS_PER_DAY);
+        final Instant nextCursor = last ? null : Instant.ofEpochMilli((oldestDayEpoch - 1) * MILLIS_PER_DAY);
 
-        return new TimeEntryPage(content, previousCursor, currentCursor, nextCursor, page, minPageSize, totalElements,
-                totalPages, page == 0, last);
+        return new TimeEntryPage(
+                content,
+                previousCursor,
+                currentCursor,
+                nextCursor,
+                page,
+                minPageSize,
+                totalElements,
+                totalPages,
+                page == 0,
+                last);
     }
 
     private int countPages(List<DailyEntryCount> groups, int minSize) {
