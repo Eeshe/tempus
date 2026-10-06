@@ -130,6 +130,22 @@ public class ProjectRepositoryTest extends RepositoryTestBase {
             assertThat(found).isPresent();
             assertThat(found.get().getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(found.get().getClient()).isEqualTo(client);
+            assertThat(found.get().isArchived()).isFalse();
+        }
+
+        @Test
+        void savePersistsArchivedProject() {
+            final User user = createUser("MyUser");
+
+            final Project saved = createProject("MyProject", user, HOURLY_RATE, null, true);
+
+            entityManager.flush();
+            entityManager.clear();
+
+            final Optional<Project> found = projectRepository.findById(saved.getId());
+
+            assertThat(found).isPresent();
+            assertThat(found.get().isArchived()).isTrue();
         }
     }
 

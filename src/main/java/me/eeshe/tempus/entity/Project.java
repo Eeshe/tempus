@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,6 +35,10 @@ public class Project {
     private User user;
 
     private BigDecimal hourlyRate;
+
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean isArchived;
 
     @ManyToOne
     @JoinColumn(name = "client_id")
@@ -84,6 +90,14 @@ public class Project {
 
     public void setHourlyRate(BigDecimal hourlyRate) {
         this.hourlyRate = hourlyRate;
+    }
+
+    public boolean isArchived() {
+        return isArchived;
+    }
+
+    public void setArchived(boolean isArchived) {
+        this.isArchived = isArchived;
     }
 
     public Set<Task> getTasks() {

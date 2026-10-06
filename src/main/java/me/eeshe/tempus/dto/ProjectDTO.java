@@ -11,5 +11,6 @@ public record ProjectDTO(
         BigDecimal hourlyRate,
         List<TaskDTO> tasks,
         ClientDTO client,
-        Instant createdAt) {
+        Instant createdAt,
+        boolean isArchived) {
 }

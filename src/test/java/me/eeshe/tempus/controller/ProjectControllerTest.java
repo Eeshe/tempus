@@ -361,10 +361,12 @@ public class ProjectControllerTest extends ControllerTestBase {
             final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
                     null,
                     JsonNullable.of(hourlyRate),
+                    JsonNullable.undefined(),
                     JsonNullable.undefined());
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.of(hourlyRate),
+                    JsonNullable.undefined(),
                     JsonNullable.undefined());
 
             when(projectMapper.fromDTO(
@@ -404,11 +406,13 @@ public class ProjectControllerTest extends ControllerTestBase {
             final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
                     null,
                     JsonNullable.undefined(),
-                    JsonNullable.of(createClient()));
+                    JsonNullable.of(createClient()),
+                    JsonNullable.undefined());
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.undefined(),
-                    JsonNullable.of(CLIENT_ID));
+                    JsonNullable.of(CLIENT_ID),
+                    JsonNullable.undefined());
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -447,9 +451,11 @@ public class ProjectControllerTest extends ControllerTestBase {
             final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
                     null,
                     JsonNullable.undefined(),
+                    JsonNullable.undefined(),
                     JsonNullable.undefined());
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
+                    JsonNullable.undefined(),
                     JsonNullable.undefined(),
                     JsonNullable.undefined());
 
@@ -486,11 +492,13 @@ public class ProjectControllerTest extends ControllerTestBase {
             final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
                     "MyProject",
                     JsonNullable.of(hourlyRate),
-                    JsonNullable.of(createClient()));
+                    JsonNullable.of(createClient()),
+                    JsonNullable.undefined());
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     "MyProject",
                     JsonNullable.of(hourlyRate),
-                    JsonNullable.of(CLIENT_ID));
+                    JsonNullable.of(CLIENT_ID),
+                    JsonNullable.undefined());
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -526,11 +534,58 @@ public class ProjectControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchProjectArchived() {
+            final Project patchedProject = createProject();
+            final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    JsonNullable.of(true));
+            final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    JsonNullable.of(true));
+
+            when(projectMapper.fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchProjectRequest);
+            when(projectService.patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest))).thenReturn(patchedProject);
+            when(projectMapper.toDTO(eq(patchedProject)))
+                    .thenReturn(createProjectDTO(PROJECT_ID, "MyProject", CREATED_AT, null, null, true));
+
+            final String jsonBody = """
+                    {
+                        "isArchived": true
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson(PROJECT_ID, "MyProject", CREATED_AT, null, null, true));
+
+            verify(projectMapper).fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest));
+        }
+
+        @Test
         void rejectsNonExistentClient() {
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.undefined(),
-                    JsonNullable.of(CLIENT_ID));
+                    JsonNullable.of(CLIENT_ID),
+                    JsonNullable.undefined());
             final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
 
             when(projectMapper.fromDTO(
@@ -694,12 +749,14 @@ public class ProjectControllerTest extends ControllerTestBase {
         return new PatchProjectRequest(
                 "MyProject",
                 JsonNullable.undefined(),
+                JsonNullable.undefined(),
                 JsonNullable.undefined());
     }
 
     private static PatchProjectRequestDTO createPatchProjectRequestDTO() {
         return new PatchProjectRequestDTO(
                 "MyProject",
+                JsonNullable.undefined(),
                 JsonNullable.undefined(),
                 JsonNullable.undefined());
     }
