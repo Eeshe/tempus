@@ -1,10 +1,12 @@
 :host {
   display: block;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .search-input {
   width: 100%;
+  box-sizing: border-box;
   padding: 0.375rem 0.625rem;
   background: var(--bg);
   border: 1px solid var(--border);
