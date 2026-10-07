@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, formatDate } from '@angular/common';
 import { Component, HostListener, inject, Signal } from '@angular/core';
 import { map } from 'rxjs';
 import { PageNavigator } from '../../shared/pagination/page-navigator/page-navigator';
@@ -59,10 +59,7 @@ export class TimeEntryList extends PagedListBase {
   }
 
   isTodayGroup(dayGroupedTimeEntries: DayGroupedTimeEntries): boolean {
-    const nowDate: Date = new Date();
-    const startDate: Date = new Date(dayGroupedTimeEntries.allEntries.values().next().value![0].startTime);
-
-    return nowDate.getDay() == startDate.getDay();
+    return dayGroupedTimeEntries.dayKey === formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
   }
 
   hasAtLeastOneEndedTimeEntry(timeEntries: TimeEntry[]): boolean {

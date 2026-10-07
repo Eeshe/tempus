@@ -47,17 +47,27 @@ body {
   }
 }
 
+app-navigation-bar {
+  view-transition-name: nav;
+}
+
+::view-transition {
+  background-color: var(--bg);
+}
+
 ::view-transition-old(root) {
-  animation: route-fade-out 500ms ease-in forwards;
+  animation: route-fade-out 150ms ease-in both;
 }
 
 ::view-transition-new(root) {
-  animation: route-fade-in 500ms ease-out;
+  animation: route-fade-in 150ms ease-out 250ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
-  ::view-transition-new(root) {
+  ::view-transition-new(root),
+  ::view-transition-old(nav),
+  ::view-transition-new(nav) {
     animation: none;
   }
 }

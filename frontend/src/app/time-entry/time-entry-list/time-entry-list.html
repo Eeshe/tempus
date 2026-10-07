@@ -7,7 +7,7 @@
   }
 </div>
 
-@for(dayGroup of dayGroupedTimeEntries(); track dayGroup.formattedDate) {
+@for(dayGroup of dayGroupedTimeEntries(); track dayGroup.dayKey) {
   @if(countTotalTimeEntries(dayGroup.endedEntries) > 0) {
     <section class="day" animate.enter="slide-down" animate.leave="slide-up">
       <div class="day__content">

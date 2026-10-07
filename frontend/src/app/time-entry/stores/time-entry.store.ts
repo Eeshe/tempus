@@ -9,6 +9,7 @@ import { TimeEntryService } from "../services/time-entry.service";
 
 
 export interface DayGroupedTimeEntries {
+  dayKey: string;
   formattedDate: string;
   allEntries: Map<string, TimeEntry[]>; // All time entries, including active ones
   endedEntries: Map<string, TimeEntry[]>; // Only ended time entries
@@ -42,24 +43,23 @@ export class TimeEntryStore {
     const dayGroups: Map<string, Map<string, TimeEntry[]>> = new Map<string, Map<string, TimeEntry[]>>();
 
     for (const timeEntry of this.timeEntries()) {
-      const formattedDate: string = this.formatDayDate(timeEntry.startTime);
-      // ID is project id + description + taskId + billable
-      // Ex. Tempusv0.9.0Developmentfalse
-      const timeEntryGroupId: string =
-        timeEntry.project.id +
-        (timeEntry.description ? timeEntry.description : '') +
-        (timeEntry.task ? timeEntry.task.id : '') +
-        timeEntry.isBillable;
+      const dayKey: string = this.formatDayKey(timeEntry.startTime);
+      const timeEntryGroupId: string = JSON.stringify([
+        timeEntry.project.id,
+        timeEntry.description ?? null,
+        timeEntry.task?.id ?? null,
+        timeEntry.isBillable,
+      ]);
 
       const dayProjectGroups: Map<string, TimeEntry[]> =
-        dayGroups.get(formattedDate) ?? new Map<string, TimeEntry[]>();
+        dayGroups.get(dayKey) ?? new Map<string, TimeEntry[]>();
       const groupedEntries: TimeEntry[] = dayProjectGroups.get(timeEntryGroupId) ?? [];
 
       groupedEntries.push(timeEntry);
       dayProjectGroups.set(timeEntryGroupId, groupedEntries);
-      dayGroups.set(formattedDate, dayProjectGroups);
+      dayGroups.set(dayKey, dayProjectGroups);
     }
-    return Array.from(dayGroups, ([formattedDate, groupedEntries]) => {
+    return Array.from(dayGroups, ([dayKey, groupedEntries]) => {
       // Sort the Map entries by the first entry's startTime
       const sortedGroupedEntries = new Map<string, TimeEntry[]>(
         Array.from(groupedEntries)
@@ -82,8 +82,10 @@ export class TimeEntryStore {
           return sum + (duration?.totalMilliseconds ?? 0);
         }, 0);
       const formattedTotalTime: string = formatHHMMSSTime(durationFromMs(totalTimeMs));
+      const firstEntry: TimeEntry = groupedEntries.values().next().value![0];
       return {
-        formattedDate: formattedDate,
+        dayKey: dayKey,
+        formattedDate: this.formatDayDate(firstEntry.startTime),
         allEntries: sortedGroupedEntries,
         endedEntries: endedGroupedEntries,
         formattedTotalTime: formattedTotalTime,
@@ -93,6 +95,10 @@ export class TimeEntryStore {
 
   private formatDayDate(date: string | null) {
     return date ? formatDate(date, 'EEEE, MMM d', 'en-US') : 'Unknown';
+  }
+
+  private formatDayKey(date: string | null) {
+    return date ? formatDate(date, 'yyyy-MM-dd', 'en-US') : 'unknown';
   }
 
   loadPage(cursor: string | null = null): void {
