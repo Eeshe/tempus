@@ -85,3 +85,110 @@
 .sortable-table__cell--center {
   text-align: center;
 }
+
+.sortable-table__cell-content {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.sortable-table__cell-content-inner {
+  min-height: 0;
+}
+
+@keyframes sortable-table-row-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sortable-table-row-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sortable-table-cell-slide-down {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+
+@keyframes sortable-table-cell-slide-up {
+  from {
+    grid-template-rows: 1fr;
+  }
+  to {
+    grid-template-rows: 0fr;
+  }
+}
+
+@keyframes sortable-table-cell-pad-down {
+  from {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+}
+
+@keyframes sortable-table-cell-pad-up {
+  from {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+  to {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.sortable-table__row.slide-down {
+  animation: sortable-table-row-fade-in 250ms ease-out;
+}
+
+.sortable-table__row.slide-down .sortable-table__cell-content-inner,
+.sortable-table__row.slide-up .sortable-table__cell-content-inner {
+  overflow: hidden;
+}
+
+.sortable-table__row.slide-down .sortable-table__cell {
+  animation: sortable-table-cell-pad-down 250ms ease-out;
+}
+
+.sortable-table__row.slide-down .sortable-table__cell-content {
+  animation: sortable-table-cell-slide-down 250ms ease-out;
+}
+
+.sortable-table__row.slide-up {
+  animation: sortable-table-row-fade-out 250ms ease-in forwards;
+}
+
+.sortable-table__row.slide-up .sortable-table__cell {
+  animation: sortable-table-cell-pad-up 250ms ease-in forwards;
+}
+
+.sortable-table__row.slide-up .sortable-table__cell-content {
+  animation: sortable-table-cell-slide-up 250ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sortable-table__row.slide-down,
+  .sortable-table__row.slide-up,
+  .sortable-table__row.slide-down .sortable-table__cell,
+  .sortable-table__row.slide-up .sortable-table__cell,
+  .sortable-table__row.slide-down .sortable-table__cell-content,
+  .sortable-table__row.slide-up .sortable-table__cell-content {
+    animation: none;
+  }
+}
