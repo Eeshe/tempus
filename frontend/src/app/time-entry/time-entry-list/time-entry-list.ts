@@ -69,6 +69,10 @@ export class TimeEntryList extends PagedListBase {
     return timeEntries.some(timeEntry => timeEntry.endTime != null);
   }
 
+  computeTimeEntryGroupTrackKey(timeEntries: TimeEntry[]): string {
+    return String(timeEntries.reduce((smallestId, timeEntry) => Math.min(smallestId, timeEntry.id), Infinity));
+  }
+
   @HostListener("document:keydown.s")
   stopFirstActiveTimeEntry(): void {
     const activeElement: Element | null = document.activeElement;

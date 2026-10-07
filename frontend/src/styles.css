@@ -28,3 +28,36 @@ body {
   min-height: 100dvh;
   background: var(--bg);
 }
+
+@keyframes route-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+::view-transition-old(root) {
+  animation: route-fade-out 500ms ease-in forwards;
+}
+
+::view-transition-new(root) {
+  animation: route-fade-in 500ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

@@ -1,14 +1,26 @@
 .active-entries {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0;
+  transition: row-gap 250ms ease;
+}
+
+.active-entries--stacked {
+  row-gap: 0.625rem;
 }
 
 .day {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: 1.75rem;
+}
+
+.day__content {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-top: 1.75rem;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .day-header {
@@ -52,4 +64,73 @@
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+.fade-out {
+  animation: fade-out 200ms ease-in forwards;
+}
+
+@keyframes day-slide-down {
+  from {
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    margin-top: 1.75rem;
+    opacity: 1;
+  }
+}
+
+@keyframes day-slide-up {
+  from {
+    grid-template-rows: 1fr;
+    margin-top: 1.75rem;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    opacity: 0;
+  }
+}
+
+.day.slide-down {
+  animation: day-slide-down 250ms ease-out;
+}
+
+.day.slide-up {
+  animation: day-slide-up 250ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .fade-out,
+  .day.slide-down,
+  .day.slide-up {
+    animation: none;
+  }
 }

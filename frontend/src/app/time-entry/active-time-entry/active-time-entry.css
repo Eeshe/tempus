@@ -1,9 +1,15 @@
 :host {
-  display: block;
+  display: grid;
+  grid-template-rows: 1fr;
   width: 100%;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--fg);
+}
+
+.active-entry__clip {
+  overflow: hidden;
+  min-height: 0;
 }
 
 .active-entry {
@@ -90,4 +96,41 @@
 
 .active-entry__icon--delete:hover {
   background-color: var(--bad);
+}
+
+@keyframes active-entry-slide-down {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@keyframes active-entry-slide-up {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+:host(.slide-down) {
+  animation: active-entry-slide-down 250ms ease-out;
+}
+
+:host(.slide-up) {
+  animation: active-entry-slide-up 250ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.slide-down),
+  :host(.slide-up) {
+    animation: none;
+  }
 }
