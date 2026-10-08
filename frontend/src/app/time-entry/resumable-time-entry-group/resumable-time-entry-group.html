@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="time-group__header-right">
-        <span class="time-group__billable" [class.time-group__billable--yes]="timeEntries()[0].isBillable" (click)="updateGroupBillable(!timeEntries()[0].isBillable)">$</span>
+        <button class="time-group__billable" type="button" [class.time-group__billable--yes]="timeEntries()[0].isBillable" (click)="updateGroupBillable(!timeEntries()[0].isBillable)">$</button>
         <span class="time-group__range">{{formattedStartToEndTime()}}</span>
         <span class="time-group__duration" [class.time-group__active]="hasActiveTimeEntry()">{{ formattedTotalDuration$ | async }}</span>
         <button class="time-group__icon time-group__icon--continue" type="button" (click)="resumeTimeEntry(timeEntries()[0])" aria-label="Continue entry"></button>
