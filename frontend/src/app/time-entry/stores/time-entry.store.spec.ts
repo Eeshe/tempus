@@ -56,6 +56,11 @@ describe('TimeEntryStore', () => {
     httpMock.expectOne((request) => request.method === 'GET').flush(createPage(content));
   }
 
+  function loadAtCursor(cursor: string, content: TimeEntry[]): void {
+    store.loadPage();
+    httpMock.expectOne((request) => request.method === 'GET').flush({ ...createPage(content), currentCursor: cursor });
+  }
+
   function groupIds(): string[] {
     return Array.from(store.dayGroupedTimeEntries()[0].allEntries.values()).map((group) => group.id);
   }
@@ -123,5 +128,19 @@ describe('TimeEntryStore', () => {
     const idsAfter: string[] = groupIds();
     expect(idsAfter).toHaveLength(1);
     expect(idsBefore).toContain(idsAfter[0]);
+  });
+
+  it('scopes the day id by page cursor so a day reused across pages is not reused in the DOM', () => {
+    const content: TimeEntry[] = [createTimeEntry({ id: 1 })];
+
+    loadAtCursor('2026-01-01T00:00:00.000Z', content);
+    const firstDay = store.dayGroupedTimeEntries()[0];
+
+    // Same entries, same local dayKey, different page cursor (e.g. the boundary day shared by two pages).
+    loadAtCursor('2025-12-31T00:00:00.000Z', content);
+    const secondDay = store.dayGroupedTimeEntries()[0];
+
+    expect(secondDay.dayKey).toBe(firstDay.dayKey);
+    expect(secondDay.id).not.toBe(firstDay.id);
   });
 });

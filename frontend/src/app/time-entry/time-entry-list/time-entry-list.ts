@@ -43,10 +43,12 @@ export class TimeEntryList extends PagedListBase {
   }
 
   override increasePage(): void {
+    this.setPageChanging(250);
     this.timeEntryStore.loadPage(this.timeEntryPage().nextCursor);
   }
 
   override decreasePage(): void {
+    this.setPageChanging(250);
     this.timeEntryStore.loadPage(this.timeEntryPage().previousCursor);
   }
 

@@ -13,6 +13,10 @@ export interface TimeEntryGroupItem {
 }
 
 export interface DayGroupedTimeEntries {
+  // Page-scoped identity. Two pages can share the same local dayKey (backend paginates by UTC day,
+  // the store groups by local day), so the key must also include the page cursor to stop Angular
+  // from reusing a day view across a page change and skipping its enter animation.
+  id: string;
   dayKey: string;
   formattedDate: string;
   allEntries: Map<string, TimeEntryGroupItem>; // All time entries, including active ones
@@ -52,6 +56,7 @@ export class TimeEntryStore {
   readonly dayGroupedTimeEntries = computed<DayGroupedTimeEntries[]>(() => this.groupTimeEntriesByDay());
 
   groupTimeEntriesByDay(): DayGroupedTimeEntries[] {
+    const pageCursor: string = this._timeEntryPage().currentCursor;
     const dayGroups: Map<string, Map<string, TimeEntry[]>> = new Map<string, Map<string, TimeEntry[]>>();
 
     for (const timeEntry of this.timeEntries()) {
@@ -110,6 +115,7 @@ export class TimeEntryStore {
       const formattedTotalTime: string = formatHHMMSSTime(durationFromMs(totalTimeMs));
       const firstEntry: TimeEntry = sortedGroupedEntries.values().next().value![0];
       return {
+        id: `${pageCursor}\u0000${dayKey}`,
         dayKey: dayKey,
         formattedDate: this.formatDayDate(firstEntry.startTime),
         allEntries: allEntries,
