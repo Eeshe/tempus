@@ -139,9 +139,23 @@ export class TimeEntryStore {
       })));
   }
 
+  deleteMany(timeEntries: TimeEntry[]): void {
+    const deletedIds: Set<number> = new Set(timeEntries.map(timeEntry => timeEntry.id));
+    this.timeEntryService.deleteTimeEntries(timeEntries).subscribe(() =>
+      this._timeEntryPage.update(timeEntryPage => ({
+        ...timeEntryPage,
+        content: timeEntryPage.content.filter(previousTimeEntry => !deletedIds.has(previousTimeEntry.id)),
+      })));
+  }
+
   patchDescription(timeEntry: TimeEntry, newDescription: string): void {
     this.timeEntryService.patchTimeEntryDescription(timeEntry, newDescription)
       .subscribe((patchedTimeEntry) => this.replace(patchedTimeEntry));
+  }
+
+  patchDescriptions(timeEntries: TimeEntry[], newDescription: string): void {
+    this.timeEntryService.patchTimeEntriesDescription(timeEntries, newDescription)
+      .subscribe((patchedTimeEntries) => this.replaceAll(patchedTimeEntries));
   }
 
   patchProject(timeEntry: TimeEntry, newProject: Project): void {
@@ -149,14 +163,29 @@ export class TimeEntryStore {
       .subscribe((patchedTimeEntry) => this.replace(patchedTimeEntry));
   }
 
+  patchProjects(timeEntries: TimeEntry[], newProject: Project): void {
+    this.timeEntryService.patchTimeEntriesProject(timeEntries, newProject)
+      .subscribe((patchedTimeEntries) => this.replaceAll(patchedTimeEntries));
+  }
+
   patchTask(timeEntry: TimeEntry, newProject: Project, newTask: Task): void {
     this.timeEntryService.patchTimeEntryTask(timeEntry, newProject, newTask)
       .subscribe((patchedTimeEntry) => this.replace(patchedTimeEntry));
   }
 
+  patchTasks(timeEntries: TimeEntry[], newProject: Project, newTask: Task): void {
+    this.timeEntryService.patchTimeEntriesTask(timeEntries, newProject, newTask)
+      .subscribe((patchedTimeEntries) => this.replaceAll(patchedTimeEntries));
+  }
+
   patchBillable(timeEntry: TimeEntry, billable: boolean): void {
     this.timeEntryService.patchTimeEntryBillable(timeEntry, billable)
       .subscribe((patchedTimeEntry) => this.replace(patchedTimeEntry));
+  }
+
+  patchBillables(timeEntries: TimeEntry[], billable: boolean): void {
+    this.timeEntryService.patchTimeEntriesBillable(timeEntries, billable)
+      .subscribe((patchedTimeEntries) => this.replaceAll(patchedTimeEntries));
   }
 
   patchStartTime(timeEntry: TimeEntry, newStartTime: Date): void {
@@ -178,5 +207,15 @@ export class TimeEntryStore {
           updatedTimeEntry : timeEntry)
     })
     );
+  }
+
+  private replaceAll(updatedTimeEntries: TimeEntry[]): void {
+    const updatedById: Map<number, TimeEntry> = new Map(
+      updatedTimeEntries.map(timeEntry => [timeEntry.id, timeEntry])
+    );
+    this._timeEntryPage.update((timeEntryPage) => ({
+      ...timeEntryPage,
+      content: timeEntryPage.content.map(timeEntry => updatedById.get(timeEntry.id) ?? timeEntry),
+    }));
   }
 }
