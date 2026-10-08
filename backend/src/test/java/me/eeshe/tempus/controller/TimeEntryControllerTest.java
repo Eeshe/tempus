@@ -19,18 +19,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
+import me.eeshe.tempus.dto.DeleteTimeEntriesRequestDTO;
+import me.eeshe.tempus.dto.PatchTimeEntriesRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.dto.TimeEntryPageDTO;
+import me.eeshe.tempus.dto.TimeEntryPatchDTO;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
+import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.mapper.TimeEntryPageMapper;
 import me.eeshe.tempus.model.TimeEntryPage;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
+import me.eeshe.tempus.request.DeleteTimeEntriesRequest;
+import me.eeshe.tempus.request.PatchTimeEntriesRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
+import me.eeshe.tempus.request.TimeEntryPatch;
 import me.eeshe.tempus.service.TimeEntryService;
 import me.eeshe.tempus.support.ControllerTestBase;
 
@@ -859,6 +866,368 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     .isEqualTo(exception.getMessage());
 
             verify(timeEntryService).deleteTimeEntry(USER_ID, TIME_ENTRY_ID);
+        }
+    }
+
+    @Nested
+    class DeleteTimeEntries {
+        private static final String URL = "/api/v1/time-entries/bulk-delete";
+
+        @Test
+        void deletesTimeEntries() {
+            final DeleteTimeEntriesRequestDTO deleteTimeEntriesRequestDTO = new DeleteTimeEntriesRequestDTO(
+                    List.of(TIME_ENTRY_ID));
+            final DeleteTimeEntriesRequest deleteTimeEntriesRequest = new DeleteTimeEntriesRequest(
+                    List.of(TIME_ENTRY_ID));
+
+            when(timeEntryMapper.fromDTO(deleteTimeEntriesRequestDTO)).thenReturn(deleteTimeEntriesRequest);
+
+            final String jsonBody = """
+                    {
+                        "timeEntryIds": [%s]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(204);
+
+            verify(timeEntryMapper).fromDTO(deleteTimeEntriesRequestDTO);
+            verify(timeEntryService).deleteTimeEntries(USER_ID, deleteTimeEntriesRequest);
+        }
+
+        @Test
+        void rejectsUnauthenticatedRequest() {
+            final String jsonBody = """
+                    {
+                        "timeEntryIds": [%s]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.post().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(401);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsEmptyTimeEntryIds() {
+            final String jsonBody = """
+                    {
+                        "timeEntryIds": []
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(DeleteTimeEntriesRequestDTO.ERROR_MESSAGE_EMPTY_TIME_ENTRY_IDS);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNonProvidedTimeEntryIds() {
+            final String jsonBody = """
+                    {}""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(DeleteTimeEntriesRequestDTO.ERROR_MESSAGE_EMPTY_TIME_ENTRY_IDS);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNullTimeEntryId() {
+            final String jsonBody = """
+                    {
+                        "timeEntryIds": [null]
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(DeleteTimeEntriesRequestDTO.ERROR_MESSAGE_NULL_TIME_ENTRY_ID);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNonExistentTimeEntries() {
+            final DeleteTimeEntriesRequestDTO deleteTimeEntriesRequestDTO = new DeleteTimeEntriesRequestDTO(
+                    List.of(TIME_ENTRY_ID));
+            final DeleteTimeEntriesRequest deleteTimeEntriesRequest = new DeleteTimeEntriesRequest(
+                    List.of(TIME_ENTRY_ID));
+            final TimeEntriesNotFoundException exception = new TimeEntriesNotFoundException(List.of(TIME_ENTRY_ID));
+
+            when(timeEntryMapper.fromDTO(deleteTimeEntriesRequestDTO)).thenReturn(deleteTimeEntriesRequest);
+            doThrow(exception).when(timeEntryService).deleteTimeEntries(USER_ID, deleteTimeEntriesRequest);
+
+            final String jsonBody = """
+                    {
+                        "timeEntryIds": [%s]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(timeEntryMapper).fromDTO(deleteTimeEntriesRequestDTO);
+            verify(timeEntryService).deleteTimeEntries(USER_ID, deleteTimeEntriesRequest);
+        }
+    }
+
+    @Nested
+    class PatchTimeEntries {
+        private static final String URL = "/api/v1/time-entries";
+
+        @Test
+        void patchesTimeEntries() {
+            final TimeEntryPatchDTO timeEntryPatchDTO = new TimeEntryPatchDTO(TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestDTOBuilder().description("MyDescription").build());
+            final PatchTimeEntriesRequestDTO patchTimeEntriesRequestDTO = new PatchTimeEntriesRequestDTO(
+                    List.of(timeEntryPatchDTO));
+            final TimeEntryPatch timeEntryPatch = new TimeEntryPatch(TIME_ENTRY_ID,
+                    toPatchTimeEntryRequest(timeEntryPatchDTO.patch()));
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(
+                    List.of(timeEntryPatch));
+            final TimeEntry patchedTimeEntry = createTimeEntry();
+
+            when(timeEntryMapper.fromDTO(eq(patchTimeEntriesRequestDTO), eq(USER_ID)))
+                    .thenReturn(patchTimeEntriesRequest);
+            when(timeEntryService.patchTimeEntries(eq(USER_ID), eq(patchTimeEntriesRequest)))
+                    .thenReturn(List.of(patchedTimeEntry));
+            when(timeEntryMapper.toDTO(eq(patchedTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": %s,
+                                "patch": {
+                                    "description": "MyDescription"
+                                }
+                            }
+                        ]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo("[%s]".formatted(createTimeEntryDTOJson()));
+
+            verify(timeEntryMapper).fromDTO(eq(patchTimeEntriesRequestDTO), eq(USER_ID));
+            verify(timeEntryService).patchTimeEntries(eq(USER_ID), eq(patchTimeEntriesRequest));
+        }
+
+        @Test
+        void rejectsUnauthenticatedRequest() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": %s,
+                                "patch": {
+                                    "description": "MyDescription"
+                                }
+                            }
+                        ]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.patch().uri(URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(401);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsEmptyTimeEntries() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": []
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchTimeEntriesRequestDTO.ERROR_MESSAGE_EMPTY_TIME_ENTRIES);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNonProvidedTimeEntries() {
+            final String jsonBody = """
+                    {}""";
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchTimeEntriesRequestDTO.ERROR_MESSAGE_EMPTY_TIME_ENTRIES);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNullTimeEntryId() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": null,
+                                "patch": {
+                                    "description": "MyDescription"
+                                }
+                            }
+                        ]
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(TimeEntryPatchDTO.ERROR_MESSAGE_NULL_TIME_ENTRY_ID);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNonProvidedTimeEntryId() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "patch": {
+                                    "description": "MyDescription"
+                                }
+                            }
+                        ]
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(TimeEntryPatchDTO.ERROR_MESSAGE_NULL_TIME_ENTRY_ID);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNullPatch() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": %s,
+                                "patch": null
+                            }
+                        ]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(TimeEntryPatchDTO.ERROR_MESSAGE_NULL_PATCH);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNullPatchField() {
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": %s,
+                                "patch": {
+                                    "projectId": null
+                                }
+                            }
+                        ]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchTimeEntryRequestDTO.ERROR_MESSAGE_NULL_PROJECT);
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
+        }
+
+        @Test
+        void rejectsNonExistentTimeEntries() {
+            final TimeEntryPatchDTO timeEntryPatchDTO = new TimeEntryPatchDTO(TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestDTOBuilder().description("MyDescription").build());
+            final PatchTimeEntriesRequestDTO patchTimeEntriesRequestDTO = new PatchTimeEntriesRequestDTO(
+                    List.of(timeEntryPatchDTO));
+            final TimeEntryPatch timeEntryPatch = new TimeEntryPatch(TIME_ENTRY_ID,
+                    toPatchTimeEntryRequest(timeEntryPatchDTO.patch()));
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(
+                    List.of(timeEntryPatch));
+            final TimeEntriesNotFoundException exception = new TimeEntriesNotFoundException(List.of(TIME_ENTRY_ID));
+
+            when(timeEntryMapper.fromDTO(eq(patchTimeEntriesRequestDTO), eq(USER_ID)))
+                    .thenReturn(patchTimeEntriesRequest);
+            doThrow(exception).when(timeEntryService).patchTimeEntries(USER_ID, patchTimeEntriesRequest);
+
+            final String jsonBody = """
+                    {
+                        "timeEntries": [
+                            {
+                                "timeEntryId": %s,
+                                "patch": {
+                                    "description": "MyDescription"
+                                }
+                            }
+                        ]
+                    }""".formatted(TIME_ENTRY_ID);
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(404)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(timeEntryMapper).fromDTO(eq(patchTimeEntriesRequestDTO), eq(USER_ID));
+            verify(timeEntryService).patchTimeEntries(USER_ID, patchTimeEntriesRequest);
         }
     }
 

@@ -2,16 +2,25 @@ package me.eeshe.tempus.service.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.model.TimeEntryPage;
 import me.eeshe.tempus.repository.TimeEntryRepository;
 import me.eeshe.tempus.repository.projection.DailyEntryCount;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
+import me.eeshe.tempus.request.DeleteTimeEntriesRequest;
+import me.eeshe.tempus.request.PatchTimeEntriesRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
+import me.eeshe.tempus.request.TimeEntryPatch;
 import me.eeshe.tempus.service.TimeEntryService;
 
 @Service
@@ -159,15 +168,47 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     @Override
     public TimeEntry patchTimeEntry(long userId, long timeEntryId, PatchTimeEntryRequest patchTimeEntryRequest) {
         final TimeEntry timeEntry = getTimeEntry(userId, timeEntryId);
+        applyPatch(timeEntry, patchTimeEntryRequest);
 
+        return timeEntryRepository.save(timeEntry);
+    }
+
+    @Override
+    @Transactional
+    public List<TimeEntry> patchTimeEntries(long userId, PatchTimeEntriesRequest patchTimeEntriesRequest) {
+        final List<Long> timeEntryIds = patchTimeEntriesRequest.timeEntries().stream()
+                .map(TimeEntryPatch::timeEntryId)
+                .distinct()
+                .toList();
+        final Map<Long, TimeEntry> ownedTimeEntriesById = timeEntryRepository
+                .findAllByIdInAndUserId(timeEntryIds, userId).stream()
+                .collect(Collectors.toMap(TimeEntry::getId, Function.identity()));
+        final List<Long> missingTimeEntryIds = timeEntryIds.stream()
+                .filter(id -> !ownedTimeEntriesById.containsKey(id))
+                .toList();
+
+        if (!missingTimeEntryIds.isEmpty()) {
+            throw new TimeEntriesNotFoundException(missingTimeEntryIds);
+        }
+        final List<TimeEntry> patchedTimeEntries = patchTimeEntriesRequest.timeEntries().stream()
+                .map(timeEntryPatch -> {
+                    final TimeEntry timeEntry = ownedTimeEntriesById.get(timeEntryPatch.timeEntryId());
+                    applyPatch(timeEntry, timeEntryPatch.patch());
+
+                    return timeEntry;
+                })
+                .toList();
+
+        return timeEntryRepository.saveAll(patchedTimeEntries);
+    }
+
+    private void applyPatch(TimeEntry timeEntry, PatchTimeEntryRequest patchTimeEntryRequest) {
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
         patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);
         patchTimeEntryRequest.isBillable().ifPresent(timeEntry::setBillable);
         patchTimeEntryRequest.startTime().ifPresent(timeEntry::setStartTime);
         patchTimeEntryRequest.endTime().ifPresent(timeEntry::setEndTime);
-
-        return timeEntryRepository.save(timeEntry);
     }
 
     @Override
@@ -175,5 +216,22 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         getTimeEntry(userId, timeEntryId);
 
         timeEntryRepository.deleteById(timeEntryId);
+    }
+
+    @Override
+    public void deleteTimeEntries(long userId, DeleteTimeEntriesRequest deleteTimeEntriesRequest) {
+        final List<Long> timeEntryIds = deleteTimeEntriesRequest.timeEntryIds().stream().distinct().toList();
+        final Set<Long> ownedTimeEntryIds = timeEntryRepository.findAllByIdInAndUserId(timeEntryIds, userId).stream()
+                .map(TimeEntry::getId)
+                .collect(Collectors.toSet());
+        final List<Long> missingTimeEntryIds = timeEntryIds.stream()
+                .filter(id -> !ownedTimeEntryIds.contains(id))
+                .toList();
+
+        if (!missingTimeEntryIds.isEmpty()) {
+            throw new TimeEntriesNotFoundException(missingTimeEntryIds);
+        }
+
+        timeEntryRepository.deleteAllById(timeEntryIds);
     }
 }

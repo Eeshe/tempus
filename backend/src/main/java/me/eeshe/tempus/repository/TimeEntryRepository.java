@@ -16,6 +16,8 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long>, Jpa
 
     Optional<TimeEntry> findByIdAndUserId(long id, long userId);
 
+    List<TimeEntry> findAllByIdInAndUserId(List<Long> ids, long userId);
+
     /**
      * Counts time entries grouped by their UTC epoch day. Time entries are stored
      * with their start time as epoch milliseconds, so integer division yields the

@@ -11,6 +11,7 @@ import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
+import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.exception.UserClientAlreadyExistsException;
 import me.eeshe.tempus.exception.UserNotFoundException;
@@ -67,6 +68,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TimeEntryNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleTimeEntryNotFoundException(TimeEntryNotFoundException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TimeEntriesNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTimeEntriesNotFoundException(TimeEntriesNotFoundException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.NOT_FOUND);

@@ -27,12 +27,16 @@ import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.model.TimeEntryPage;
 import me.eeshe.tempus.repository.TimeEntryRepository;
 import me.eeshe.tempus.repository.projection.DailyEntryCount;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
+import me.eeshe.tempus.request.DeleteTimeEntriesRequest;
+import me.eeshe.tempus.request.PatchTimeEntriesRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
+import me.eeshe.tempus.request.TimeEntryPatch;
 import me.eeshe.tempus.support.EntityTestBase;
 
 @ExtendWith(MockitoExtension.class)
@@ -467,6 +471,137 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
                     .hasMessage("Time entry with ID 3 does not exist");
 
             verify(timeEntryRepository, never()).deleteById(anyLong());
+        }
+    }
+
+    @Nested
+    class DeleteTimeEntries {
+
+        @Test
+        void deletesAllOwnedTimeEntries() {
+            final TimeEntry firstEntry = createTimeEntry(1L);
+            final TimeEntry secondEntry = createTimeEntry(2L);
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L, 2L), USER_ID))
+                    .thenReturn(List.of(firstEntry, secondEntry));
+
+            timeEntryService.deleteTimeEntries(USER_ID, new DeleteTimeEntriesRequest(List.of(1L, 2L)));
+
+            verify(timeEntryRepository).deleteAllById(List.of(1L, 2L));
+        }
+
+        @Test
+        void deduplicatesProvidedIds() {
+            final TimeEntry firstEntry = createTimeEntry(1L);
+            final TimeEntry secondEntry = createTimeEntry(2L);
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L, 2L), USER_ID))
+                    .thenReturn(List.of(firstEntry, secondEntry));
+
+            timeEntryService.deleteTimeEntries(USER_ID, new DeleteTimeEntriesRequest(List.of(1L, 1L, 2L)));
+
+            verify(timeEntryRepository).deleteAllById(List.of(1L, 2L));
+        }
+
+        @Test
+        void throwsWhenTimeEntryNotFound() {
+            final TimeEntry firstEntry = createTimeEntry(1L);
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L, 2L), USER_ID))
+                    .thenReturn(List.of(firstEntry));
+
+            assertThatThrownBy(() -> timeEntryService.deleteTimeEntries(USER_ID,
+                    new DeleteTimeEntriesRequest(List.of(1L, 2L))))
+                    .isInstanceOf(TimeEntriesNotFoundException.class)
+                    .hasMessage("Time entries with IDs [2] do not exist");
+
+            verify(timeEntryRepository, never()).deleteAllById(anyList());
+        }
+
+        @Test
+        void throwsWhenTimeEntryOwnedByOtherUser() {
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of());
+
+            assertThatThrownBy(() -> timeEntryService.deleteTimeEntries(USER_ID,
+                    new DeleteTimeEntriesRequest(List.of(1L))))
+                    .isInstanceOf(TimeEntriesNotFoundException.class)
+                    .hasMessage("Time entries with IDs [1] do not exist");
+
+            verify(timeEntryRepository, never()).deleteAllById(anyList());
+        }
+    }
+
+    @Nested
+    class PatchTimeEntries {
+
+        @Test
+        void patchesAllOwnedTimeEntries() {
+            final TimeEntry firstEntry = createTimeEntry(1L);
+            final TimeEntry secondEntry = createTimeEntry(2L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder().description("FirstDescription")
+                            .build()),
+                    new TimeEntryPatch(2L, new PatchTimeEntryRequestBuilder().description("SecondDescription")
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L, 2L), USER_ID))
+                    .thenReturn(List.of(firstEntry, secondEntry));
+            when(timeEntryRepository.saveAll(List.of(firstEntry, secondEntry)))
+                    .thenReturn(List.of(firstEntry, secondEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(firstEntry, secondEntry);
+            assertThat(firstEntry.getDescription()).isEqualTo("FirstDescription");
+            assertThat(secondEntry.getDescription()).isEqualTo("SecondDescription");
+            verify(timeEntryRepository).saveAll(List.of(firstEntry, secondEntry));
+        }
+
+        @Test
+        void patchesNothingWhenAllFieldsUndefined() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder().build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest);
+
+            assertThat(timeEntry.getDescription()).isEqualTo("MyDescription");
+            assertThat(timeEntry.isBillable()).isTrue();
+            assertThat(timeEntry.getStartTime()).isEqualTo(START_TIME);
+            assertThat(timeEntry.getEndTime()).isEqualTo(END_TIME);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void throwsWhenTimeEntryNotFound() {
+            final TimeEntry firstEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder().build()),
+                    new TimeEntryPatch(2L, new PatchTimeEntryRequestBuilder().build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L, 2L), USER_ID))
+                    .thenReturn(List.of(firstEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(TimeEntriesNotFoundException.class)
+                    .hasMessage("Time entries with IDs [2] do not exist");
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void throwsWhenTimeEntryOwnedByOtherUser() {
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder().build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of());
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(TimeEntriesNotFoundException.class)
+                    .hasMessage("Time entries with IDs [1] do not exist");
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
         }
     }
 

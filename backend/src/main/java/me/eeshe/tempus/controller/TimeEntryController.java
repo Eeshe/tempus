@@ -1,6 +1,7 @@
 package me.eeshe.tempus.controller;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
+import me.eeshe.tempus.dto.DeleteTimeEntriesRequestDTO;
+import me.eeshe.tempus.dto.PatchTimeEntriesRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.dto.TimeEntryPageDTO;
@@ -26,6 +29,8 @@ import me.eeshe.tempus.mapper.TimeEntryMapper;
 import me.eeshe.tempus.mapper.TimeEntryPageMapper;
 import me.eeshe.tempus.model.TimeEntryPage;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
+import me.eeshe.tempus.request.DeleteTimeEntriesRequest;
+import me.eeshe.tempus.request.PatchTimeEntriesRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
 import me.eeshe.tempus.security.UserDetailsImpl;
 import me.eeshe.tempus.service.TimeEntryService;
@@ -87,7 +92,8 @@ public class TimeEntryController {
             @PathVariable long timeEntryId,
             @Valid @RequestBody PatchTimeEntryRequestDTO patchTimeEntryRequestDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        final PatchTimeEntryRequest patchTimeEntryRequest = timeEntryMapper.fromDTO(patchTimeEntryRequestDTO, userDetails.getId());
+        final PatchTimeEntryRequest patchTimeEntryRequest = timeEntryMapper.fromDTO(patchTimeEntryRequestDTO,
+                userDetails.getId());
         final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(userDetails.getId(), timeEntryId,
                 patchTimeEntryRequest);
         final TimeEntryDTO patchedTimeEntryDTO = timeEntryMapper.toDTO(patchedTimeEntry);
@@ -95,11 +101,36 @@ public class TimeEntryController {
         return ResponseEntity.ok(patchedTimeEntryDTO);
     }
 
+    @PatchMapping
+    public ResponseEntity<List<TimeEntryDTO>> patchTimeEntries(
+            @Valid @RequestBody PatchTimeEntriesRequestDTO patchTimeEntriesRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final PatchTimeEntriesRequest patchTimeEntriesRequest = timeEntryMapper.fromDTO(
+                patchTimeEntriesRequestDTO,
+                userDetails.getId());
+        final List<TimeEntry> patchedTimeEntries = timeEntryService
+                .patchTimeEntries(userDetails.getId(), patchTimeEntriesRequest);
+        final List<TimeEntryDTO> patchedTimeEntryDTOs = patchedTimeEntries.stream()
+                .map(timeEntryMapper::toDTO).toList();
+
+        return ResponseEntity.ok(patchedTimeEntryDTOs);
+    }
+
     @DeleteMapping(path = "/{timeEntryId}")
     public ResponseEntity<TimeEntryDTO> deleteTimeEntry(
             @PathVariable long timeEntryId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         timeEntryService.deleteTimeEntry(userDetails.getId(), timeEntryId);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping(path = "/bulk-delete")
+    public ResponseEntity<Void> deleteTimeEntries(
+            @Valid @RequestBody DeleteTimeEntriesRequestDTO deleteTimeEntriesRequestDTO,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        final DeleteTimeEntriesRequest deleteTimeEntriesRequest = timeEntryMapper.fromDTO(deleteTimeEntriesRequestDTO);
+        timeEntryService.deleteTimeEntries(userDetails.getId(), deleteTimeEntriesRequest);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
