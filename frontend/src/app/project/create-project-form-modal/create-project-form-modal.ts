@@ -11,7 +11,6 @@ import { Project } from '../models/project.model';
 
 interface CreateProjectModel {
   name: string;
-  isPrivate: boolean;
   client: Client | null;
   hourlyRate: number | null;
 }
@@ -27,13 +26,11 @@ export class CreateProjectFormModal extends ModalBase {
 
   readonly projectModel = signal<CreateProjectModel>({
     name: "",
-    isPrivate: true,
     client: null,
     hourlyRate: null,
   });
   readonly projectForm = form(this.projectModel, (fieldPath) => {
     required(fieldPath.name, { message: "You must provide a project name" });
-    required(fieldPath.isPrivate);
     min(fieldPath.hourlyRate, 0, { message: "Hourly rate cannot be negative" });
   });
 
@@ -53,7 +50,6 @@ export class CreateProjectFormModal extends ModalBase {
       try {
         const project: Project = await firstValueFrom(this.projectService.createProject(
           this.projectModel().name,
-          this.projectModel().isPrivate,
           this.projectModel().client,
           this.projectModel().hourlyRate
         ));

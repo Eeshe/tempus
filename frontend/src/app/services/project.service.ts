@@ -6,14 +6,12 @@ import { Project } from "../project/models/project.model";
 
 interface CreateProjectRequest {
   name: string;
-  isPrivate: boolean;
   clientId: number | null;
   hourlyRate: number | null;
 }
 
 interface PatchProjectRequest {
   name: string | null;
-  isPrivate: boolean | null;
   isArchived: boolean | null;
   clientId: number | null;
   hourlyRate: number | null;
@@ -28,11 +26,10 @@ export class ProjectService {
     return this.http.get<Project[]>(this.url, { withCredentials: true });
   }
 
-  createProject(name: string, isPrivate: boolean, client: Client | null, hourlyRate: number | null): Observable<Project> {
+  createProject(name: string, client: Client | null, hourlyRate: number | null): Observable<Project> {
     const clientId: number | null = client?.id ?? null;
     const createProjectRequest: CreateProjectRequest = {
       name: name,
-      isPrivate: isPrivate,
       clientId: clientId,
       hourlyRate: hourlyRate,
     };
