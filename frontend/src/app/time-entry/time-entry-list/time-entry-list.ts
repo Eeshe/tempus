@@ -26,7 +26,7 @@ export class TimeEntryList extends PagedListBase {
   readonly dayGroupedTimeEntries: Signal<DayGroupedTimeEntries[]> = this.timeEntryStore.dayGroupedTimeEntries;
 
   readonly todayFormattedTime$ = this.timerService.oneSecondTick$.pipe(map(() => {
-    const allTodayTimeEntries: TimeEntry[] = Array.from(this.dayGroupedTimeEntries()[0].allEntries.values()).flat();
+    const allTodayTimeEntries: TimeEntry[] = Array.from(this.dayGroupedTimeEntries()[0].allEntries.values()).flatMap(timeEntryGroup => timeEntryGroup.entries);
     const totalTrackedTimeMs: number = allTodayTimeEntries.reduce((sum, timeEntry) => {
       const trackedTimeMs: number = computeDuration(timeEntry.startTime, timeEntry.endTime!)!.totalMilliseconds;
 
@@ -64,10 +64,6 @@ export class TimeEntryList extends PagedListBase {
 
   hasAtLeastOneEndedTimeEntry(timeEntries: TimeEntry[]): boolean {
     return timeEntries.some(timeEntry => timeEntry.endTime != null);
-  }
-
-  computeTimeEntryGroupTrackKey(timeEntries: TimeEntry[]): string {
-    return String(timeEntries.reduce((smallestId, timeEntry) => Math.min(smallestId, timeEntry.id), Infinity));
   }
 
   @HostListener("document:keydown.s")

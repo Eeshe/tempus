@@ -20,12 +20,12 @@
           </span>
         </header>
         <div class="day-groups">
-          @for(timeEntryGroup of dayGroup.allEntries; track computeTimeEntryGroupTrackKey(timeEntryGroup[1])) {
-            @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1])) {
+          @for(timeEntryGroup of dayGroup.allEntries; track timeEntryGroup[1].id) {
+            @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1].entries)) {
               <app-resumable-time-entry-group
               animate.enter="fade-in"
               animate.leave="fade-out"
-              [timeEntries]="timeEntryGroup[1]"/>
+              [timeEntries]="timeEntryGroup[1].entries"/>
             }
           }
         </div>

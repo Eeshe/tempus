@@ -7,11 +7,15 @@ import { createEmptyTimeEntryPage, TimeEntryPage } from "../models/time-entry-pa
 import { TimeEntry } from "../models/time-entry.model";
 import { TimeEntryService } from "../services/time-entry.service";
 
+export interface TimeEntryGroupItem {
+  id: string;
+  entries: TimeEntry[];
+}
 
 export interface DayGroupedTimeEntries {
   dayKey: string;
   formattedDate: string;
-  allEntries: Map<string, TimeEntry[]>; // All time entries, including active ones
+  allEntries: Map<string, TimeEntryGroupItem>; // All time entries, including active ones
   endedEntries: Map<string, TimeEntry[]>; // Only ended time entries
   formattedTotalTime: string;
 }
@@ -22,6 +26,14 @@ export class TimeEntryStore {
 
   private readonly _timeEntryPage = signal<TimeEntryPage>(createEmptyTimeEntryPage());
   private readonly _lastStoppedTimeEntry = signal<TimeEntry | null>(null);
+
+  // Persistent identity of time entry groups. The cache key is "dayKey/groupKey", the value is the
+  // synthetic group id. Ids survive individual time entry changes so Angular can track groups stably.
+  private readonly groupIdByKey = new Map<string, string>();
+  // Composition (entry ids) of the groups produced by the previous recompute, used to carry an id
+  // over to a group whose key changed (e.g. bulk edit) but whose entries are still the same.
+  private previousGroupIds = new Map<string, Set<number>>();
+  private groupIdCounter: number = 0;
 
   readonly timeEntryPage: Signal<TimeEntryPage> = this._timeEntryPage.asReadonly();
   readonly lastStoppedTimeEntry: Signal<TimeEntry | null> = this._lastStoppedTimeEntry.asReadonly();
@@ -59,14 +71,28 @@ export class TimeEntryStore {
       dayProjectGroups.set(timeEntryGroupId, groupedEntries);
       dayGroups.set(dayKey, dayProjectGroups);
     }
-    return Array.from(dayGroups, ([dayKey, groupedEntries]) => {
-      // Sort the Map entries by the first entry's startTime
-      const sortedGroupedEntries = new Map<string, TimeEntry[]>(
-        Array.from(groupedEntries)
-          .sort(([, entriesA], [, entriesB]) => {
-            return entriesA[entriesA.length - 1].startTime.localeCompare(entriesB[entriesB.length - 1].startTime) ?? 0;
-          })
-          .reverse()
+    const sortedDayGroups: Map<string, Map<string, TimeEntry[]>> = new Map(
+      Array.from(dayGroups, ([dayKey, groupedEntries]) => [
+        dayKey,
+        // Sort the Map entries by the first entry's startTime
+        new Map<string, TimeEntry[]>(
+          Array.from(groupedEntries)
+            .sort(([, entriesA], [, entriesB]) => {
+              return entriesA[entriesA.length - 1].startTime.localeCompare(entriesB[entriesB.length - 1].startTime) ?? 0;
+            })
+            .reverse()
+        ),
+      ] as const)
+    );
+    const groupIdsByDayKey: Map<string, Map<string, string>> = this.computeGroupIds(sortedDayGroups);
+
+    return Array.from(sortedDayGroups, ([dayKey, sortedGroupedEntries]) => {
+      const dayGroupIds: Map<string, string> = groupIdsByDayKey.get(dayKey)!;
+      const allEntries = new Map<string, TimeEntryGroupItem>(
+        Array.from(sortedGroupedEntries, ([groupKey, entries]) => [
+          groupKey,
+          { id: dayGroupIds.get(groupKey)!, entries: entries },
+        ] as const)
       );
       const endedGroupedEntries = new Map(
         Array.from(sortedGroupedEntries, ([key, entries]) => [
@@ -74,7 +100,7 @@ export class TimeEntryStore {
           entries.filter(e => e.endTime !== null)
         ] as const)
       );
-      const totalTimeMs: number = [...groupedEntries.values()]
+      const totalTimeMs: number = [...sortedGroupedEntries.values()]
         .flatMap((entries) => entries)
         .reduce((sum, timeEntry) => {
           const duration: Duration | null = computeDuration(timeEntry.startTime, timeEntry.endTime);
@@ -82,15 +108,94 @@ export class TimeEntryStore {
           return sum + (duration?.totalMilliseconds ?? 0);
         }, 0);
       const formattedTotalTime: string = formatHHMMSSTime(durationFromMs(totalTimeMs));
-      const firstEntry: TimeEntry = groupedEntries.values().next().value![0];
+      const firstEntry: TimeEntry = sortedGroupedEntries.values().next().value![0];
       return {
         dayKey: dayKey,
         formattedDate: this.formatDayDate(firstEntry.startTime),
-        allEntries: sortedGroupedEntries,
+        allEntries: allEntries,
         endedEntries: endedGroupedEntries,
         formattedTotalTime: formattedTotalTime,
       };
     });
+  }
+
+  /**
+   * Assigns a stable synthetic id to every time entry group. Ids are independent of the time entries
+   * they contain, so editing, moving or deleting an entry no longer changes a group's track key.
+   */
+  private computeGroupIds(dayGroups: Map<string, Map<string, TimeEntry[]>>): Map<string, Map<string, string>> {
+    const groupIdsByDayKey: Map<string, Map<string, string>> = new Map<string, Map<string, string>>();
+    const claimedIds: Set<string> = new Set<string>();
+
+    // Pass 1: reuse the id already associated with a group key.
+    for (const [dayKey, groupedEntries] of dayGroups) {
+      const dayGroupIds: Map<string, string> = new Map<string, string>();
+      for (const groupKey of groupedEntries.keys()) {
+        const cachedId: string | undefined = this.groupIdByKey.get(this.groupCacheKey(dayKey, groupKey));
+        if (cachedId != null) {
+          dayGroupIds.set(groupKey, cachedId);
+          claimedIds.add(cachedId);
+        }
+      }
+      groupIdsByDayKey.set(dayKey, dayGroupIds);
+    }
+
+    // Pass 2: a group whose key changed (e.g. bulk edit) adopts the id of a vanished group when
+    // their entries overlap. Otherwise it gets a fresh id.
+    for (const [dayKey, groupedEntries] of dayGroups) {
+      const dayGroupIds: Map<string, string> = groupIdsByDayKey.get(dayKey)!;
+      for (const [groupKey, entries] of groupedEntries) {
+        if (dayGroupIds.has(groupKey)) {
+          continue;
+        }
+        const newEntryIds: Set<number> = new Set(entries.map(timeEntry => timeEntry.id));
+        const carriedOverId: string | null = this.findCarriedOverId(newEntryIds, claimedIds);
+        const groupId: string = carriedOverId ?? `time-entry-group-${++this.groupIdCounter}`;
+
+        dayGroupIds.set(groupKey, groupId);
+        claimedIds.add(groupId);
+        this.groupIdByKey.set(this.groupCacheKey(dayKey, groupKey), groupId);
+      }
+    }
+
+    // Remember the current composition for the next recompute.
+    const currentGroupIds: Map<string, Set<number>> = new Map<string, Set<number>>();
+    for (const [dayKey, groupedEntries] of dayGroups) {
+      const dayGroupIds: Map<string, string> = groupIdsByDayKey.get(dayKey)!;
+      for (const [groupKey, entries] of groupedEntries) {
+        currentGroupIds.set(dayGroupIds.get(groupKey)!, new Set(entries.map(timeEntry => timeEntry.id)));
+      }
+    }
+    this.previousGroupIds = currentGroupIds;
+
+    return groupIdsByDayKey;
+  }
+
+  private findCarriedOverId(newEntryIds: Set<number>, claimedIds: Set<string>): string | null {
+    let bestId: string | null = null;
+    let bestOverlap: number = 0;
+
+    for (const [previousId, previousEntryIds] of this.previousGroupIds) {
+      if (claimedIds.has(previousId)) {
+        continue;
+      }
+      let overlap: number = 0;
+      for (const entryId of newEntryIds) {
+        if (previousEntryIds.has(entryId)) {
+          overlap++;
+        }
+      }
+      if (overlap > bestOverlap) {
+        bestOverlap = overlap;
+        bestId = previousId;
+      }
+    }
+
+    return bestId;
+  }
+
+  private groupCacheKey(dayKey: string, groupKey: string): string {
+    return `${dayKey}\u0000${groupKey}`;
   }
 
   private formatDayDate(date: string | null) {
