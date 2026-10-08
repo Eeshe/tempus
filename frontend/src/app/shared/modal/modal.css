@@ -11,7 +11,7 @@
   color: var(--fg);
   font-family: 'Inter', system-ui, sans-serif;
   box-sizing: border-box;
-  animation: backdrop-in 180ms ease-out;
+  pointer-events: auto;
 }
 
 .modal__card {
@@ -27,7 +27,6 @@
   border: 1px solid var(--border);
   border-radius: 0.625rem;
   box-sizing: border-box;
-  animation: card-in 180ms ease-out;
 }
 
 .modal__card--sm {
@@ -79,31 +78,4 @@
 .modal__close:hover {
   color: var(--fg);
   background: var(--bg);
-}
-
-@keyframes backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .modal__backdrop,
-  .modal__card {
-    animation: none;
-  }
 }

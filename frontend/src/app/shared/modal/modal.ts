@@ -1,4 +1,4 @@
-import { Component, HostListener, input, OnDestroy, output } from '@angular/core';
+import { Component, HostListener, input, OnDestroy, output, signal } from '@angular/core';
 
 const openModals: AppModal[] = [];
 
@@ -15,6 +15,7 @@ export class AppModal implements OnDestroy {
   readonly closeOnEscape = input<boolean>(true);
 
   readonly closeEvent = output<void>();
+  readonly isClosing = signal<boolean>(false);
 
   constructor() {
     openModals.push(this);
@@ -38,10 +39,14 @@ export class AppModal implements OnDestroy {
       (event.target as HTMLElement).blur();
       return;
     }
-    this.closeEvent.emit();
+    this.close();
   }
 
   close(): void {
+    if (this.isClosing()) {
+      return;
+    }
+    this.isClosing.set(true);
     this.closeEvent.emit();
   }
 
