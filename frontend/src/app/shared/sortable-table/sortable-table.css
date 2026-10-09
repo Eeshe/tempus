@@ -153,42 +153,42 @@
   }
 }
 
-.sortable-table__row.slide-down {
+.sortable-table__row.animate-expand {
   animation: sortable-table-row-fade-in 250ms ease-out;
 }
 
-.sortable-table__row.slide-down .sortable-table__cell-content-inner,
-.sortable-table__row.slide-up .sortable-table__cell-content-inner {
+.sortable-table__row.animate-expand .sortable-table__cell-content-inner,
+.sortable-table__row.animate-collapse .sortable-table__cell-content-inner {
   overflow: hidden;
 }
 
-.sortable-table__row.slide-down .sortable-table__cell {
+.sortable-table__row.animate-expand .sortable-table__cell {
   animation: sortable-table-cell-pad-down 250ms ease-out;
 }
 
-.sortable-table__row.slide-down .sortable-table__cell-content {
+.sortable-table__row.animate-expand .sortable-table__cell-content {
   animation: sortable-table-cell-slide-down 250ms ease-out;
 }
 
-.sortable-table__row.slide-up {
+.sortable-table__row.animate-collapse {
   animation: sortable-table-row-fade-out 250ms ease-in forwards;
 }
 
-.sortable-table__row.slide-up .sortable-table__cell {
+.sortable-table__row.animate-collapse .sortable-table__cell {
   animation: sortable-table-cell-pad-up 250ms ease-in forwards;
 }
 
-.sortable-table__row.slide-up .sortable-table__cell-content {
+.sortable-table__row.animate-collapse .sortable-table__cell-content {
   animation: sortable-table-cell-slide-up 250ms ease-in forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sortable-table__row.slide-down,
-  .sortable-table__row.slide-up,
-  .sortable-table__row.slide-down .sortable-table__cell,
-  .sortable-table__row.slide-up .sortable-table__cell,
-  .sortable-table__row.slide-down .sortable-table__cell-content,
-  .sortable-table__row.slide-up .sortable-table__cell-content {
+  .sortable-table__row.animate-expand,
+  .sortable-table__row.animate-collapse,
+  .sortable-table__row.animate-expand .sortable-table__cell,
+  .sortable-table__row.animate-collapse .sortable-table__cell,
+  .sortable-table__row.animate-expand .sortable-table__cell-content,
+  .sortable-table__row.animate-collapse .sortable-table__cell-content {
     animation: none;
   }
 }

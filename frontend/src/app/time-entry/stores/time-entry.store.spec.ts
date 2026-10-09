@@ -52,12 +52,12 @@ describe('TimeEntryStore', () => {
   }
 
   function load(content: TimeEntry[]): void {
-    store.loadPage();
+    store.loadPage().subscribe();
     httpMock.expectOne((request) => request.method === 'GET').flush(createPage(content));
   }
 
   function loadAtCursor(cursor: string, content: TimeEntry[]): void {
-    store.loadPage();
+    store.loadPage().subscribe();
     httpMock.expectOne((request) => request.method === 'GET').flush({ ...createPage(content), currentCursor: cursor });
   }
 

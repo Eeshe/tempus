@@ -29,6 +29,35 @@ body {
   background: var(--bg);
 }
 
+/*
+ * Shared grid-row collapse/expand keyframes for time-entry animations.
+ * Kept global so a single definition is emitted for active-time-entry,
+ * resumable-time-entry and time-entry-list. Angular's emulated
+ * encapsulation only scopes locally-declared keyframe names, so component
+ * styles can reference these by name.
+ */
+@keyframes tempus-expand {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@keyframes tempus-collapse {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
 @keyframes route-fade-out {
   from {
     opacity: 1;

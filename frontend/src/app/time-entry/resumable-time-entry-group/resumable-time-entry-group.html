@@ -24,24 +24,14 @@
   }
 
   @if (timeEntries().length === 1) {
-  <div class="time-group__content">
     @for(timeEntry of endedTimeEntries(); track timeEntry.id) {
-      @if(timeEntry.endTime !== null) {
-        <app-resumable-time-entry [timeEntry]="timeEntry"/>
-      }
+      <app-resumable-time-entry [timeEntry]="timeEntry"/>
     }
-  </div>
   }
 
   @if (timeEntries().length > 1 && isExpanded()) {
-  <div class="time-group__content" animate.enter="slide-down" animate.leave="slide-up">
-    <div class="time-group__content-inner">
-      @for(timeEntry of endedTimeEntries(); track timeEntry.id) {
-        @if(timeEntry.endTime !== null) {
-          <app-resumable-time-entry [timeEntry]="timeEntry"/>
-        }
-      }
-    </div>
-  </div>
+    @for(timeEntry of endedTimeEntries(); track timeEntry.id) {
+      <app-resumable-time-entry [timeEntry]="timeEntry" animate.enter="animate-expand" animate.leave="animate-collapse"/>
+    }
   }
 </div>

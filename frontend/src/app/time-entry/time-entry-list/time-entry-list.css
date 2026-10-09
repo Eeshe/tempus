@@ -1,8 +1,12 @@
+:host {
+  --group-gap: 0.625rem;
+  --day-gap: 1.75rem;
+}
+
 .active-entries {
   display: flex;
   flex-direction: column;
   gap: 0;
-  transition: row-gap 250ms ease;
 }
 
 .active-entries--stacked {
@@ -12,7 +16,7 @@
 .day {
   display: grid;
   grid-template-rows: 1fr;
-  margin-top: 1.75rem;
+  margin-top: var(--day-gap);
 }
 
 .day__content {
@@ -63,10 +67,29 @@
 .day-groups {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: var(--group-gap);
 }
 
-@keyframes fade-in {
+.day-group {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+/* Grid item must be allowed to shrink to 0fr for the collapse animation */
+.day-group > app-resumable-time-entry-group {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.animate-expand {
+  animation: tempus-expand 250ms ease-out;
+}
+
+.animate-collapse {
+  animation: tempus-collapse 250ms ease-in forwards;
+}
+
+@keyframes tempus-page-switch-in {
   from {
     opacity: 0;
   }
@@ -75,7 +98,7 @@
   }
 }
 
-@keyframes fade-out {
+@keyframes tempus-page-switch-out {
   from {
     opacity: 1;
   }
@@ -84,81 +107,19 @@
   }
 }
 
-.fade-in {
-  animation: fade-in 200ms ease-out;
+.animate-page-switch-in {
+  animation: tempus-page-switch-in 150ms ease-out 250ms both;
 }
 
-.fade-out {
-  animation: fade-out 200ms ease-in forwards;
-}
-
-@keyframes page-switch-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes page-switch-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-.page-switch-in {
-  animation: page-switch-in 150ms ease-out 250ms both;
-}
-
-.page-switch-out {
-  animation: page-switch-out 50ms ease-in both;
-}
-
-@keyframes day-slide-down {
-  from {
-    grid-template-rows: 0fr;
-    margin-top: 0;
-    opacity: 0;
-  }
-  to {
-    grid-template-rows: 1fr;
-    margin-top: 1.75rem;
-    opacity: 1;
-  }
-}
-
-@keyframes day-slide-up {
-  from {
-    grid-template-rows: 1fr;
-    margin-top: 1.75rem;
-    opacity: 1;
-  }
-  to {
-    grid-template-rows: 0fr;
-    margin-top: 0;
-    opacity: 0;
-  }
-}
-
-.day.slide-down {
-  animation: day-slide-down 250ms ease-out;
-}
-
-.day.slide-up {
-  animation: day-slide-up 250ms ease-in forwards;
+.animate-page-switch-out {
+  animation: tempus-page-switch-out 50ms ease-in both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-in,
-  .fade-out,
-  .page-switch-in,
-  .page-switch-out,
-  .day.slide-down,
-  .day.slide-up {
+  .animate-page-switch-in,
+  .animate-page-switch-out,
+  .animate-expand,
+  .animate-collapse {
     animation: none;
   }
 }

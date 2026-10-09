@@ -20,8 +20,8 @@
     @for (entry of sortedRows(); track trackBy()($index, entry)) {
       <tr
         class="sortable-table__row"
-        animate.enter="slide-down"
-        animate.leave="slide-up"
+        animate.enter="animate-expand"
+        animate.leave="animate-collapse"
         [class.sortable-table__row--clickable]="clickable()"
         [ngClass]="rowClass()(entry)"
         (click)="clickable() && rowClickEvent.emit(entry)"

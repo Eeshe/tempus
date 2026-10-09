@@ -1,10 +1,16 @@
 :host {
-  display: grid;
-  grid-template-rows: 1fr;
+  display: block;
   width: 100%;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--fg);
+}
+
+/* Grid is only needed while the grid-template-rows collapse animation runs. */
+:host(.animate-expand),
+:host(.animate-collapse) {
+  display: grid;
+  grid-template-rows: 1fr;
 }
 
 .active-entry__clip {
@@ -98,39 +104,22 @@
   background-color: var(--bad);
 }
 
-@keyframes active-entry-slide-down {
-  from {
-    grid-template-rows: 0fr;
-    opacity: 0;
-  }
-  to {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
+:host(.animate-expand) {
+  animation: tempus-expand 250ms ease-out;
 }
 
-@keyframes active-entry-slide-up {
-  from {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-  to {
-    grid-template-rows: 0fr;
-    opacity: 0;
-  }
-}
-
-:host(.slide-down) {
-  animation: active-entry-slide-down 250ms ease-out;
-}
-
-:host(.slide-up) {
-  animation: active-entry-slide-up 250ms ease-in forwards;
+:host(.animate-collapse) {
+  animation: tempus-collapse 250ms ease-in forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :host(.slide-down),
-  :host(.slide-up) {
+  :host(.animate-expand),
+  :host(.animate-collapse) {
     animation: none;
+  }
+
+  .active-entry,
+  .active-entry__icon {
+    transition: none;
   }
 }

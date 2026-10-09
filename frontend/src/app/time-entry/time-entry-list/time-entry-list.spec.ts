@@ -48,6 +48,67 @@ describe('TimeEntryList', () => {
     expect(component).toBeTruthy();
   });
 
+  it('suppresses enter animations while the initial page is loading', () => {
+    expect(component.enterClass()).toBe('');
+    expect(component.leaveClass()).toBe('');
+  });
+
+  it('uses expand animation classes once loaded and the page is not changing', async () => {
+    await fixture.whenStable();
+
+    expect(component.enterClass()).toBe('animate-expand');
+    expect(component.leaveClass()).toBe('animate-collapse');
+  });
+
+  it('uses page-switch animation classes while the page is changing', async () => {
+    await fixture.whenStable();
+    component.isPageChanging.set(true);
+
+    expect(component.enterClass()).toBe('animate-page-switch-in');
+    expect(component.leaveClass()).toBe('animate-page-switch-out');
+  });
+
+  it('keeps the page-changing flag until the new page has rendered', async () => {
+    await fixture.whenStable();
+
+    component.increasePage();
+    expect(component.isPageChanging()).toBe(true);
+
+    httpMock.expectOne((request) => request.method === 'GET').flush(createEmptyTimeEntryPage());
+    await fixture.whenStable();
+
+    expect(component.isPageChanging()).toBe(false);
+  });
+
+  it('clears the page-changing flag when the page request fails', async () => {
+    await fixture.whenStable();
+
+    component.increasePage();
+    expect(component.isPageChanging()).toBe(true);
+
+    httpMock.expectOne((request) => request.method === 'GET').error(new ProgressEvent('error'));
+    await fixture.whenStable();
+
+    expect(component.isPageChanging()).toBe(false);
+  });
+
+  it('cancels the previous page request when a new page change starts', async () => {
+    await fixture.whenStable();
+
+    component.increasePage();
+    const firstRequest = httpMock.expectOne((request) => request.method === 'GET');
+
+    component.increasePage();
+    const secondRequest = httpMock.expectOne((request) => request.method === 'GET');
+
+    expect(firstRequest.cancelled).toBe(true);
+
+    secondRequest.flush(createEmptyTimeEntryPage());
+    await fixture.whenStable();
+
+    expect(component.isPageChanging()).toBe(false);
+  });
+
   it('remembers the last stopped time entry', async () => {
     store.stopActive(mockTimeEntry);
 

@@ -1,8 +1,8 @@
 <div class="active-entries" [class.active-entries--stacked]="activeTimeEntries().length > 1">
   @for(activeTimeEntry of activeTimeEntries(); track activeTimeEntry.id) {
   <app-active-time-entry
-    [animate.enter]="isPageChanging() ? 'page-switch-in' : 'slide-down'"
-    [animate.leave]="isPageChanging() ? 'page-switch-out' : 'slide-up'"
+    [animate.enter]="enterClass()"
+    [animate.leave]="leaveClass()"
     [activeTimeEntry]="activeTimeEntry"/>
   }
 </div>
@@ -10,8 +10,8 @@
 @for(dayGroup of dayGroupedTimeEntries(); track dayGroup.id) {
   @if(countTotalTimeEntries(dayGroup.endedEntries) > 0) {
     <section class="day"
-      [animate.enter]="isPageChanging() ? 'page-switch-in' : 'slide-down'"
-      [animate.leave]="isPageChanging() ? 'page-switch-out' : 'slide-up'">
+      [animate.enter]="enterClass()"
+      [animate.leave]="leaveClass()">
       <div class="day__content">
         <header class="day-header">
           <span class="day-header__date">{{ dayGroup.formattedDate }}</span>
@@ -24,10 +24,11 @@
         <div class="day-groups">
           @for(timeEntryGroup of dayGroup.allEntries; track timeEntryGroup[1].id) {
             @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1].entries)) {
-              <app-resumable-time-entry-group
-              [animate.enter]="isPageChanging() ? 'page-switch-in' : 'fade-in'"
-              [animate.leave]="isPageChanging() ? 'page-switch-out' : 'fade-out'"
-              [timeEntries]="timeEntryGroup[1].entries"/>
+              <div class="day-group"
+              [animate.enter]="enterClass()"
+              [animate.leave]="leaveClass()">
+                <app-resumable-time-entry-group [timeEntries]="timeEntryGroup[1].entries"/>
+              </div>
             }
           }
         </div>

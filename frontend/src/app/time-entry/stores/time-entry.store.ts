@@ -1,5 +1,6 @@
 import { formatDate } from "@angular/common";
 import { computed, inject, Service, Signal, signal } from "@angular/core";
+import { Observable, tap } from "rxjs";
 import { Project } from "../../project/models/project.model";
 import { computeDuration, Duration, durationFromMs, formatHHMMSSTime } from "../../shared/util/time.util";
 import { Task } from "../../task/models/task.model";
@@ -212,10 +213,10 @@ export class TimeEntryStore {
     return date ? formatDate(date, 'yyyy-MM-dd', 'en-US') : 'unknown';
   }
 
-  loadPage(cursor: string | null = null): void {
-    this.timeEntryService.listTimeEntries(cursor).subscribe(timeEntryPage => {
-      this._timeEntryPage.set(timeEntryPage);
-    })
+  loadPage(cursor: string | null = null): Observable<TimeEntryPage> {
+    return this.timeEntryService.listTimeEntries(cursor).pipe(
+      tap(timeEntryPage => this._timeEntryPage.set(timeEntryPage))
+    );
   }
 
   resume(timeEntry: TimeEntry): void {
@@ -234,7 +235,7 @@ export class TimeEntryStore {
   }
 
   add(timeEntry: TimeEntry): void {
-    this.loadPage(this._timeEntryPage().currentCursor);
+    this.loadPage(this._timeEntryPage().currentCursor).subscribe();
   }
 
   stopActive(timeEntry: TimeEntry): void {
