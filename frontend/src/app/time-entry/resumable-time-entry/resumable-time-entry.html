@@ -1,15 +1,17 @@
-<div class="time-entry">
-	<div class="time-entry__left">
-		<app-time-entry-description [description]="timeEntry().description ?? ''" (descriptionChangeEvent)="updateTimeEntryDescription($event)"/>
-		<app-project-task-selector-button [selectedProject]="timeEntry().project" [selectedTask]="timeEntry().task" (projectSelectEvent)="updateTimeEntryProject($event)" (taskSelectEvent)="updateTimeEntryTask($event.newProject, $event.newTask)"/>
-	</div>
-	<div class="time-entry__right">
-		<app-time-entry-billable-button [timeEntry]="timeEntry()"/>
-		<app-time-input [(value)]="startTimeInput" (timeChangeEvent)="updateTimeEntryStartTime($event)"/>
-		<span class="time-entry__separator">–</span>
-		<app-time-input [(value)]="endTimeInput" (timeChangeEvent)="updateTimeEntryEndTime($event)"/>
-		<span class="time-entry__duration">{{ timeEntry().startTime | duration: timeEntry().endTime }}</span>
-		<button class="time-entry__icon time-entry__icon--continue" type="button" (click)="resumeTimeEntry()" aria-label="Continue entry"></button>
-		<button class="time-entry__icon time-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+<div class="time-entry__clip">
+	<div class="time-entry">
+		<div class="time-entry__left">
+			<app-time-entry-description [description]="timeEntry().description ?? ''" (descriptionChangeEvent)="updateTimeEntryDescription($event)"/>
+			<app-project-task-selector-button [selectedProject]="timeEntry().project" [selectedTask]="timeEntry().task" (projectSelectEvent)="updateTimeEntryProject($event)" (taskSelectEvent)="updateTimeEntryTask($event.newProject, $event.newTask)"/>
+		</div>
+		<div class="time-entry__right">
+			<app-time-entry-billable-button [timeEntry]="timeEntry()"/>
+			<app-time-input [(value)]="startTimeInput" (timeChangeEvent)="updateTimeEntryStartTime($event)"/>
+			<span class="time-entry__separator">–</span>
+			<app-time-input [(value)]="endTimeInput" (timeChangeEvent)="updateTimeEntryEndTime($event)"/>
+			<span class="time-entry__duration">{{ timeEntry().startTime | duration: timeEntry().endTime }}</span>
+			<button class="time-entry__icon time-entry__icon--continue" type="button" (click)="resumeTimeEntry()" aria-label="Continue entry"></button>
+			<button class="time-entry__icon time-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+		</div>
 	</div>
 </div>

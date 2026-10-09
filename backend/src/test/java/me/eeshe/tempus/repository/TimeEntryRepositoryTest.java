@@ -511,4 +511,60 @@ public class TimeEntryRepositoryTest extends RepositoryTestBase {
             assertThat(taskRepository.findById(task.getId())).isPresent();
         }
     }
+
+    @Nested
+    class FindAllByIdInAndUserId {
+
+        @Test
+        void returnsOnlyTimeEntriesOwnedByUser() {
+            final User user = createUser("MyUser");
+            final Project project = createProject("MyProject", user);
+            final TimeEntry firstEntry = createTimeEntry(
+                    user, project, null, "MyDescription", true, TIME_09, TIME_10);
+            final TimeEntry secondEntry = createTimeEntry(
+                    user, project, null, "MyDescription", true, TIME_10_30, TIME_11);
+
+            final List<TimeEntry> found = timeEntryRepository.findAllByIdInAndUserId(
+                    List.of(firstEntry.getId(), secondEntry.getId()), user.getId());
+
+            assertThat(found).containsExactlyInAnyOrder(firstEntry, secondEntry);
+        }
+
+        @Test
+        void excludesTimeEntriesOwnedByOtherUser() {
+            final User user = createUser("MyUser");
+            final User otherUser = createUser("MyOtherUser");
+            final Project userProject = createProject("MyProject", user);
+            final Project otherUserProject = createProject("MyOtherProject", otherUser);
+            final TimeEntry userEntry = createTimeEntry(
+                    user, userProject, null, "MyDescription", true, TIME_09, TIME_10);
+            final TimeEntry otherUserEntry = createTimeEntry(
+                    otherUser, otherUserProject, null, "MyDescription", true, TIME_09, TIME_10);
+
+            final List<TimeEntry> found = timeEntryRepository.findAllByIdInAndUserId(
+                    List.of(userEntry.getId(), otherUserEntry.getId()), user.getId());
+
+            assertThat(found).containsExactly(userEntry);
+        }
+
+        @Test
+        void returnsEmptyWhenNoIdsMatch() {
+            final User user = createUser("MyUser");
+            final Project project = createProject("MyProject", user);
+            createTimeEntry(user, project, null, "MyDescription", true, TIME_09, TIME_10);
+
+            final List<TimeEntry> found = timeEntryRepository.findAllByIdInAndUserId(List.of(-1L), user.getId());
+
+            assertThat(found).isEmpty();
+        }
+
+        @Test
+        void returnsEmptyWhenNoIdsProvided() {
+            final User user = createUser("MyUser");
+
+            final List<TimeEntry> found = timeEntryRepository.findAllByIdInAndUserId(List.of(), user.getId());
+
+            assertThat(found).isEmpty();
+        }
+    }
 }

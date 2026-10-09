@@ -14,6 +14,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import me.eeshe.tempus.dto.CreateTimeEntryRequestDTO;
+import me.eeshe.tempus.dto.DeleteTimeEntriesRequestDTO;
+import me.eeshe.tempus.dto.PatchTimeEntriesRequestDTO;
 import me.eeshe.tempus.dto.PatchTimeEntryRequestDTO;
 import me.eeshe.tempus.dto.TimeEntryDTO;
 import me.eeshe.tempus.entity.Client;
@@ -30,7 +32,10 @@ import me.eeshe.tempus.request.CreateClientRequest;
 import me.eeshe.tempus.request.CreateProjectRequest;
 import me.eeshe.tempus.request.CreateTaskRequest;
 import me.eeshe.tempus.request.CreateTimeEntryRequest;
+import me.eeshe.tempus.request.DeleteTimeEntriesRequest;
+import me.eeshe.tempus.request.PatchTimeEntriesRequest;
 import me.eeshe.tempus.request.PatchTimeEntryRequest;
+import me.eeshe.tempus.request.TimeEntryPatch;
 import me.eeshe.tempus.service.ClientService;
 import me.eeshe.tempus.service.ProjectService;
 import me.eeshe.tempus.service.TaskService;
@@ -178,5 +183,19 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
 
     private Task resolveTask(final long userId, final Long taskId) {
         return taskId != null ? taskService.getTask(userId, taskId) : null;
+    }
+
+    @Override
+    public DeleteTimeEntriesRequest fromDTO(DeleteTimeEntriesRequestDTO deleteTimeEntriesRequestDTO) {
+        return new DeleteTimeEntriesRequest(deleteTimeEntriesRequestDTO.timeEntryIds());
+    }
+
+    @Override
+    public PatchTimeEntriesRequest fromDTO(PatchTimeEntriesRequestDTO patchTimeEntriesRequestDTO, long userId) {
+        return new PatchTimeEntriesRequest(patchTimeEntriesRequestDTO.timeEntries().stream()
+                .map(timeEntryPatchDTO -> new TimeEntryPatch(
+                        timeEntryPatchDTO.timeEntryId(),
+                        fromDTO(timeEntryPatchDTO.patch(), userId)))
+                .toList());
     }
 }

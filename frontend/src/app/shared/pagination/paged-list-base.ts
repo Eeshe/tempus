@@ -1,17 +1,16 @@
 import { signal } from "@angular/core";
 
 export abstract class PagedListBase {
-  readonly currentPage = signal<number>(0);
+  readonly isPageChanging = signal<boolean>(false);
 
-  increasePage(): void {
-    this.currentPage.update(page => page + 1);
-    this.updatePage();
+  startPageChanging(): void {
+    this.isPageChanging.set(true);
   }
 
-  decreasePage(): void {
-    this.currentPage.update(page => page - 1);
-    this.updatePage();
+  endPageChanging(): void {
+    this.isPageChanging.set(false);
   }
 
-  abstract updatePage(): void;
+  abstract increasePage(): void;
+  abstract decreasePage(): void;
 }

@@ -1,12 +1,14 @@
-<div class="active-entry">
-	<div class="active-entry__left">
-		<app-time-entry-description [description]="activeTimeEntry().description ?? ''" (descriptionChangeEvent)="saveTimeEntryDescription($event)"/>
-		<app-project-task-selector-button [selectedProject]="activeTimeEntry().project" (projectSelectEvent)="updateTimeEntryProject($event)"/>
-	</div>
-	<div class="active-entry__right">
-		<app-time-entry-billable-button [timeEntry]="activeTimeEntry()"/>
-		<span class="active-entry__elapsed">{{elapsedTime$ | async}}</span>
-		<button class="active-entry__icon active-entry__icon--stop" type="button" (click)="stopTimeEntry()" aria-label="Stop (S)" title="Stop (S)"></button>
-		<button class="active-entry__icon active-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+<div class="active-entry__clip">
+	<div class="active-entry">
+		<div class="active-entry__left">
+			<app-time-entry-description [description]="activeTimeEntry().description ?? ''" (descriptionChangeEvent)="saveTimeEntryDescription($event)"/>
+			<app-project-task-selector-button [selectedProject]="activeTimeEntry().project" (projectSelectEvent)="updateTimeEntryProject($event)"/>
+		</div>
+		<div class="active-entry__right">
+			<app-time-entry-billable-button [timeEntry]="activeTimeEntry()"/>
+			<span class="active-entry__elapsed">{{elapsedTime$ | async}}</span>
+			<button class="active-entry__icon active-entry__icon--stop" type="button" (click)="stopTimeEntry()" aria-label="Stop (S)" title="Stop (S)"></button>
+			<button class="active-entry__icon active-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+		</div>
 	</div>
 </div>

@@ -42,13 +42,6 @@
           </div>
         }
       </div>
-
-      <div class="field checkbox-field">
-        <label for="isPrivate">Private</label>
-        <div class="control">
-          <input id="isPrivate" type="checkbox" [formField]="projectForm.isPrivate" />
-        </div>
-      </div>
     </div>
 
     @if (projectForm().errors().length > 0) {

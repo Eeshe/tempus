@@ -74,22 +74,22 @@ export class ResumableTimeEntryGroup {
   }
 
   deleteGroup(): void {
-    this.endedTimeEntries().forEach((timeEntry) => this.timeEntryStore.delete(timeEntry));
+    this.timeEntryStore.deleteMany(this.endedTimeEntries());
   }
 
   updateGroupDescription(newDescription: string): void {
-    this.timeEntries().forEach((timeEntry) => this.timeEntryStore.patchDescription(timeEntry, newDescription));
+    this.timeEntryStore.patchDescriptions(this.timeEntries(), newDescription);
   }
 
   updateGroupProject(newProject: Project): void {
-    this.timeEntries().forEach((timeEntry) => this.timeEntryStore.patchProject(timeEntry, newProject));
+    this.timeEntryStore.patchProjects(this.timeEntries(), newProject);
   }
 
   updateGroupTask(newProject: Project, newTask: Task): void {
-    this.timeEntries().forEach((timeEntry) => this.timeEntryStore.patchTask(timeEntry, newProject, newTask));
+    this.timeEntryStore.patchTasks(this.timeEntries(), newProject, newTask);
   }
 
   updateGroupBillable(isBillable: boolean): void {
-    this.timeEntries().forEach((timeEntry) => this.timeEntryStore.patchBillable(timeEntry, isBillable));
+    this.timeEntryStore.patchBillables(this.timeEntries(), isBillable);
   }
 }

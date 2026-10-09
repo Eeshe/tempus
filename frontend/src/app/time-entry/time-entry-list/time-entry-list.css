@@ -1,14 +1,30 @@
+:host {
+  --group-gap: 0.625rem;
+  --day-gap: 1.75rem;
+}
+
 .active-entries {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0;
+}
+
+.active-entries--stacked {
+  row-gap: 0.625rem;
 }
 
 .day {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: var(--day-gap);
+}
+
+.day__content {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-top: 1.75rem;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .day-header {
@@ -51,5 +67,59 @@
 .day-groups {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: var(--group-gap);
+}
+
+.day-group {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+/* Grid item must be allowed to shrink to 0fr for the collapse animation */
+.day-group > app-resumable-time-entry-group {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.animate-expand {
+  animation: tempus-expand 250ms ease-out;
+}
+
+.animate-collapse {
+  animation: tempus-collapse 250ms ease-in forwards;
+}
+
+@keyframes tempus-page-switch-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tempus-page-switch-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-page-switch-in {
+  animation: tempus-page-switch-in 150ms ease-out 250ms both;
+}
+
+.animate-page-switch-out {
+  animation: tempus-page-switch-out 50ms ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-switch-in,
+  .animate-page-switch-out,
+  .animate-expand,
+  .animate-collapse {
+    animation: none;
+  }
 }

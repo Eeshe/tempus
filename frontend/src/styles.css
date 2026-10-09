@@ -28,3 +28,144 @@ body {
   min-height: 100dvh;
   background: var(--bg);
 }
+
+/*
+ * Shared grid-row collapse/expand keyframes for time-entry animations.
+ * Kept global so a single definition is emitted for active-time-entry,
+ * resumable-time-entry and time-entry-list. Angular's emulated
+ * encapsulation only scopes locally-declared keyframe names, so component
+ * styles can reference these by name.
+ */
+@keyframes tempus-expand {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@keyframes tempus-collapse {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+app-navigation-bar {
+  view-transition-name: nav;
+}
+
+/*
+ * Nav is persistent across routes: pin it, never animate it.
+ */
+::view-transition-group(nav) {
+  animation: none;
+}
+
+::view-transition-old(nav),
+::view-transition-new(nav) {
+  animation: none;
+}
+
+::view-transition {
+  background-color: var(--bg);
+}
+
+::view-transition-old(root) {
+  animation: route-fade-out 150ms ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: route-fade-in 150ms ease-out 250ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(nav),
+  ::view-transition-old(nav),
+  ::view-transition-new(nav) {
+    animation: none;
+  }
+}
+
+/*
+ * Modal open/close transitions, applied to the host element of every
+ * component that extends ModalBase (see shared/modal/modal-base.ts).
+ * Kept global so a single definition covers all modal wrappers.
+ *
+ * Note: intentionally no `pointer-events: none` on the leave class.
+ * The host class is inherited by the whole modal subtree during the
+ * close animation, so disabling pointer events there lets clicks fall
+ * through to the page underneath.
+ */
+.modal-transition {
+  display: block;
+  position: fixed;
+  /* Extend past the viewport so the translateY animation never
+     exposes the page under the backdrop's top edge. */
+  inset: -1rem 0;
+  z-index: var(--z-modal);
+}
+
+.modal-transition--enter {
+  animation: modal-transition-in 180ms ease-out;
+}
+
+.modal-transition--leave {
+  animation: modal-transition-out 180ms ease-in forwards;
+}
+
+@keyframes modal-transition-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-transition-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-transition--enter,
+  .modal-transition--leave {
+    animation: none;
+  }
+}

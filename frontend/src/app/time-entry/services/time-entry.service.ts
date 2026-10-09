@@ -25,6 +25,19 @@ interface PatchTimeEntryRequest {
   endTime: string
 }
 
+interface TimeEntryPatch {
+  timeEntryId: number;
+  patch: Partial<PatchTimeEntryRequest>;
+}
+
+interface PatchTimeEntriesRequest {
+  timeEntries: TimeEntryPatch[];
+}
+
+interface DeleteTimeEntriesRequest {
+  timeEntryIds: number[];
+}
+
 @Service()
 export class TimeEntryService {
   private readonly url: string = "/api/v1/time-entries";
@@ -114,11 +127,58 @@ export class TimeEntryService {
     return this.patchTimeEntry(timeEntry, patchRequest)
   }
 
+  patchTimeEntriesDescription(timeEntries: TimeEntry[], newDescription: string): Observable<TimeEntry[]> {
+    const patchRequest: Partial<PatchTimeEntryRequest> = {
+      description: newDescription,
+    }
+    return this.bulkPatchTimeEntries(timeEntries, patchRequest);
+  }
+
+  patchTimeEntriesBillable(timeEntries: TimeEntry[], newBillableStatus: boolean): Observable<TimeEntry[]> {
+    const patchRequest: Partial<PatchTimeEntryRequest> = {
+      isBillable: newBillableStatus,
+    }
+    return this.bulkPatchTimeEntries(timeEntries, patchRequest);
+  }
+
+  patchTimeEntriesProject(timeEntries: TimeEntry[], project: Project): Observable<TimeEntry[]> {
+    const patchRequest: Partial<PatchTimeEntryRequest> = {
+      projectId: project.id,
+      taskId: null,
+    }
+    return this.bulkPatchTimeEntries(timeEntries, patchRequest);
+  }
+
+  patchTimeEntriesTask(timeEntries: TimeEntry[], project: Project, task: Task): Observable<TimeEntry[]> {
+    const patchRequest: Partial<PatchTimeEntryRequest> = {
+      projectId: project.id,
+      taskId: task.id,
+    }
+    return this.bulkPatchTimeEntries(timeEntries, patchRequest);
+  }
+
   private patchTimeEntry(timeEntry: TimeEntry, patchRequest: Partial<PatchTimeEntryRequest>): Observable<TimeEntry> {
     return this.http.patch<TimeEntry>(`${this.url}/${timeEntry.id}`, patchRequest, { withCredentials: true })
   }
 
+  private bulkPatchTimeEntries(timeEntries: TimeEntry[], patchRequest: Partial<PatchTimeEntryRequest>): Observable<TimeEntry[]> {
+    const request: PatchTimeEntriesRequest = {
+      timeEntries: timeEntries.map(timeEntry => ({
+        timeEntryId: timeEntry.id,
+        patch: patchRequest,
+      })),
+    };
+    return this.http.patch<TimeEntry[]>(this.url, request, { withCredentials: true });
+  }
+
   deleteTimeEntry(timeEntry: TimeEntry): Observable<void> {
     return this.http.delete<void>(`${this.url}/${timeEntry.id}`, { withCredentials: true });
+  }
+
+  deleteTimeEntries(timeEntries: TimeEntry[]): Observable<void> {
+    const request: DeleteTimeEntriesRequest = {
+      timeEntryIds: timeEntries.map(timeEntry => timeEntry.id),
+    };
+    return this.http.post<void>(`${this.url}/bulk-delete`, request, { withCredentials: true });
   }
 }

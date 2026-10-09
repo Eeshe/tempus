@@ -152,6 +152,11 @@
 
 .time-group__billable {
   display: inline-flex;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   color: var(--muted);
   font-size: 1.0625rem;
   font-weight: 500;
@@ -224,3 +229,13 @@
 .time-group__icon--delete:hover {
   background-color: var(--bad);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .time-group,
+  .time-group__toggle,
+  .time-group__chevron,
+  .time-group__icon {
+    transition: none;
+  }
+}
+

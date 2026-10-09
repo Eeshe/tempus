@@ -2,8 +2,28 @@
   display: block;
 }
 
+/* Grid is only needed while the grid-template-rows collapse animation runs. */
+:host(.animate-expand),
+:host(.animate-collapse) {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.time-entry__clip {
+  overflow: hidden;
+  min-height: 0;
+}
+
 :host(:not(:last-child)) .time-entry {
   border-bottom: 1px solid var(--border);
+}
+
+:host(.animate-expand) {
+  animation: tempus-expand 250ms ease-out;
+}
+
+:host(.animate-collapse) {
+  animation: tempus-collapse 250ms ease-in forwards;
 }
 
 .time-entry {
@@ -154,4 +174,18 @@ app-time-input {
 
 .time-entry__icon--delete:hover {
   background-color: var(--bad);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.animate-expand),
+  :host(.animate-collapse) {
+    animation: none;
+  }
+
+  .time-entry,
+  .time-entry__description-placeholder,
+  .time-entry__description-input,
+  .time-entry__icon {
+    transition: none;
+  }
 }

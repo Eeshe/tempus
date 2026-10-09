@@ -1,26 +1,37 @@
-<div class="active-entries">
+<div class="active-entries" [class.active-entries--stacked]="activeTimeEntries().length > 1">
   @for(activeTimeEntry of activeTimeEntries(); track activeTimeEntry.id) {
-  <app-active-time-entry [activeTimeEntry]="activeTimeEntry"/>
+  <app-active-time-entry
+    [animate.enter]="enterClass()"
+    [animate.leave]="leaveClass()"
+    [activeTimeEntry]="activeTimeEntry"/>
   }
 </div>
 
-@for(dayGroup of dayGroupedTimeEntries(); track dayGroup.formattedDate) {
+@for(dayGroup of dayGroupedTimeEntries(); track dayGroup.id) {
   @if(countTotalTimeEntries(dayGroup.endedEntries) > 0) {
-    <section class="day">
-      <header class="day-header">
-        <span class="day-header__date">{{ dayGroup.formattedDate }}</span>
-        <span class="day-header__total">
-          <span class="day-header__total-label">Total</span>
-          <span class="day-header__total-value">{{ isTodayGroup(dayGroup) ?
-          ( todayFormattedTime$ | async ) : dayGroup.formattedTotalTime }}</span>
-        </span>
-      </header>
-      <div class="day-groups">
-        @for(timeEntryGroup of dayGroup.allEntries; track timeEntryGroup[0]) {
-          @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1])) {
-            <app-resumable-time-entry-group [timeEntries]="timeEntryGroup[1]"/>
+    <section class="day"
+      [animate.enter]="enterClass()"
+      [animate.leave]="leaveClass()">
+      <div class="day__content">
+        <header class="day-header">
+          <span class="day-header__date">{{ dayGroup.formattedDate }}</span>
+          <span class="day-header__total">
+            <span class="day-header__total-label">Total</span>
+            <span class="day-header__total-value">{{ isTodayGroup(dayGroup) ?
+            ( todayFormattedTime$ | async ) : dayGroup.formattedTotalTime }}</span>
+          </span>
+        </header>
+        <div class="day-groups">
+          @for(timeEntryGroup of dayGroup.allEntries; track timeEntryGroup[1].id) {
+            @if(hasAtLeastOneEndedTimeEntry(timeEntryGroup[1].entries)) {
+              <div class="day-group"
+              [animate.enter]="enterClass()"
+              [animate.leave]="leaveClass()">
+                <app-resumable-time-entry-group [timeEntries]="timeEntryGroup[1].entries"/>
+              </div>
+            }
           }
-        }
+        </div>
       </div>
     </section>
   }

@@ -6,6 +6,18 @@
   color: var(--fg);
 }
 
+/* Grid is only needed while the grid-template-rows collapse animation runs. */
+:host(.animate-expand),
+:host(.animate-collapse) {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.active-entry__clip {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .active-entry {
   display: flex;
   align-items: center;
@@ -90,4 +102,24 @@
 
 .active-entry__icon--delete:hover {
   background-color: var(--bad);
+}
+
+:host(.animate-expand) {
+  animation: tempus-expand 250ms ease-out;
+}
+
+:host(.animate-collapse) {
+  animation: tempus-collapse 250ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.animate-expand),
+  :host(.animate-collapse) {
+    animation: none;
+  }
+
+  .active-entry,
+  .active-entry__icon {
+    transition: none;
+  }
 }
