@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
@@ -155,6 +156,10 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     private TimeEntry requestToTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
+        final Task task = createTimeEntryRequest.task();
+        if (task != null && task.getProject().getId() != createTimeEntryRequest.project().getId()) {
+
+        }
         return new TimeEntry(
                 createTimeEntryRequest.user(),
                 createTimeEntryRequest.project(),
