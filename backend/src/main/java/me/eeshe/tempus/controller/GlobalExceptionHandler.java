@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
+import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
@@ -99,6 +100,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserClientAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleUserClientAlreadyExistsException(
             UserClientAlreadyExistsException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TaskDoesNotBelongToProjectException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTaskDoesNotBelongToProjectException(
+            TaskDoesNotBelongToProjectException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

@@ -10,8 +10,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.model.TimeEntryPage;
@@ -156,10 +158,10 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     private TimeEntry requestToTimeEntry(CreateTimeEntryRequest createTimeEntryRequest) {
+        final Project project = createTimeEntryRequest.project();
         final Task task = createTimeEntryRequest.task();
-        if (task != null && task.getProject().getId() != createTimeEntryRequest.project().getId()) {
+        validateTaskBelongsToProject(task, project);
 
-        }
         return new TimeEntry(
                 createTimeEntryRequest.user(),
                 createTimeEntryRequest.project(),
@@ -208,12 +210,22 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     }
 
     private void applyPatch(TimeEntry timeEntry, PatchTimeEntryRequest patchTimeEntryRequest) {
+        final Project project = patchTimeEntryRequest.project().orElse(timeEntry.getProject());
+        final Task task = patchTimeEntryRequest.task().orElse(timeEntry.getTask());
+        validateTaskBelongsToProject(task, project);
+
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
         patchTimeEntryRequest.description().ifPresent(timeEntry::setDescription);
         patchTimeEntryRequest.isBillable().ifPresent(timeEntry::setBillable);
         patchTimeEntryRequest.startTime().ifPresent(timeEntry::setStartTime);
         patchTimeEntryRequest.endTime().ifPresent(timeEntry::setEndTime);
+    }
+
+    private void validateTaskBelongsToProject(final Task task, final Project project) {
+        if (task != null && task.getProject().getId() != project.getId()) {
+            throw new TaskDoesNotBelongToProjectException(project.getId(), task.getId());
+        }
     }
 
     @Override
