@@ -73,7 +73,7 @@ public class ReportControllerTest extends ControllerTestBase {
             when(reportService.generateProjectReport(reportRequest)).thenReturn(report);
             when(reportMapper.toProjectDTO(report)).thenReturn(reportDTO);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(200)
@@ -101,7 +101,7 @@ public class ReportControllerTest extends ControllerTestBase {
             when(reportService.generateProjectReport(reportRequest)).thenReturn(report);
             when(reportMapper.toProjectDTO(report)).thenReturn(reportDTO);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(200)
@@ -113,7 +113,7 @@ public class ReportControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(401);
@@ -140,7 +140,7 @@ public class ReportControllerTest extends ControllerTestBase {
             when(reportService.generateClientReport(reportRequest)).thenReturn(report);
             when(reportMapper.toClientDTO(report)).thenReturn(reportDTO);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(200)
@@ -168,7 +168,7 @@ public class ReportControllerTest extends ControllerTestBase {
             when(reportService.generateClientReport(reportRequest)).thenReturn(report);
             when(reportMapper.toClientDTO(report)).thenReturn(reportDTO);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(200)
@@ -180,7 +180,7 @@ public class ReportControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(REPORT_REQUEST_JSON_BODY))
                     .hasStatus(401);

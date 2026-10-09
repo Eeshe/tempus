@@ -104,7 +104,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "password": "MyPassword"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(201)
@@ -122,7 +122,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "username": "",
                         "password": ""
                     }""";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -137,7 +137,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "username": null,
                         "password": null
                     }""";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -148,7 +148,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
         @Test
         void rejectsNonProvidedCredentials() {
             final String jsonBody = "";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -172,7 +172,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "password": "MyPassword"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -209,7 +209,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "password": "MyPassword"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -240,7 +240,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "password": "MyPassword"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(401)
@@ -272,7 +272,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "password": "MyPassword"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(401)
@@ -294,7 +294,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "username": "",
                         "password": ""
                     }""";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -309,7 +309,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
                         "username": null,
                         "password": null
                     }""";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -320,7 +320,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
         @Test
         void rejectsNonProvidedCredentials() {
             final String jsonBody = "";
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400);
@@ -335,7 +335,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void logsOutAuthenticatedUser() {
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))).hasStatus(204);
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))).hasStatus(204);
 
             verify(authenticationService).logoutUser(
                     any(HttpServletRequest.class),
@@ -344,7 +344,7 @@ public class AuthenticationControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedUserLogout() {
-            assertThat(mockMvc.post().uri(URL)).hasStatus(401);
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(authenticationService);
         }

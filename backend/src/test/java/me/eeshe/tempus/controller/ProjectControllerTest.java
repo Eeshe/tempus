@@ -161,7 +161,7 @@ public class ProjectControllerTest extends ControllerTestBase {
             when(projectService.createProject(createProjectRequest)).thenReturn(createdProject);
             when(projectMapper.toDTO(eq(createdProject))).thenReturn(createProjectDTO());
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_PROJECT_JSON_BODY))
                     .hasStatus(201)
@@ -176,7 +176,7 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_PROJECT_JSON_BODY))
                     .hasStatus(401);
@@ -198,7 +198,7 @@ public class ProjectControllerTest extends ControllerTestBase {
             when(projectService.createProject(createProjectRequest))
                     .thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_PROJECT_JSON_BODY))
                     .hasStatus(400)
@@ -231,7 +231,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": %s
                     }""".formatted(CLIENT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(404)
@@ -253,7 +253,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": null
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -271,7 +271,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": null
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -288,7 +288,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": null
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -306,7 +306,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "hourlyRate": -1
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -338,7 +338,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     eq(patchProjectRequest))).thenReturn(patchedProject);
             when(projectMapper.toDTO(eq(patchedProject))).thenReturn(createProjectDTO());
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_PROJECT_JSON_BODY))
                     .hasStatus(200)
@@ -384,7 +384,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "hourlyRate": %s
                     }""".formatted(hourlyRate);
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -429,7 +429,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": %s
                     }""".formatted(CLIENT_ID);
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -469,7 +469,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     eq(patchProjectRequest))).thenReturn(patchedProject);
             when(projectMapper.toDTO(eq(patchedProject))).thenReturn(createProjectDTO());
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                     .hasStatus(200)
@@ -517,7 +517,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": %s
                     }""".formatted(hourlyRate, CLIENT_ID);
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -563,7 +563,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "isArchived": true
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -598,7 +598,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "clientId": %s
                     }""".formatted(CLIENT_ID);
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(404)
@@ -614,7 +614,7 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID)).hasStatus(401);
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(projectMapper, projectService);
         }
@@ -634,7 +634,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     eq(PROJECT_ID),
                     eq(patchProjectRequest))).thenThrow(exception);
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_PROJECT_JSON_BODY))
                     .hasStatus(404)
@@ -658,7 +658,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "name": ""
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -675,7 +675,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "name": "  "
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -692,7 +692,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                         "hourlyRate": -1
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -709,7 +709,7 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void deletesProject() {
-            assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(204);
 
             verify(projectService).deleteProject(USER_ID, PROJECT_ID);
@@ -717,7 +717,7 @@ public class ProjectControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.delete().uri(URL, PROJECT_ID)).hasStatus(401);
+            assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(projectService);
         }
@@ -727,7 +727,7 @@ public class ProjectControllerTest extends ControllerTestBase {
             final ProjectNotFoundException exception = new ProjectNotFoundException(PROJECT_ID);
             doThrow(exception).when(projectService).deleteProject(USER_ID, PROJECT_ID);
 
-            assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()

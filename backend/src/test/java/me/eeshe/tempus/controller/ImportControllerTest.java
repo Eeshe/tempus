@@ -58,7 +58,7 @@ public class ImportControllerTest extends ControllerTestBase {
 
             assertThat(mockMvc.post().multipart().uri(URL)
                     .file(createCsvFile())
-                    .with(createPrincipal(USER_ID)))
+                    .with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(200)
                     .bodyJson()
                     .isEqualTo(createImportResultDTOJson());
@@ -87,7 +87,7 @@ public class ImportControllerTest extends ControllerTestBase {
             assertThat(mockMvc.post().multipart().uri(URL)
                     .file(createCsvFile())
                     .file(createSecondCsvFile())
-                    .with(createPrincipal(USER_ID)))
+                    .with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(200)
                     .bodyJson()
                     .isEqualTo(createImportResultDTOJson());
@@ -110,7 +110,7 @@ public class ImportControllerTest extends ControllerTestBase {
 
             assertThat(mockMvc.post().multipart().uri(URL)
                     .file(createCsvFile())
-                    .with(createPrincipal(USER_ID)))
+                    .with(createPrincipalWithCsrf(USER_ID)))
                     .failure()
                     .isInstanceOf(ServletException.class)
                     .hasCauseInstanceOf(CSVFileReadException.class)
@@ -122,7 +122,7 @@ public class ImportControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsMissingFiles() {
-            assertThat(mockMvc.post().multipart().uri(URL).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.post().multipart().uri(URL).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString().isEqualTo(ImportCSVFilesRequestDTO.ERROR_MESSAGE_NO_FILES);
@@ -134,7 +134,7 @@ public class ImportControllerTest extends ControllerTestBase {
         void rejectsNonCsvFile() {
             assertThat(mockMvc.post().multipart().uri(URL)
                     .file(createNonCsvFile())
-                    .with(createPrincipal(USER_ID)))
+                    .with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString().isEqualTo(ImportCSVFilesRequestDTO.ERROR_MESSAGE_NOT_CSV);
@@ -146,7 +146,7 @@ public class ImportControllerTest extends ControllerTestBase {
         void rejectsWrongFieldName() {
             assertThat(mockMvc.post().multipart().uri(URL)
                     .file(createWrongFieldNameFile())
-                    .with(createPrincipal(USER_ID)))
+                    .with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(400)
                     .bodyJson()
                     .extractingPath("$.error").asString().isEqualTo(ImportCSVFilesRequestDTO.ERROR_MESSAGE_NO_FILES);
@@ -156,7 +156,7 @@ public class ImportControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().multipart().uri(URL)
+            assertThat(mockMvc.post().multipart().uri(URL).with(createCsrf())
                     .file(createCsvFile()))
                     .hasStatus(401);
 

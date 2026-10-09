@@ -14,7 +14,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import jakarta.servlet.ServletException;
-import me.eeshe.tempus.controller.SyncController;
 import me.eeshe.tempus.dto.SyncDataDTO;
 import me.eeshe.tempus.mapper.SyncDataMapper;
 import me.eeshe.tempus.model.SyncData;
@@ -85,7 +84,7 @@ public class SyncControllerTest extends ControllerTestBase {
 
         @Test
         void exportsSnapshot() {
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(200);
 
             verify(syncService).exportSnapshot();
@@ -95,7 +94,7 @@ public class SyncControllerTest extends ControllerTestBase {
         void rejectsSnapshotFailure() {
             doThrow(new RuntimeException("Export failed")).when(syncService).exportSnapshot();
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID)))
                     .failure()
                     .isInstanceOf(ServletException.class)
                     .hasRootCauseInstanceOf(RuntimeException.class)
@@ -106,7 +105,7 @@ public class SyncControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)).hasStatus(401);
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(syncService);
         }
@@ -118,7 +117,7 @@ public class SyncControllerTest extends ControllerTestBase {
 
         @Test
         void importsSnapshot() {
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(200);
 
             verify(syncService).importSnapshot();
@@ -128,7 +127,7 @@ public class SyncControllerTest extends ControllerTestBase {
         void rejectsSnapshotFailure() {
             doThrow(new RuntimeException("Import failed")).when(syncService).importSnapshot();
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID)))
                     .failure()
                     .isInstanceOf(ServletException.class)
                     .hasRootCauseInstanceOf(RuntimeException.class)
@@ -139,7 +138,7 @@ public class SyncControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)).hasStatus(401);
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(syncService);
         }

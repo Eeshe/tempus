@@ -224,7 +224,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
             when(timeEntryService.createTimeEntry(createTimeEntryRequest)).thenReturn(createdTimeEntry);
             when(timeEntryMapper.toDTO(eq(createdTimeEntry))).thenReturn(createTimeEntryDTO());
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TIME_ENTRY_JSON_BODY))
                     .hasStatus(201)
@@ -239,7 +239,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TIME_ENTRY_JSON_BODY))
                     .hasStatus(401);
@@ -257,7 +257,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     eq(USER_ID)))
                     .thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TIME_ENTRY_JSON_BODY))
                     .hasStatus(404)
@@ -281,7 +281,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     eq(USER_ID)))
                     .thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TIME_ENTRY_JSON_BODY))
                     .hasStatus(404)
@@ -304,7 +304,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": "%s"
                     }""".formatted(START_TIME);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -323,7 +323,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": "%s"
                     }""".formatted(START_TIME);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -343,7 +343,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": "%s"
                     }""".formatted(PROJECT_ID, START_TIME);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -362,7 +362,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": "%s"
                     }""".formatted(PROJECT_ID, START_TIME);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -382,7 +382,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": null
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -401,7 +401,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "isBillable": true
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -440,7 +440,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "description": "MyDescription"
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -479,7 +479,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "projectId": %s
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -518,7 +518,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "taskId": %s
                     }""".formatted(TASK_ID);
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -557,7 +557,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "isBillable": true
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -596,7 +596,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": "%s"
                     }""".formatted(START_TIME);
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -635,7 +635,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "endTime": "%s"
                     }""".formatted(END_TIME);
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -684,7 +684,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "endTime": "%s"
                     }""".formatted(PROJECT_ID, TASK_ID, START_TIME, END_TIME);
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -717,7 +717,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     eq(patchTimeEntryRequest))).thenReturn(patchedTimeEntry);
             when(timeEntryMapper.toDTO(eq(patchedTimeEntry))).thenReturn(createTimeEntryDTO());
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                     .hasStatus(200)
@@ -735,7 +735,8 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID)).hasStatus(401);
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createCsrf()))
+                    .hasStatus(401);
 
             verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
@@ -762,7 +763,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "description": "MyDescription"
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(404)
@@ -786,7 +787,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "projectId": null
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -804,7 +805,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "isBillable": null
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -822,7 +823,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "startTime": null
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -840,7 +841,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void deletesTimeEntry() {
-            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(204);
 
             verify(timeEntryService).deleteTimeEntry(USER_ID, TIME_ENTRY_ID);
@@ -848,7 +849,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID)).hasStatus(401);
+            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(timeEntryService);
         }
@@ -859,7 +860,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
             doThrow(exception).when(timeEntryService)
                     .deleteTimeEntry(USER_ID, TIME_ENTRY_ID);
 
-            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, TIME_ENTRY_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()
@@ -887,7 +888,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntryIds": [%s]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(204);
@@ -903,7 +904,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntryIds": [%s]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(401);
@@ -918,7 +919,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntryIds": []
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -934,7 +935,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
             final String jsonBody = """
                     {}""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -952,7 +953,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntryIds": [null]
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -979,7 +980,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntryIds": [%s]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(404)
@@ -1026,7 +1027,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(200)
@@ -1051,7 +1052,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.patch().uri(URL)
+            assertThat(mockMvc.patch().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(401);
@@ -1066,7 +1067,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         "timeEntries": []
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1082,7 +1083,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
             final String jsonBody = """
                     {}""";
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1107,7 +1108,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1131,7 +1132,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1154,7 +1155,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1179,7 +1180,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -1218,7 +1219,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                         ]
                     }""".formatted(TIME_ENTRY_ID);
 
-            assertThat(mockMvc.patch().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(404)

@@ -1,6 +1,7 @@
 package me.eeshe.tempus.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -65,7 +66,7 @@ public class TempusApplicationIntegrationTest {
         void registersLogsInAndChecksCurrentUser() throws Exception {
             final String credentialsJson = createCredentialsJson(CURRENT_USER_USERNAME);
 
-            final MvcTestResult registerResult = mockMvc.post().uri(REGISTER_URL)
+            final MvcTestResult registerResult = mockMvc.post().uri(REGISTER_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(credentialsJson)
                     .exchange();
@@ -73,7 +74,7 @@ public class TempusApplicationIntegrationTest {
             assertThat(registerResult).hasStatus(201);
             assertThat(json(registerResult).get("name").asString()).isEqualTo(CURRENT_USER_USERNAME);
 
-            final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL)
+            final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(credentialsJson)
                     .exchange();
@@ -92,7 +93,7 @@ public class TempusApplicationIntegrationTest {
         void logsOutUser() throws Exception {
             final Cookie sessionCookie = registerAndLogin(LOGOUT_USERNAME);
 
-            assertThat(mockMvc.post().uri(LOGOUT_URL).cookie(sessionCookie)).hasStatus(204);
+            assertThat(mockMvc.post().uri(LOGOUT_URL).with(csrf()).cookie(sessionCookie)).hasStatus(204);
             assertThat(mockMvc.get().uri(CURRENT_USER_URL).cookie(sessionCookie)).hasStatus(401);
         }
 
@@ -100,11 +101,11 @@ public class TempusApplicationIntegrationTest {
         void rejectsDuplicateRegistration() throws Exception {
             final String credentialsJson = createCredentialsJson(DUPLICATE_USERNAME);
 
-            assertThat(mockMvc.post().uri(REGISTER_URL)
+            assertThat(mockMvc.post().uri(REGISTER_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(credentialsJson)).hasStatus(201);
 
-            final MvcTestResult registerResult = mockMvc.post().uri(REGISTER_URL)
+            final MvcTestResult registerResult = mockMvc.post().uri(REGISTER_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(credentialsJson)
                     .exchange();
@@ -122,7 +123,7 @@ public class TempusApplicationIntegrationTest {
         void fullTimeTrackingWorkflow() throws Exception {
             final Cookie sessionCookie = registerAndLogin(WORKFLOW_USERNAME);
 
-            final MvcTestResult clientResult = mockMvc.post().uri(CLIENTS_URL)
+            final MvcTestResult clientResult = mockMvc.post().uri(CLIENTS_URL).with(csrf())
                     .cookie(sessionCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
@@ -138,7 +139,7 @@ public class TempusApplicationIntegrationTest {
                          "clientId": %s,
                          "hourlyRate": 50.00
                      }""".formatted(clientId);
-            final MvcTestResult projectResult = mockMvc.post().uri(PROJECTS_URL)
+            final MvcTestResult projectResult = mockMvc.post().uri(PROJECTS_URL).with(csrf())
                     .cookie(sessionCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(createProjectJson)
@@ -152,7 +153,7 @@ public class TempusApplicationIntegrationTest {
                         "name": "MyTask",
                         "projectId": %s
                     }""".formatted(projectId);
-            final MvcTestResult taskResult = mockMvc.post().uri(TASKS_URL)
+            final MvcTestResult taskResult = mockMvc.post().uri(TASKS_URL).with(csrf())
                     .cookie(sessionCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(createTaskJson)
@@ -170,7 +171,7 @@ public class TempusApplicationIntegrationTest {
                         "startTime": "2026-01-01T09:00:00Z",
                         "endTime": "2026-01-01T11:00:00Z"
                     }""".formatted(projectId, taskId);
-            final MvcTestResult timeEntryResult = mockMvc.post().uri(TIME_ENTRIES_URL)
+            final MvcTestResult timeEntryResult = mockMvc.post().uri(TIME_ENTRIES_URL).with(csrf())
                     .cookie(sessionCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(createTimeEntryJson)
@@ -195,7 +196,7 @@ public class TempusApplicationIntegrationTest {
                         "descriptions": [],
                         "isBillable": true
                     }""";
-            final MvcTestResult reportResult = mockMvc.post().uri(PROJECT_REPORT_URL)
+            final MvcTestResult reportResult = mockMvc.post().uri(PROJECT_REPORT_URL).with(csrf())
                     .cookie(sessionCookie)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(reportJson)
@@ -214,11 +215,11 @@ public class TempusApplicationIntegrationTest {
     private Cookie registerAndLogin(String username) throws Exception {
         final String credentialsJson = createCredentialsJson(username);
 
-        assertThat(mockMvc.post().uri(REGISTER_URL)
+        assertThat(mockMvc.post().uri(REGISTER_URL).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(credentialsJson)).hasStatus(201);
 
-        final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL)
+        final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(credentialsJson)
                 .exchange();

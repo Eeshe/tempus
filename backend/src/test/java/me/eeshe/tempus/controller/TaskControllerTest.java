@@ -159,7 +159,7 @@ public class TaskControllerTest extends ControllerTestBase {
             when(taskService.createTask(createTaskRequest)).thenReturn(createdTask);
             when(taskMapper.toDTO(eq(createdTask))).thenReturn(createTaskDTO());
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TASK_JSON_BODY))
                     .hasStatus(201)
@@ -174,7 +174,7 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TASK_JSON_BODY))
                     .hasStatus(401);
@@ -197,7 +197,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .thenReturn(createTaskRequest);
             when(taskService.createTask(createTaskRequest)).thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TASK_JSON_BODY))
                     .hasStatus(400)
@@ -219,7 +219,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "projectId": %s
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -237,7 +237,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "projectId": %s
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -254,7 +254,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "projectId": %s
                     }""".formatted(PROJECT_ID);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -276,7 +276,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     .thenReturn(createTaskRequest);
             when(taskService.createTask(createTaskRequest)).thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_TASK_JSON_BODY))
                     .hasStatus(404)
@@ -298,7 +298,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "projectId": ""
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -316,7 +316,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "projectId": "null"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -333,7 +333,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "name": "MyTask"
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -364,7 +364,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     eq(patchTaskRequest))).thenReturn(patchedTask);
             when(taskMapper.toDTO(eq(patchedTask))).thenReturn(createTaskDTO());
 
-            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_TASK_JSON_BODY))
                     .hasStatus(200)
@@ -396,7 +396,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     eq(patchTaskRequest))).thenReturn(patchedTask);
             when(taskMapper.toDTO(eq(patchedTask))).thenReturn(createTaskDTO());
 
-            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                     .hasStatus(200)
@@ -414,7 +414,7 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.patch().uri(URL, TASK_ID)).hasStatus(401);
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(taskMapper, taskService);
         }
@@ -434,7 +434,7 @@ public class TaskControllerTest extends ControllerTestBase {
                     eq(TASK_ID),
                     eq(patchTaskRequest))).thenThrow(exception);
 
-            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_TASK_JSON_BODY))
                     .hasStatus(404)
@@ -458,7 +458,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "name": ""
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -475,7 +475,7 @@ public class TaskControllerTest extends ControllerTestBase {
                         "name": "  "
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -492,7 +492,7 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void deletesTask() {
-            assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(204);
 
             verify(taskService).deleteTask(USER_ID, TASK_ID);
@@ -500,7 +500,7 @@ public class TaskControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.delete().uri(URL, TASK_ID)).hasStatus(401);
+            assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(taskService);
         }
@@ -510,7 +510,7 @@ public class TaskControllerTest extends ControllerTestBase {
             final TaskNotFoundException exception = new TaskNotFoundException(TASK_ID);
             doThrow(exception).when(taskService).deleteTask(USER_ID, TASK_ID);
 
-            assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, TASK_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()

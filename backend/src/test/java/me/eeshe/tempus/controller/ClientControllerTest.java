@@ -157,7 +157,7 @@ public class ClientControllerTest extends ControllerTestBase {
             when(clientService.createClient(createClientRequest)).thenReturn(createdClient);
             when(clientMapper.toDTO(eq(createdClient))).thenReturn(createClientDTO());
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_CLIENT_JSON_BODY))
                     .hasStatus(201)
@@ -172,7 +172,7 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.post().uri(URL)
+            assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_CLIENT_JSON_BODY))
                     .hasStatus(401);
@@ -194,7 +194,7 @@ public class ClientControllerTest extends ControllerTestBase {
             when(clientService.createClient(createClientRequest))
                     .thenThrow(exception);
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(CREATE_CLIENT_JSON_BODY))
                     .hasStatus(400)
@@ -215,7 +215,7 @@ public class ClientControllerTest extends ControllerTestBase {
                         "name": ""
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -232,7 +232,7 @@ public class ClientControllerTest extends ControllerTestBase {
                         "name": "  "
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -248,7 +248,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     {
                     }""";
 
-            assertThat(mockMvc.post().uri(URL).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -279,7 +279,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     eq(patchClientRequest))).thenReturn(patchedClient);
             when(clientMapper.toDTO(eq(patchedClient))).thenReturn(createClientDTO());
 
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_CLIENT_JSON_BODY))
                     .hasStatus(200)
@@ -311,7 +311,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     eq(patchClientRequest))).thenReturn(patchedClient);
             when(clientMapper.toDTO(eq(patchedClient))).thenReturn(createClientDTO());
 
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                     .hasStatus(200)
@@ -329,7 +329,7 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID)).hasStatus(401);
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(clientMapper, clientService);
         }
@@ -349,7 +349,7 @@ public class ClientControllerTest extends ControllerTestBase {
                     eq(CLIENT_ID),
                     eq(patchClientRequest))).thenThrow(exception);
 
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(PATCH_CLIENT_JSON_BODY))
                     .hasStatus(404)
@@ -373,7 +373,7 @@ public class ClientControllerTest extends ControllerTestBase {
                         "name": ""
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -390,7 +390,7 @@ public class ClientControllerTest extends ControllerTestBase {
                         "name": "  "
                     }""";
 
-            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID))
+            assertThat(mockMvc.patch().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody))
                     .hasStatus(400)
@@ -407,7 +407,7 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void deletesClient() {
-            assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(204);
 
             verify(clientService).deleteClient(USER_ID, CLIENT_ID);
@@ -415,7 +415,7 @@ public class ClientControllerTest extends ControllerTestBase {
 
         @Test
         void rejectsUnauthenticatedRequest() {
-            assertThat(mockMvc.delete().uri(URL, CLIENT_ID)).hasStatus(401);
+            assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createCsrf())).hasStatus(401);
 
             verifyNoInteractions(clientService);
         }
@@ -425,7 +425,7 @@ public class ClientControllerTest extends ControllerTestBase {
             final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
             doThrow(exception).when(clientService).deleteClient(USER_ID, CLIENT_ID);
 
-            assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createPrincipal(USER_ID)))
+            assertThat(mockMvc.delete().uri(URL, CLIENT_ID).with(createPrincipalWithCsrf(USER_ID)))
                     .hasStatus(404)
                     .bodyJson()
                     .extractingPath("$.error").asString()

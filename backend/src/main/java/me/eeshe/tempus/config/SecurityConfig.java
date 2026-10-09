@@ -33,7 +33,6 @@ public class SecurityConfig {
                 .permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll())
-                .csrf(csrf -> csrf.disable())
                 .httpBasic(basic -> basic.authenticationEntryPoint(restAuthenticationEntryPoint));
 
         return http.build();

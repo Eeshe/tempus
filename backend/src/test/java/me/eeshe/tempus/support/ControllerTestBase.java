@@ -1,5 +1,6 @@
 package me.eeshe.tempus.support;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import java.math.BigDecimal;
@@ -30,8 +31,16 @@ public abstract class ControllerTestBase extends EntityTestBase {
     @MockitoBean
     protected UserRepository userRepository;
 
+    protected RequestPostProcessor createPrincipalWithCsrf(long userId) {
+        return request -> createCsrf().postProcessRequest(createPrincipal(userId).postProcessRequest(request));
+    }
+
     protected RequestPostProcessor createPrincipal(long userId) {
         return user(new UserDetailsImpl(createUser(userId)));
+    }
+
+    protected RequestPostProcessor createCsrf() {
+        return csrf();
     }
 
     protected static UserDTO createTestUserDTO(long userId, Instant createdAt) {
