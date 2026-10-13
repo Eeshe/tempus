@@ -27,6 +27,7 @@ import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
 import me.eeshe.tempus.model.TimeEntryPage;
@@ -241,6 +242,50 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(timeEntryCaptor.getValue().getEndTime()).isEqualTo(END_TIME);
             assertThat(timeEntry).isEqualTo(savedTimeEntry);
         }
+
+        @Test
+        void throwsWhenTaskDoesNotBelongToProject() {
+            final CreateTimeEntryRequest createTimeEntryRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID),
+                    createSecondProject(),
+                    createTask(),
+                    "MyDescription",
+                    true,
+                    START_TIME,
+                    END_TIME);
+
+            assertThatThrownBy(() -> timeEntryService.createTimeEntry(createTimeEntryRequest))
+                    .isInstanceOf(TaskDoesNotBelongToProjectException.class)
+                    .hasMessage("Task with ID 300 is not from project with ID 21");
+
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void savesTimeEntryWhenTaskIsNull() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final CreateTimeEntryRequest createTimeEntryRequest = new CreateTimeEntryRequest(
+                    user,
+                    project,
+                    null,
+                    "MyDescription",
+                    true,
+                    START_TIME,
+                    END_TIME);
+            final TimeEntry savedTimeEntry = createTimeEntry(TIME_ENTRY_ID);
+
+            when(timeEntryRepository.save(any(TimeEntry.class))).thenReturn(savedTimeEntry);
+
+            final TimeEntry timeEntry = timeEntryService.createTimeEntry(createTimeEntryRequest);
+            final ArgumentCaptor<TimeEntry> timeEntryCaptor = ArgumentCaptor.forClass(TimeEntry.class);
+
+            verify(timeEntryRepository).save(timeEntryCaptor.capture());
+
+            assertThat(timeEntryCaptor.getValue().getProject()).isEqualTo(project);
+            assertThat(timeEntryCaptor.getValue().getTask()).isNull();
+            assertThat(timeEntry).isEqualTo(savedTimeEntry);
+        }
     }
 
     @Nested
@@ -252,7 +297,8 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
                     createUser(USER_ID), createProject(), null, "MyDescription", true, START_TIME, END_TIME);
             final CreateTimeEntryRequest secondRequest = new CreateTimeEntryRequest(
                     createUser(USER_ID), createProject(), null, "MyDescription", false, START_TIME, END_TIME);
-            final List<TimeEntry> savedTimeEntries = List.of(createTimeEntry(TIME_ENTRY_ID), createTimeEntry(TIME_ENTRY_ID + 1));
+            final List<TimeEntry> savedTimeEntries = List.of(createTimeEntry(TIME_ENTRY_ID),
+                    createTimeEntry(TIME_ENTRY_ID + 1));
 
             when(timeEntryRepository.saveAll(anyList())).thenReturn(savedTimeEntries);
 
@@ -266,27 +312,60 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(timeEntryCaptor.getValue()).hasSize(2);
             assertThat(timeEntries).containsExactlyElementsOf(savedTimeEntries);
         }
+
+        @Test
+        void savesAllTimeEntriesWithMatchingTasks() {
+            final Project project = createProject();
+            final CreateTimeEntryRequest firstRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID), project, createTask(), "MyDescription", true, START_TIME, END_TIME);
+            final CreateTimeEntryRequest secondRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID), project, createSecondTask(), "MyDescription", false, START_TIME, END_TIME);
+            final List<TimeEntry> savedTimeEntries = List.of(
+                    createTimeEntry(TIME_ENTRY_ID), createTimeEntry(TIME_ENTRY_ID + 1));
+
+            when(timeEntryRepository.saveAll(anyList())).thenReturn(savedTimeEntries);
+
+            final List<TimeEntry> timeEntries = timeEntryService.createTimeEntries(
+                    List.of(firstRequest, secondRequest));
+
+            verify(timeEntryRepository).saveAll(anyList());
+            assertThat(timeEntries).containsExactlyElementsOf(savedTimeEntries);
+        }
+
+        @Test
+        void throwsWhenTaskDoesNotBelongToProject() {
+            final CreateTimeEntryRequest mismatchedRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID), createSecondProject(), createTask(), "MyDescription", true, START_TIME,
+                    END_TIME);
+
+            assertThatThrownBy(() -> timeEntryService.createTimeEntries(List.of(mismatchedRequest)))
+                    .isInstanceOf(TaskDoesNotBelongToProjectException.class)
+                    .hasMessage("Task with ID 300 is not from project with ID 21");
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
     }
 
     @Nested
     class PatchTimeEntry {
 
         @Test
-        void patchesProjectAndSaves() {
+        void patchesProjectAndTaskWhenTaskBelongsToNewProjectAndSaves() {
             final User user = createUser(USER_ID);
             final Project project = createProject();
             final Task task = createTask();
             final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
             final Project newProject = createSecondProject();
+            final Task newTask = createTask(SECOND_TASK_ID, "MySecondTask", CREATED_AT, newProject);
 
             when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
             when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
 
             final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
-                    new PatchTimeEntryRequestBuilder().project(newProject).build());
+                    new PatchTimeEntryRequestBuilder().project(newProject).task(newTask).build());
 
             assertThat(patchedTimeEntry.getProject()).isEqualTo(newProject);
-            assertThat(patchedTimeEntry.getTask()).isEqualTo(task);
+            assertThat(patchedTimeEntry.getTask()).isEqualTo(newTask);
             assertThat(patchedTimeEntry.getDescription()).isEqualTo("MyDescription");
             assertThat(patchedTimeEntry.isBillable()).isTrue();
             assertThat(patchedTimeEntry.getStartTime()).isEqualTo(START_TIME);
@@ -432,6 +511,63 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(patchedTimeEntry.isBillable()).isTrue();
             assertThat(patchedTimeEntry.getStartTime()).isEqualTo(START_TIME);
             assertThat(patchedTimeEntry.getEndTime()).isEqualTo(END_TIME);
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void throwsWhenPatchedProjectDoesNotMatchExistingTask() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().project(createSecondProject()).build()))
+                    .isInstanceOf(TaskDoesNotBelongToProjectException.class)
+                    .hasMessage("Task with ID 300 is not from project with ID 21");
+
+            assertThat(timeEntry.getProject()).isEqualTo(project);
+            assertThat(timeEntry.getTask()).isEqualTo(task);
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void throwsWhenPatchedTaskDoesNotBelongToExistingProject() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final TimeEntry timeEntry = new TimeEntry(user, project, null, "MyDescription", true, START_TIME, END_TIME);
+            final Task mismatchedTask = createTask(SECOND_TASK_ID, "MySecondTask", CREATED_AT, createSecondProject());
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().task(mismatchedTask).build()))
+                    .isInstanceOf(TaskDoesNotBelongToProjectException.class)
+                    .hasMessage("Task with ID 301 is not from project with ID 20");
+
+            assertThat(timeEntry.getProject()).isEqualTo(project);
+            assertThat(timeEntry.getTask()).isNull();
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void clearsTaskAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().task(null).build());
+
+            assertThat(patchedTimeEntry.getProject()).isEqualTo(project);
+            assertThat(patchedTimeEntry.getTask()).isNull();
 
             verify(timeEntryRepository).save(timeEntry);
         }
@@ -600,6 +736,56 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
                     .isInstanceOf(TimeEntriesNotFoundException.class)
                     .hasMessage("Time entries with IDs [1] do not exist");
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void patchesProjectAndTaskWithMatchingProjectAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+            ReflectionTestUtils.setField(timeEntry, "id", 1L);
+
+            final Project newProject = createSecondProject();
+            final Task newTask = createTask(SECOND_TASK_ID, "MySecondTask", CREATED_AT, newProject);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .project(newProject)
+                            .task(newTask)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(timeEntry);
+            assertThat(timeEntry.getProject()).isEqualTo(newProject);
+            assertThat(timeEntry.getTask()).isEqualTo(newTask);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void throwsWhenPatchedProjectDoesNotMatchExistingTask() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+            ReflectionTestUtils.setField(timeEntry, "id", 1L);
+
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .project(createSecondProject())
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(TaskDoesNotBelongToProjectException.class)
+                    .hasMessage("Task with ID 300 is not from project with ID 21");
 
             verify(timeEntryRepository, never()).saveAll(anyList());
         }
