@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
+import me.eeshe.tempus.exception.StartTimeAfterEndTimeException;
 import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
@@ -161,6 +162,9 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         final Project project = createTimeEntryRequest.project();
         final Task task = createTimeEntryRequest.task();
         validateTaskBelongsToProject(task, project);
+        validateStartTimeIsBeforeEndTime(
+                createTimeEntryRequest.startTime(),
+                createTimeEntryRequest.endTime());
 
         return new TimeEntry(
                 createTimeEntryRequest.user(),
@@ -213,6 +217,9 @@ public class TimeEntryServiceImpl implements TimeEntryService {
         final Project project = patchTimeEntryRequest.project().orElse(timeEntry.getProject());
         final Task task = patchTimeEntryRequest.task().orElse(timeEntry.getTask());
         validateTaskBelongsToProject(task, project);
+        validateStartTimeIsBeforeEndTime(
+                patchTimeEntryRequest.startTime().orElse(timeEntry.getStartTime()),
+                patchTimeEntryRequest.endTime().orElse(timeEntry.getEndTime()));
 
         patchTimeEntryRequest.project().ifPresent(timeEntry::setProject);
         patchTimeEntryRequest.task().ifPresent(timeEntry::setTask);
@@ -225,6 +232,12 @@ public class TimeEntryServiceImpl implements TimeEntryService {
     private void validateTaskBelongsToProject(final Task task, final Project project) {
         if (task != null && task.getProject().getId() != project.getId()) {
             throw new TaskDoesNotBelongToProjectException(project.getId(), task.getId());
+        }
+    }
+
+    private void validateStartTimeIsBeforeEndTime(final Instant startTime, final Instant endTime) {
+        if (startTime != null && endTime != null && startTime.isAfter(endTime)) {
+            throw new StartTimeAfterEndTimeException();
         }
     }
 

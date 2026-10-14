@@ -1,8 +1,11 @@
 package me.eeshe.tempus.controller;
 
+import java.util.stream.Stream;
+
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
+import me.eeshe.tempus.exception.StartTimeAfterEndTimeException;
 import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TaskNotFoundException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
@@ -25,8 +29,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> handleValidationException(MethodArgumentNotValidException exception) {
-        final String errorMessage = exception.getBindingResult().getFieldErrors().stream().findFirst()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage).orElse("Validation failed.");
+        final BindingResult bindingResult = exception.getBindingResult();
+        final String errorMessage = Stream.concat(
+                bindingResult.getFieldErrors().stream(),
+                bindingResult.getGlobalErrors().stream())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .findFirst()
+                .orElse("Validation failed.");
         final ErrorResponseDTO errorResponseDto = new ErrorResponseDTO(errorMessage);
 
         return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
@@ -108,6 +117,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TaskDoesNotBelongToProjectException.class)
     public ResponseEntity<ErrorResponseDTO> handleTaskDoesNotBelongToProjectException(
             TaskDoesNotBelongToProjectException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(StartTimeAfterEndTimeException.class)
+    public ResponseEntity<ErrorResponseDTO> handleStartTimeAfterEndTimeException(
+            StartTimeAfterEndTimeException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

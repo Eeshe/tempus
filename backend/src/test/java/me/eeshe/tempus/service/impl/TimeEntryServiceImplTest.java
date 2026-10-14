@@ -27,6 +27,7 @@ import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.exception.StartTimeAfterEndTimeException;
 import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
 import me.eeshe.tempus.exception.TimeEntriesNotFoundException;
 import me.eeshe.tempus.exception.TimeEntryNotFoundException;
@@ -52,6 +53,9 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
 
     private static final Instant START_TIME = Instant.parse("2026-01-01T09:00:00Z");
     private static final Instant END_TIME = Instant.parse("2026-01-01T10:00:00Z");
+    private static final Instant LATE_START_TIME = END_TIME.plusSeconds(3600);
+    private static final Instant EARLY_START_TIME = START_TIME.minusSeconds(3600);
+    private static final String START_AFTER_END_MESSAGE = "Time entry start time can't be after end time";
 
     @Mock
     private TimeEntryRepository timeEntryRepository;
@@ -286,6 +290,50 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(timeEntryCaptor.getValue().getTask()).isNull();
             assertThat(timeEntry).isEqualTo(savedTimeEntry);
         }
+
+        @Test
+        void savesTimeEntryWhenEndTimeIsNull() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final CreateTimeEntryRequest createTimeEntryRequest = new CreateTimeEntryRequest(
+                    user,
+                    project,
+                    null,
+                    "MyDescription",
+                    true,
+                    START_TIME,
+                    null);
+            final TimeEntry savedTimeEntry = createTimeEntry(TIME_ENTRY_ID);
+
+            when(timeEntryRepository.save(any(TimeEntry.class))).thenReturn(savedTimeEntry);
+
+            final TimeEntry timeEntry = timeEntryService.createTimeEntry(createTimeEntryRequest);
+            final ArgumentCaptor<TimeEntry> timeEntryCaptor = ArgumentCaptor.forClass(TimeEntry.class);
+
+            verify(timeEntryRepository).save(timeEntryCaptor.capture());
+
+            assertThat(timeEntryCaptor.getValue().getStartTime()).isEqualTo(START_TIME);
+            assertThat(timeEntryCaptor.getValue().getEndTime()).isNull();
+            assertThat(timeEntry).isEqualTo(savedTimeEntry);
+        }
+
+        @Test
+        void throwsWhenStartTimeAfterEndTime() {
+            final CreateTimeEntryRequest createTimeEntryRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID),
+                    createProject(),
+                    createTask(),
+                    "MyDescription",
+                    true,
+                    LATE_START_TIME,
+                    START_TIME);
+
+            assertThatThrownBy(() -> timeEntryService.createTimeEntry(createTimeEntryRequest))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).save(any());
+        }
     }
 
     @Nested
@@ -341,6 +389,18 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThatThrownBy(() -> timeEntryService.createTimeEntries(List.of(mismatchedRequest)))
                     .isInstanceOf(TaskDoesNotBelongToProjectException.class)
                     .hasMessage("Task with ID 300 is not from project with ID 21");
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void throwsWhenStartTimeAfterEndTime() {
+            final CreateTimeEntryRequest invalidRequest = new CreateTimeEntryRequest(
+                    createUser(USER_ID), createProject(), null, "MyDescription", true, LATE_START_TIME, START_TIME);
+
+            assertThatThrownBy(() -> timeEntryService.createTimeEntries(List.of(invalidRequest)))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
 
             verify(timeEntryRepository, never()).saveAll(anyList());
         }
@@ -488,6 +548,155 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(patchedTimeEntry.isBillable()).isTrue();
             assertThat(patchedTimeEntry.getStartTime()).isEqualTo(START_TIME);
             assertThat(patchedTimeEntry.getEndTime()).isEqualTo(newEndTime);
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void patchesStartAndEndTimeAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+            final Instant newStartTime = START_TIME.plusSeconds(1800);
+            final Instant newEndTime = END_TIME.plusSeconds(1800);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().startTime(newStartTime).endTime(newEndTime).build());
+
+            assertThat(patchedTimeEntry.getStartTime()).isEqualTo(newStartTime);
+            assertThat(patchedTimeEntry.getEndTime()).isEqualTo(newEndTime);
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void patchesStartTimeOnlyToEarlierTimeAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().startTime(EARLY_START_TIME).build());
+
+            assertThat(patchedTimeEntry.getStartTime()).isEqualTo(EARLY_START_TIME);
+            assertThat(patchedTimeEntry.getEndTime()).isEqualTo(END_TIME);
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void patchesEndTimeOnlyToLaterTimeAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().endTime(LATE_START_TIME).build());
+
+            assertThat(patchedTimeEntry.getStartTime()).isEqualTo(START_TIME);
+            assertThat(patchedTimeEntry.getEndTime()).isEqualTo(LATE_START_TIME);
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void throwsWhenPatchedStartTimeAfterPatchedEndTime() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().startTime(LATE_START_TIME).endTime(START_TIME).build()))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void throwsWhenPatchedStartTimeAfterStoredEndTime() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().startTime(LATE_START_TIME).build()))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void throwsWhenPatchedEndTimeBeforeStoredStartTime() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().endTime(EARLY_START_TIME).build()))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).save(any());
+        }
+
+        @Test
+        void patchesStartTimeWhenStoredEndTimeIsNull() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, null);
+            final Instant newStartTime = START_TIME.plusSeconds(3600);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().startTime(newStartTime).build());
+
+            assertThat(patchedTimeEntry.getStartTime()).isEqualTo(newStartTime);
+            assertThat(patchedTimeEntry.getEndTime()).isNull();
+
+            verify(timeEntryRepository).save(timeEntry);
+        }
+
+        @Test
+        void clearsEndTimeAndSaves() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, END_TIME);
+
+            when(timeEntryRepository.findByIdAndUserId(TIME_ENTRY_ID, USER_ID)).thenReturn(Optional.of(timeEntry));
+            when(timeEntryRepository.save(timeEntry)).thenReturn(timeEntry);
+
+            final TimeEntry patchedTimeEntry = timeEntryService.patchTimeEntry(USER_ID, TIME_ENTRY_ID,
+                    new PatchTimeEntryRequestBuilder().endTime(null).build());
+
+            assertThat(patchedTimeEntry.getStartTime()).isEqualTo(START_TIME);
+            assertThat(patchedTimeEntry.getEndTime()).isNull();
 
             verify(timeEntryRepository).save(timeEntry);
         }
@@ -706,6 +915,146 @@ public class TimeEntryServiceImplTest extends EntityTestBase {
             assertThat(timeEntry.isBillable()).isTrue();
             assertThat(timeEntry.getStartTime()).isEqualTo(START_TIME);
             assertThat(timeEntry.getEndTime()).isEqualTo(END_TIME);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void patchesStartAndEndTimesOfAllEntries() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final Instant newStartTime = START_TIME.plusSeconds(1800);
+            final Instant newEndTime = END_TIME.plusSeconds(1800);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .startTime(newStartTime)
+                            .endTime(newEndTime)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(timeEntry);
+            assertThat(timeEntry.getStartTime()).isEqualTo(newStartTime);
+            assertThat(timeEntry.getEndTime()).isEqualTo(newEndTime);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void patchesStartTimesOnlyOfAllEntries() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .startTime(EARLY_START_TIME)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(timeEntry);
+            assertThat(timeEntry.getStartTime()).isEqualTo(EARLY_START_TIME);
+            assertThat(timeEntry.getEndTime()).isEqualTo(END_TIME);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void patchesEndTimesOnlyOfAllEntries() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .endTime(LATE_START_TIME)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(timeEntry);
+            assertThat(timeEntry.getStartTime()).isEqualTo(START_TIME);
+            assertThat(timeEntry.getEndTime()).isEqualTo(LATE_START_TIME);
+            verify(timeEntryRepository).saveAll(List.of(timeEntry));
+        }
+
+        @Test
+        void throwsWhenAnyPatchedStartTimeAfterPatchedEndTime() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .startTime(LATE_START_TIME)
+                            .endTime(START_TIME)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void throwsWhenAnyPatchedStartTimeAfterStoredEndTime() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .startTime(LATE_START_TIME)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void throwsWhenAnyPatchedEndTimeBeforeStoredStartTime() {
+            final TimeEntry timeEntry = createTimeEntry(1L);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .endTime(EARLY_START_TIME)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+
+            assertThatThrownBy(() -> timeEntryService.patchTimeEntries(USER_ID, patchTimeEntriesRequest))
+                    .isInstanceOf(StartTimeAfterEndTimeException.class)
+                    .hasMessage(START_AFTER_END_MESSAGE);
+
+            verify(timeEntryRepository, never()).saveAll(anyList());
+        }
+
+        @Test
+        void patchesStartTimeWhenStoredEndTimeIsNull() {
+            final User user = createUser(USER_ID);
+            final Project project = createProject();
+            final Task task = createTask();
+            final TimeEntry timeEntry = new TimeEntry(user, project, task, "MyDescription", true, START_TIME, null);
+            ReflectionTestUtils.setField(timeEntry, "id", 1L);
+            final Instant newStartTime = START_TIME.plusSeconds(3600);
+            final PatchTimeEntriesRequest patchTimeEntriesRequest = new PatchTimeEntriesRequest(List.of(
+                    new TimeEntryPatch(1L, new PatchTimeEntryRequestBuilder()
+                            .startTime(newStartTime)
+                            .build())));
+
+            when(timeEntryRepository.findAllByIdInAndUserId(List.of(1L), USER_ID)).thenReturn(List.of(timeEntry));
+            when(timeEntryRepository.saveAll(List.of(timeEntry))).thenReturn(List.of(timeEntry));
+
+            final List<TimeEntry> patchedTimeEntries = timeEntryService.patchTimeEntries(USER_ID,
+                    patchTimeEntriesRequest);
+
+            assertThat(patchedTimeEntries).containsExactly(timeEntry);
+            assertThat(timeEntry.getStartTime()).isEqualTo(newStartTime);
+            assertThat(timeEntry.getEndTime()).isNull();
             verify(timeEntryRepository).saveAll(List.of(timeEntry));
         }
 

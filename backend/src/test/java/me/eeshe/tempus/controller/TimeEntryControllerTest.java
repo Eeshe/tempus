@@ -47,6 +47,7 @@ public class TimeEntryControllerTest extends ControllerTestBase {
 
     private static final Instant START_TIME = Instant.parse("2026-01-02T09:00:00Z");
     private static final Instant END_TIME = Instant.parse("2026-01-02T10:00:00Z");
+    private static final Instant LATE_START_TIME = END_TIME.plusSeconds(3600);
     private static final Instant CURSOR = Instant.parse("2026-01-01T00:00:00Z");
 
     private static final String CREATE_TIME_ENTRY_JSON_BODY = """
@@ -235,6 +236,138 @@ public class TimeEntryControllerTest extends ControllerTestBase {
                     eq(createTimeEntryRequestDTO),
                     eq(USER_ID));
             verify(timeEntryService).createTimeEntry(createTimeEntryRequest);
+        }
+
+        @Test
+        void createsTimeEntryWithStartAndEndTime() {
+            final TimeEntry createdTimeEntry = createTimeEntry();
+            final CreateTimeEntryRequest createTimeEntryRequest = createCreateTimeEntryRequest();
+            final CreateTimeEntryRequestDTO createTimeEntryRequestDTO = createCreateTimeEntryRequestDTO();
+
+            when(timeEntryMapper.fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createTimeEntryRequest);
+            when(timeEntryService.createTimeEntry(createTimeEntryRequest)).thenReturn(createdTimeEntry);
+            when(timeEntryMapper.toDTO(eq(createdTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(CREATE_TIME_ENTRY_JSON_BODY))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryDTOJson());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verify(timeEntryService).createTimeEntry(createTimeEntryRequest);
+        }
+
+        @Test
+        void createsTimeEntryWithOnlyStartTime() {
+            final TimeEntry createdTimeEntry = createTimeEntry();
+            final CreateTimeEntryRequest createTimeEntryRequest = createCreateTimeEntryRequest();
+            final CreateTimeEntryRequestDTO createTimeEntryRequestDTO = new CreateTimeEntryRequestDTO(
+                    PROJECT_ID,
+                    TASK_ID,
+                    "MyDescription",
+                    true,
+                    START_TIME,
+                    null);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createTimeEntryRequest);
+            when(timeEntryService.createTimeEntry(createTimeEntryRequest)).thenReturn(createdTimeEntry);
+            when(timeEntryMapper.toDTO(eq(createdTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            final String jsonBody = """
+                    {
+                        "projectId": %s,
+                        "taskId": %s,
+                        "description": "MyDescription",
+                        "isBillable": true,
+                        "startTime": "%s"
+                    }""".formatted(PROJECT_ID, TASK_ID, START_TIME);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryDTOJson());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verify(timeEntryService).createTimeEntry(createTimeEntryRequest);
+        }
+
+        @Test
+        void acceptsEqualStartAndEndTime() {
+            final TimeEntry createdTimeEntry = createTimeEntry();
+            final CreateTimeEntryRequest createTimeEntryRequest = createCreateTimeEntryRequest();
+            final CreateTimeEntryRequestDTO createTimeEntryRequestDTO = new CreateTimeEntryRequestDTO(
+                    PROJECT_ID,
+                    TASK_ID,
+                    "MyDescription",
+                    true,
+                    START_TIME,
+                    START_TIME);
+
+            when(timeEntryMapper.fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createTimeEntryRequest);
+            when(timeEntryService.createTimeEntry(createTimeEntryRequest)).thenReturn(createdTimeEntry);
+            when(timeEntryMapper.toDTO(eq(createdTimeEntry))).thenReturn(createTimeEntryDTO());
+
+            final String jsonBody = """
+                    {
+                        "projectId": %s,
+                        "taskId": %s,
+                        "description": "MyDescription",
+                        "isBillable": true,
+                        "startTime": "%s",
+                        "endTime": "%s"
+                    }""".formatted(PROJECT_ID, TASK_ID, START_TIME, START_TIME);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createTimeEntryDTOJson());
+
+            verify(timeEntryMapper).fromDTO(
+                    eq(createTimeEntryRequestDTO),
+                    eq(USER_ID));
+            verify(timeEntryService).createTimeEntry(createTimeEntryRequest);
+        }
+
+        @Test
+        void rejectsStartTimeAfterEndTime() {
+            final String jsonBody = """
+                    {
+                        "projectId": %s,
+                        "taskId": %s,
+                        "description": "MyDescription",
+                        "isBillable": true,
+                        "startTime": "%s",
+                        "endTime": "%s"
+                    }""".formatted(PROJECT_ID, TASK_ID, LATE_START_TIME, START_TIME);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo("Time entry start time can't be after end time");
+
+            verifyNoInteractions(timeEntryMapper, timeEntryService);
         }
 
         @Test

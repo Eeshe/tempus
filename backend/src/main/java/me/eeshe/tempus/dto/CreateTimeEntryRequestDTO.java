@@ -3,7 +3,9 @@ package me.eeshe.tempus.dto;
 import java.time.Instant;
 
 import jakarta.validation.constraints.NotNull;
+import me.eeshe.tempus.common.validation.annotation.StartTimeBeforeOrEqualToEndTime;
 
+@StartTimeBeforeOrEqualToEndTime
 public record CreateTimeEntryRequestDTO(
         @NotNull(message = ERROR_MESSAGE_NULL_PROJECT) Long projectId,
         Long taskId,
