@@ -1,16 +1,28 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Client } from '../models/client.model';
 import { ClientModal } from './client-modal';
 
 describe('ClientModal', () => {
   let component: ClientModal;
   let fixture: ComponentFixture<ClientModal>;
 
+  const mockClient: Client = {
+    id: 1,
+    name: 'Tempus',
+    userId: 1,
+    createdAt: '2026-01-01T00:00:00Z',
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ClientModal],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClientModal);
+    fixture.componentRef.setInput('client', mockClient);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

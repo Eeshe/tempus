@@ -91,6 +91,9 @@ public class SyncServiceImpl implements SyncService {
         }
         try (Statement statement = connection.createStatement()) {
             for (String table : tables) {
+                if (table.equals("SPRING_SESSION")) {
+                    continue;
+                }
                 statement.execute("DELETE FROM main." + table);
                 statement.execute("INSERT INTO main." + table + " SELECT * FROM src." + table);
             }

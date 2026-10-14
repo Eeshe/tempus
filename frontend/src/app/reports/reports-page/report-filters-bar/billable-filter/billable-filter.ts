@@ -14,6 +14,7 @@ export class BillableFilter extends PopupSelectorBase {
 
   select(value: boolean | null): void {
     this.isBillableChangeEvent.emit(value);
+    this.closeSelector();
   }
 
   isSelected(value: boolean | null): boolean {

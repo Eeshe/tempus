@@ -31,7 +31,7 @@ describe('ImportModal', () => {
     const txt: File = new File(['b'], 'notes.txt', { type: 'text/plain' });
     Object.defineProperty(input, 'files', { value: [csv, txt] });
 
-    component.onFilesSelected({ target: input } as unknown as Event);
+    component.addSelectedFiles({ target: input } as unknown as Event);
     fixture.detectChanges();
 
     expect(component.phase()).toBe('confirm');
@@ -45,7 +45,7 @@ describe('ImportModal', () => {
       dataTransfer: { files: [txt] },
     } as unknown as DragEvent;
 
-    component.onDrop(event);
+    component.addDraggedFiles(event);
     fixture.detectChanges();
 
     expect(component.phase()).toBe('select');

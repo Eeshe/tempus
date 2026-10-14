@@ -1,5 +1,5 @@
-import { afterNextRender, Component, computed, HostListener, inject, signal } from '@angular/core';
-import { timer } from 'rxjs';
+import { afterNextRender, Component, computed, HostListener, inject, OnDestroy, signal } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
 import { DeleteConfirmationModal } from '../../shared/delete-confirmation-modal/delete-confirmation-modal';
 import { PopupSelectorBase } from '../../shared/selector/popup-selector-base';
 import { SyncData } from '../model/sync-data.model';
@@ -11,13 +11,14 @@ import { SyncDataService } from '../service/sync-data.service';
   styleUrl: './sync-buttons.css',
   templateUrl: './sync-buttons.html',
 })
-export class SyncButtons extends PopupSelectorBase {
+export class SyncButtons extends PopupSelectorBase implements OnDestroy {
   private readonly syncDataService: SyncDataService = inject(SyncDataService);
 
   protected override readonly alignPopupRight: boolean = true;
 
   private isPinned: boolean = false;
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
+  private syncPollSubscription: Subscription | null = null;
 
   readonly syncData = signal<SyncData | null>(null);
   readonly isExportConfirmationOpen = signal<boolean>(false);
@@ -81,7 +82,14 @@ export class SyncButtons extends PopupSelectorBase {
   constructor() {
     super();
 
-    afterNextRender(() => timer(1000, 5000).subscribe(() => this.updateSyncData()));
+    afterNextRender(() => {
+      this.syncPollSubscription = timer(1000, 5000).subscribe(() => this.updateSyncData());
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.syncPollSubscription?.unsubscribe();
+    this.cancelClose();
   }
 
   @HostListener('mouseenter')
