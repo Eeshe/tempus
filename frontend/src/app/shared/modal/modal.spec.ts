@@ -33,7 +33,7 @@ describe('AppModal', () => {
   it('renders header and projected content', () => {
     const title = fixture.nativeElement.querySelector('.modal__title') as HTMLElement;
     const body = fixture.nativeElement.querySelector('.host-content') as HTMLElement;
-    expect(title.textContent).toEqual('Test dialog');
+    expect(title.textContent?.trim()).toEqual('Test dialog');
     expect(body.textContent).toEqual('Projected body');
   });
 

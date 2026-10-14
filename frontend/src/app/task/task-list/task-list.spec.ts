@@ -11,6 +11,7 @@ describe('TaskList', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(TaskList);
+    fixture.componentRef.setInput('tasks', []);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

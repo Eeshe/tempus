@@ -1,28 +1,27 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { SettingsPage } from './settings-page';
 
 describe('SettingsPage', () => {
-  let component: SettingsPage;
-  let fixture: ComponentFixture<SettingsPage>;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsPage],
-      providers: [provideRouter([])],
+      providers: [provideRouter([{ path: 'settings', component: SettingsPage }])],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(SettingsPage);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', async () => {
+    const harness = await RouterTestingHarness.create('/settings');
+
+    expect(harness.routeNativeElement).toBeTruthy();
   });
 
-  it('renders a link to the migration section', () => {
-    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.settings__nav-item');
+  it('renders a link to the migration section', async () => {
+    const harness = await RouterTestingHarness.create('/settings');
+    const link: HTMLAnchorElement = harness.routeNativeElement!.querySelector(
+      '.settings__nav-item',
+    )!;
+
     expect(link.textContent?.trim()).toBe('Migration');
     expect(link.getAttribute('href')).toBe('/settings/migration');
   });

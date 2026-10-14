@@ -11,6 +11,7 @@ describe('DeleteConfirmationModal', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(DeleteConfirmationModal);
+    fixture.componentRef.setInput('toDeleteName', 'Test');
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
