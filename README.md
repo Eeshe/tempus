@@ -1,4 +1,5 @@
 # Tempus
+![CI](https://github.com/Eeshe/tempus/actions/workflows/ci.yml/badge.svg)
 
 Tempus is a self-hosted time tracking software that supports projects, tasks and clients to ease the gathering of work stats, be it personal or billable work.
 
