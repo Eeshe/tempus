@@ -129,10 +129,10 @@ describe('TimeEntryList', () => {
     const resumeRequest = httpMock.expectOne((request) => request.method === 'POST');
     expect(resumeRequest.request.body.projectId).toBe(mockTimeEntry.project.id);
     resumeRequest.flush({ ...mockTimeEntry, id: 2 });
-
-    httpMock.expectOne((request) => request.method === 'GET').flush(createEmptyTimeEntryPage());
     await fixture.whenStable();
 
+    httpMock.expectNone((request) => request.method === 'GET');
+    expect(store.timeEntryPage().content.map((entry) => entry.id)).toContain(2);
     expect(store.lastStoppedTimeEntry()).toBeNull();
   });
 

@@ -235,7 +235,16 @@ export class TimeEntryStore {
   }
 
   add(timeEntry: TimeEntry): void {
-    this.loadPage(this._timeEntryPage().currentCursor).subscribe();
+    this._timeEntryPage.update(timeEntryPage => {
+      if (timeEntryPage.content.some(existingTimeEntry => existingTimeEntry.id === timeEntry.id)) {
+        return timeEntryPage;
+      }
+      return {
+        ...timeEntryPage,
+        content: [...timeEntryPage.content, timeEntry],
+        totalElements: timeEntryPage.totalElements + 1,
+      };
+    });
   }
 
   stopActive(timeEntry: TimeEntry): void {

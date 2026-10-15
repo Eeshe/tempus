@@ -130,6 +130,26 @@ describe('TimeEntryStore', () => {
     expect(idsBefore).toContain(idsAfter[0]);
   });
 
+  it('adds a time entry to the current page locally without refetching', () => {
+    load([createTimeEntry({ id: 1 })]);
+    const newTimeEntry: TimeEntry = createTimeEntry({ id: 2 });
+
+    store.add(newTimeEntry);
+
+    expect(store.timeEntryPage().content.map((entry) => entry.id)).toContain(2);
+    expect(store.timeEntryPage().totalElements).toBe(2);
+    httpMock.expectNone((request) => request.method === 'GET');
+  });
+
+  it('ignores a time entry that is already on the page', () => {
+    load([createTimeEntry({ id: 1 })]);
+
+    store.add(createTimeEntry({ id: 1 }));
+
+    expect(store.timeEntryPage().content.map((entry) => entry.id)).toEqual([1]);
+    expect(store.timeEntryPage().totalElements).toBe(1);
+  });
+
   it('scopes the day id by page cursor so a day reused across pages is not reused in the DOM', () => {
     const content: TimeEntry[] = [createTimeEntry({ id: 1 })];
 
