@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .anyRequest().permitAll())
                 .httpBasic(basic -> basic.authenticationEntryPoint(restAuthenticationEntryPoint));
 
+        http.csrf(csrf -> csrf.spa());
+
         return http.build();
     }
 
