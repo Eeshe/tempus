@@ -77,6 +77,8 @@ To start using Tempus you need to open your web browser and navigate to `http://
 
 You'll be greeted with a login page, you can create an account and then access the home page of the app. Once you are there, you start by clicking the `New Time Entry` button and filling the requested information.
 
+https://github.com/user-attachments/assets/6619e69b-a053-4c2a-a2ec-09295fc7e965
+
 ## Moving from Clockify
 
 After using Clockify for +4 years, one of my main priorities was making Tempus compatible with previous Clockify data. Now, to my surprise, when I went to export my data from Clockify's reports page, not only did it not let me export more than one month at a time without upgrading from the free tier, it only let me export it in PDF format, which would be a nightmare to parse into SQL format.
