@@ -20,6 +20,8 @@ Additionally, every **project** has:
 - Client (optional)
 - Hourly rate (optional)
 
+![Home](assets/home.png)
+
 All these attributes help organize time entries into **reports**. These are a filtered list of time entries displaying calculated information such as total billable/non-billable tracked time and accumulated pay (based on assigned hourly rates). Right now, Tempus counts with the following filters:
 
 - Date range
@@ -29,6 +31,10 @@ All these attributes help organize time entries into **reports**. These are a fi
 - Billable status
 
 These filters allow users to generate useful information for employers, project statistics or even just personal use.
+
+![Reports](assets/reports.png)
+
+![Projects](assets/projects.png)
 
 ## Data Storage
 
