@@ -11,10 +11,23 @@ export interface ClientReport {
   trackedTimeMillis: number
 }
 
-export interface Report<T> {
+export interface ReportDay<T> {
+  date: string,
   totalTrackedTimeMillis: number,
   totalBillableTrackedTimeMillis: number,
   totalNonBillableTrackedTimeMillis: number,
   totalAccumulatedPay: number,
   reportEntries: T[],
+}
+
+export interface Report<T> {
+  totalTrackedTimeMillis: number,
+  totalBillableTrackedTimeMillis: number,
+  totalNonBillableTrackedTimeMillis: number,
+  totalAccumulatedPay: number,
+  reportDays: ReportDay<T>[],
+}
+
+export function flattenReportEntries<T>(report: Report<T>): T[] {
+  return report.reportDays.flatMap(reportDay => reportDay.reportEntries);
 }

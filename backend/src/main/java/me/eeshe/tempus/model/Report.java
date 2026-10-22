@@ -8,18 +8,18 @@ public record Report<T>(
         long totalBillableTrackedTimeMillis,
         long totalNonBillableTrackedTimeMillis,
         BigDecimal totalAccumulatedPay,
-        List<T> reportEntries) {
+        List<ReportDay<T>> reportDays) {
 
     public Report(
             long totalBillableTrackedTimeMillis,
             long totalNonBillableTrackedTimeMillis,
             BigDecimal totalAccumulatedPay,
-            List<T> reportEntries) {
+            List<ReportDay<T>> reportDays) {
         this(
                 totalBillableTrackedTimeMillis + totalNonBillableTrackedTimeMillis,
                 totalBillableTrackedTimeMillis,
                 totalNonBillableTrackedTimeMillis,
                 totalAccumulatedPay,
-                reportEntries);
+                reportDays);
     }
 }

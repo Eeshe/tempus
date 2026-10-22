@@ -8,6 +8,8 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -16,15 +18,17 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import me.eeshe.tempus.controller.ReportController;
 import me.eeshe.tempus.dto.ClientReportEntryDTO;
 import me.eeshe.tempus.dto.ProjectReportEntryDTO;
 import me.eeshe.tempus.dto.ReportDTO;
+import me.eeshe.tempus.dto.ReportDayDTO;
 import me.eeshe.tempus.dto.ReportRequestDTO;
+import me.eeshe.tempus.exception.InvalidZoneIdException;
 import me.eeshe.tempus.mapper.ReportMapper;
 import me.eeshe.tempus.model.ClientReportEntry;
 import me.eeshe.tempus.model.ProjectReportEntry;
 import me.eeshe.tempus.model.Report;
+import me.eeshe.tempus.model.ReportDay;
 import me.eeshe.tempus.request.ReportRequest;
 import me.eeshe.tempus.service.ReportService;
 import me.eeshe.tempus.support.ControllerTestBase;
@@ -35,6 +39,8 @@ public class ReportControllerTest extends ControllerTestBase {
 
     private static final Instant START_DATE = Instant.parse("2026-01-02T00:00:00Z");
     private static final Instant END_DATE = Instant.parse("2026-01-02T10:00:00Z");
+    private static final LocalDate REPORT_DATE = LocalDate.parse("2026-01-02");
+    private static final String ZONE_ID = "UTC";
 
     private static final BigDecimal TOTAL_ACCUMULATED_PAY = new BigDecimal("100");
 
@@ -46,8 +52,9 @@ public class ReportControllerTest extends ControllerTestBase {
                 "taskIds": [%s],
                 "clientIds": [%s],
                 "descriptions": ["MyDescription"],
-                "isBillable": true
-            }""".formatted(START_DATE, END_DATE, PROJECT_ID, TASK_ID, CLIENT_ID);
+                "isBillable": true,
+                "zoneId": "%s"
+            }""".formatted(START_DATE, END_DATE, PROJECT_ID, TASK_ID, CLIENT_ID, ZONE_ID);
 
     @MockitoBean
     private ReportService reportService;
@@ -109,6 +116,30 @@ public class ReportControllerTest extends ControllerTestBase {
                     .isEqualTo(createEmptyProjectReportDTOJson());
 
             verify(reportService).generateProjectReport(reportRequest);
+        }
+
+        @Test
+        void rejectsInvalidZoneId() {
+            final ReportRequestDTO reportRequestDTO = createReportRequestDTO();
+            final InvalidZoneIdException exception = new InvalidZoneIdException("Invalid/ZoneId");
+
+            when(reportMapper.fromDTO(
+                    eq(reportRequestDTO),
+                    eq(USER_ID)))
+                    .thenThrow(exception);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REPORT_REQUEST_JSON_BODY))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(reportMapper).fromDTO(
+                    eq(reportRequestDTO),
+                    eq(USER_ID));
+            verifyNoInteractions(reportService);
         }
 
         @Test
@@ -179,6 +210,30 @@ public class ReportControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void rejectsInvalidZoneId() {
+            final ReportRequestDTO reportRequestDTO = createReportRequestDTO();
+            final InvalidZoneIdException exception = new InvalidZoneIdException("Invalid/ZoneId");
+
+            when(reportMapper.fromDTO(
+                    eq(reportRequestDTO),
+                    eq(USER_ID)))
+                    .thenThrow(exception);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(REPORT_REQUEST_JSON_BODY))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(exception.getMessage());
+
+            verify(reportMapper).fromDTO(
+                    eq(reportRequestDTO),
+                    eq(USER_ID));
+            verifyNoInteractions(reportService);
+        }
+
+        @Test
         void rejectsUnauthenticatedRequest() {
             assertThat(mockMvc.post().uri(URL).with(createCsrf())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -197,7 +252,8 @@ public class ReportControllerTest extends ControllerTestBase {
                 List.of(TASK_ID),
                 List.of(CLIENT_ID),
                 List.of("MyDescription"),
-                true);
+                true,
+                ZONE_ID);
     }
 
     private static ReportRequest createReportRequest() {
@@ -209,7 +265,8 @@ public class ReportControllerTest extends ControllerTestBase {
                 List.of(TASK_ID),
                 List.of(CLIENT_ID),
                 List.of("MyDescription"),
-                true);
+                true,
+                ZoneOffset.UTC);
     }
 
     private static Report<ProjectReportEntry> createProjectReport() {
@@ -217,7 +274,12 @@ public class ReportControllerTest extends ControllerTestBase {
                 TRACKED_TIME_MILLIS,
                 0L,
                 TOTAL_ACCUMULATED_PAY,
-                List.of(new ProjectReportEntry(createProject(), TRACKED_TIME_MILLIS)));
+                List.of(new ReportDay<>(
+                        REPORT_DATE,
+                        TRACKED_TIME_MILLIS,
+                        0L,
+                        TOTAL_ACCUMULATED_PAY,
+                        List.of(new ProjectReportEntry(createProject(), TRACKED_TIME_MILLIS)))));
     }
 
     private static Report<ProjectReportEntry> createEmptyProjectReport() {
@@ -234,7 +296,13 @@ public class ReportControllerTest extends ControllerTestBase {
                 TRACKED_TIME_MILLIS,
                 0L,
                 TOTAL_ACCUMULATED_PAY,
-                List.of(new ProjectReportEntryDTO(createProjectDTO(), TRACKED_TIME_MILLIS)));
+                List.of(new ReportDayDTO<>(
+                        REPORT_DATE,
+                        TRACKED_TIME_MILLIS,
+                        TRACKED_TIME_MILLIS,
+                        0L,
+                        TOTAL_ACCUMULATED_PAY,
+                        List.of(new ProjectReportEntryDTO(createProjectDTO(), TRACKED_TIME_MILLIS)))));
     }
 
     private static ReportDTO<ProjectReportEntryDTO> createEmptyProjectReportDTO() {
@@ -251,7 +319,12 @@ public class ReportControllerTest extends ControllerTestBase {
                 TRACKED_TIME_MILLIS,
                 0L,
                 TOTAL_ACCUMULATED_PAY,
-                List.of(new ClientReportEntry(createClient(), TRACKED_TIME_MILLIS)));
+                List.of(new ReportDay<>(
+                        REPORT_DATE,
+                        TRACKED_TIME_MILLIS,
+                        0L,
+                        TOTAL_ACCUMULATED_PAY,
+                        List.of(new ClientReportEntry(createClient(), TRACKED_TIME_MILLIS)))));
     }
 
     private static Report<ClientReportEntry> createEmptyClientReport() {
@@ -268,7 +341,13 @@ public class ReportControllerTest extends ControllerTestBase {
                 TRACKED_TIME_MILLIS,
                 0L,
                 TOTAL_ACCUMULATED_PAY,
-                List.of(new ClientReportEntryDTO(createClientDTO(), TRACKED_TIME_MILLIS)));
+                List.of(new ReportDayDTO<>(
+                        REPORT_DATE,
+                        TRACKED_TIME_MILLIS,
+                        TRACKED_TIME_MILLIS,
+                        0L,
+                        TOTAL_ACCUMULATED_PAY,
+                        List.of(new ClientReportEntryDTO(createClientDTO(), TRACKED_TIME_MILLIS)))));
     }
 
     private static ReportDTO<ClientReportEntryDTO> createEmptyClientReportDTO() {
@@ -281,8 +360,8 @@ public class ReportControllerTest extends ControllerTestBase {
     }
 
     private static String createProjectReportDTOJson() {
-        return createProjectReportDTOJson(
-                "[%s]".formatted(createProjectReportEntryDTOJson()),
+        return createReportDTOJson(
+                "[%s]".formatted(createProjectReportDayDTOJson()),
                 TRACKED_TIME_MILLIS,
                 TRACKED_TIME_MILLIS,
                 0L,
@@ -290,11 +369,11 @@ public class ReportControllerTest extends ControllerTestBase {
     }
 
     private static String createEmptyProjectReportDTOJson() {
-        return createProjectReportDTOJson("[]", 0L, 0L, 0L, BigDecimal.ZERO);
+        return createReportDTOJson("[]", 0L, 0L, 0L, BigDecimal.ZERO);
     }
 
-    private static String createProjectReportDTOJson(
-            String reportEntriesJson,
+    private static String createReportDTOJson(
+            String reportDaysJson,
             long totalTrackedTimeMillis,
             long totalBillableTrackedTimeMillis,
             long totalNonBillableTrackedTimeMillis,
@@ -305,13 +384,31 @@ public class ReportControllerTest extends ControllerTestBase {
                     "totalBillableTrackedTimeMillis": %s,
                     "totalNonBillableTrackedTimeMillis": %s,
                     "totalAccumulatedPay": %s,
-                    "reportEntries": %s
+                    "reportDays": %s
                 }""".formatted(
-                        totalTrackedTimeMillis,
-                        totalBillableTrackedTimeMillis,
-                        totalNonBillableTrackedTimeMillis,
-                        totalAccumulatedPay,
-                        reportEntriesJson);
+                totalTrackedTimeMillis,
+                totalBillableTrackedTimeMillis,
+                totalNonBillableTrackedTimeMillis,
+                totalAccumulatedPay,
+                reportDaysJson);
+    }
+
+    private static String createProjectReportDayDTOJson() {
+        return """
+                {
+                    "date": "%s",
+                    "totalTrackedTimeMillis": %s,
+                    "totalBillableTrackedTimeMillis": %s,
+                    "totalNonBillableTrackedTimeMillis": %s,
+                    "totalAccumulatedPay": %s,
+                    "reportEntries": [%s]
+                }""".formatted(
+                REPORT_DATE,
+                TRACKED_TIME_MILLIS,
+                TRACKED_TIME_MILLIS,
+                0L,
+                TOTAL_ACCUMULATED_PAY,
+                createProjectReportEntryDTOJson());
     }
 
     private static String createProjectReportEntryDTOJson() {
@@ -323,8 +420,8 @@ public class ReportControllerTest extends ControllerTestBase {
     }
 
     private static String createClientReportDTOJson() {
-        return createClientReportDTOJson(
-                "[%s]".formatted(createClientReportEntryDTOJson()),
+        return createReportDTOJson(
+                "[%s]".formatted(createClientReportDayDTOJson()),
                 TRACKED_TIME_MILLIS,
                 TRACKED_TIME_MILLIS,
                 0L,
@@ -332,28 +429,25 @@ public class ReportControllerTest extends ControllerTestBase {
     }
 
     private static String createEmptyClientReportDTOJson() {
-        return createClientReportDTOJson("[]", 0L, 0L, 0L, BigDecimal.ZERO);
+        return createReportDTOJson("[]", 0L, 0L, 0L, BigDecimal.ZERO);
     }
 
-    private static String createClientReportDTOJson(
-            String reportEntriesJson,
-            long totalTrackedTimeMillis,
-            long totalBillableTrackedTimeMillis,
-            long totalNonBillableTrackedTimeMillis,
-            BigDecimal totalAccumulatedPay) {
+    private static String createClientReportDayDTOJson() {
         return """
                 {
+                    "date": "%s",
                     "totalTrackedTimeMillis": %s,
                     "totalBillableTrackedTimeMillis": %s,
                     "totalNonBillableTrackedTimeMillis": %s,
                     "totalAccumulatedPay": %s,
-                    "reportEntries": %s
+                    "reportEntries": [%s]
                 }""".formatted(
-                        totalTrackedTimeMillis,
-                        totalBillableTrackedTimeMillis,
-                        totalNonBillableTrackedTimeMillis,
-                        totalAccumulatedPay,
-                        reportEntriesJson);
+                REPORT_DATE,
+                TRACKED_TIME_MILLIS,
+                TRACKED_TIME_MILLIS,
+                0L,
+                TOTAL_ACCUMULATED_PAY,
+                createClientReportEntryDTOJson());
     }
 
     private static String createClientReportEntryDTOJson() {

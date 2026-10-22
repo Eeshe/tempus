@@ -15,6 +15,7 @@ interface ReportRequest {
   clientIds: number[] | null,
   descriptions: string[] | null,
   isBillable: boolean | null,
+  zoneId: string | null,
 }
 
 @Service()
@@ -96,7 +97,8 @@ export class ReportService {
       taskIds,
       clientIds,
       descriptions,
-      isBillable
+      isBillable,
+      zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone
     }
     return this.http.post<Report<T>>(`${this.url}/${endpoint}`, reportRequest, { withCredentials: true });
   }

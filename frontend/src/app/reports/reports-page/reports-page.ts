@@ -15,6 +15,6 @@ export class ReportsPage {
     totalBillableTrackedTimeMillis: 0,
     totalNonBillableTrackedTimeMillis: 0,
     totalAccumulatedPay: 0,
-    reportEntries: []
+    reportDays: []
   });
 }

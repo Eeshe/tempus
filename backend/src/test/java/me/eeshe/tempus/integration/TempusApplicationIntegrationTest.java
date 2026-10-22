@@ -209,6 +209,11 @@ public class TempusApplicationIntegrationTest {
             assertThat(report.get("totalBillableTrackedTimeMillis").asLong()).isEqualTo(7_200_000L);
             assertThat(report.get("totalNonBillableTrackedTimeMillis").asLong()).isZero();
             assertThat(report.get("totalAccumulatedPay").decimalValue()).isEqualByComparingTo("100.00");
+            assertThat(report.get("reportDays").size()).isEqualTo(1);
+            assertThat(report.get("reportDays").get(0).get("date").asString()).isEqualTo("2026-01-01");
+            assertThat(report.get("reportDays").get(0).get("totalTrackedTimeMillis").asLong())
+                    .isEqualTo(7_200_000L);
+            assertThat(report.get("reportDays").get(0).get("reportEntries").size()).isEqualTo(1);
         }
     }
 

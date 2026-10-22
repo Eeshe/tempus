@@ -8,5 +8,5 @@ public record ReportDTO<T>(
         long totalBillableTrackedTimeMillis,
         long totalNonBillableTrackedTimeMillis,
         BigDecimal totalAccumulatedPay,
-        List<T> reportEntries) {
+        List<ReportDayDTO<T>> reportDays) {
 }

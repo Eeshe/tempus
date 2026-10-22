@@ -1,6 +1,7 @@
 package me.eeshe.tempus.request;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 
 public record ReportRequest(
@@ -11,5 +12,6 @@ public record ReportRequest(
         List<Long> taskIds,
         List<Long> clientIds,
         List<String> descriptions,
-        Boolean isBillable) {
+        Boolean isBillable,
+        ZoneId zoneId) {
 }
