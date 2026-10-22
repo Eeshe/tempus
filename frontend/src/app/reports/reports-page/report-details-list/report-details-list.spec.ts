@@ -7,6 +7,8 @@ describe('ReportDetailsList', () => {
   let fixture: ComponentFixture<ReportDetailsList>;
 
   const mockReport: Report<ProjectReport> = {
+    startDate: null,
+    endDate: null,
     totalTrackedTimeMillis: 0,
     totalBillableTrackedTimeMillis: 0,
     totalNonBillableTrackedTimeMillis: 0,

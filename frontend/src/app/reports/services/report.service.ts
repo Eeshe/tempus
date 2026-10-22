@@ -1,21 +1,22 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Service } from "@angular/core";
 import { Observable } from "rxjs";
-import { toInstantEnd, toInstantStart } from "../../shared/util/date.util";
+import { map } from "rxjs/operators";
 import { Client } from "../../client/models/client.model";
 import { Project } from "../../project/models/project.model";
+import { toInstantEnd, toInstantStart } from "../../shared/util/date.util";
 import { Task } from "../../task/models/task.model";
 import { ClientReport, ProjectReport, Report } from "../models/report.model";
 
 interface ReportRequest {
-  startDate: string | null,
-  endDate: string | null,
-  projectIds: number[] | null,
-  taskIds: number[] | null,
-  clientIds: number[] | null,
-  descriptions: string[] | null,
-  isBillable: boolean | null,
-  zoneId: string | null,
+  startDate: string | null;
+  endDate: string | null;
+  projectIds: number[] | null;
+  taskIds: number[] | null;
+  clientIds: number[] | null;
+  descriptions: string[] | null;
+  isBillable: boolean | null;
+  zoneId: string | null;
 }
 
 @Service()
@@ -30,7 +31,7 @@ export class ReportService {
     tasks: Task[],
     clients: Client[],
     descriptions: string[],
-    isBillable: boolean | null
+    isBillable: boolean | null,
   ): Observable<Report<ProjectReport>> {
     return this.generateReport<ProjectReport>(
       "projects",
@@ -40,7 +41,7 @@ export class ReportService {
       tasks,
       clients,
       descriptions,
-      isBillable
+      isBillable,
     );
   }
 
@@ -59,7 +60,7 @@ export class ReportService {
     tasks: Task[],
     clients: Client[],
     descriptions: string[],
-    isBillable: boolean | null
+    isBillable: boolean | null,
   ): Observable<Report<ClientReport>> {
     return this.generateReport<ClientReport>(
       "clients",
@@ -69,7 +70,7 @@ export class ReportService {
       tasks,
       clients,
       descriptions,
-      isBillable
+      isBillable,
     );
   }
 
@@ -85,11 +86,11 @@ export class ReportService {
     tasks: Task[],
     clients: Client[],
     descriptions: string[],
-    isBillable: boolean | null
+    isBillable: boolean | null,
   ): Observable<Report<T>> {
-    const projectIds: number[] = projects.map(project => project.id);
-    const taskIds: number[] = tasks.map(task => task.id);
-    const clientIds: number[] = clients.map(client => client.id);
+    const projectIds: number[] = projects.map((project) => project.id);
+    const taskIds: number[] = tasks.map((task) => task.id);
+    const clientIds: number[] = clients.map((client) => client.id);
     const reportRequest: ReportRequest = {
       startDate: toInstantStart(startDate),
       endDate: toInstantEnd(endDate),
@@ -98,8 +99,10 @@ export class ReportService {
       clientIds,
       descriptions,
       isBillable,
-      zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone
-    }
-    return this.http.post<Report<T>>(`${this.url}/${endpoint}`, reportRequest, { withCredentials: true });
+      zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+    return this.http
+      .post<Report<T>>(`${this.url}/${endpoint}`, reportRequest, { withCredentials: true })
+      .pipe(map((report: Report<T>) => ({ ...report, startDate, endDate })));
   }
 }

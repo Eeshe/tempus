@@ -21,6 +21,8 @@ export interface ReportDay<T> {
 }
 
 export interface Report<T> {
+  startDate: string | null,
+  endDate: string | null,
   totalTrackedTimeMillis: number,
   totalBillableTrackedTimeMillis: number,
   totalNonBillableTrackedTimeMillis: number,

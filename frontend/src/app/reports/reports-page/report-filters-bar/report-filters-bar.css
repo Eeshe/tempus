@@ -1,8 +1,5 @@
 :host {
   display: block;
-  position: sticky;
-  top: var(--nav-height);
-  z-index: var(--z-sticky-content);
   padding: 0.75rem 0;
   font-family: 'Inter', system-ui, sans-serif;
 }

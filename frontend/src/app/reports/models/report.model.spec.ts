@@ -116,6 +116,8 @@ describe('report.model', () => {
 
   function createReport<T>(reportDays: ReportDay<T>[]): Report<T> {
     return {
+      startDate: null,
+      endDate: null,
       totalTrackedTimeMillis: 0,
       totalBillableTrackedTimeMillis: 0,
       totalNonBillableTrackedTimeMillis: 0,
