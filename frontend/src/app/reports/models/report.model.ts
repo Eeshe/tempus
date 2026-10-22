@@ -28,6 +28,39 @@ export interface Report<T> {
   reportDays: ReportDay<T>[],
 }
 
-export function flattenReportEntries<T>(report: Report<T>): T[] {
-  return report.reportDays.flatMap(reportDay => reportDay.reportEntries);
+export function flattenProjectReportEntries(report: Report<ProjectReport>): ProjectReport[] {
+  return flattenReportEntries(
+    report,
+    projectReport => projectReport.project.name,
+    (projectReport, trackedTimeMillis) => ({ ...projectReport, trackedTimeMillis })
+  );
+}
+
+export function flattenClientReportEntries(report: Report<ClientReport>): ClientReport[] {
+  return flattenReportEntries(
+    report,
+    clientReport => clientReport.client.name,
+    (clientReport, trackedTimeMillis) => ({ ...clientReport, trackedTimeMillis })
+  );
+}
+
+function flattenReportEntries<T extends { trackedTimeMillis: number }>(
+  report: Report<T>,
+  getKey: (entry: T) => string,
+  mergeEntry: (mergedEntry: T, trackedTimeMillis: number) => T
+): T[] {
+  const entriesByKey = new Map<string, T>();
+  for (const reportDay of report.reportDays) {
+    for (const entry of reportDay.reportEntries) {
+      const key = getKey(entry);
+      const mergedEntry = entriesByKey.get(key);
+      entriesByKey.set(
+        key,
+        mergedEntry
+          ? mergeEntry(mergedEntry, mergedEntry.trackedTimeMillis + entry.trackedTimeMillis)
+          : entry
+      );
+    }
+  }
+  return [...entriesByKey.values()];
 }

@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { MsToHHMMSSPipe } from '../../../shared/pipes/ms-to-hhmmss.pipe';
 import { SortableColumn, SortableTable } from '../../../shared/sortable-table/sortable-table';
 import { durationFromMs, formatHHMMSSTime } from '../../../shared/util/time.util';
-import { flattenReportEntries, ProjectReport, Report } from '../../models/report.model';
+import { flattenProjectReportEntries, ProjectReport, Report } from '../../models/report.model';
 
 @Component({
   imports: [SortableTable, MsToHHMMSSPipe],
@@ -13,7 +13,7 @@ import { flattenReportEntries, ProjectReport, Report } from '../../models/report
 export class ReportDetailsList {
   readonly report = input.required<Report<ProjectReport>>();
 
-  readonly reportEntries = computed<ProjectReport[]>(() => flattenReportEntries(this.report()));
+  readonly reportEntries = computed<ProjectReport[]>(() => flattenProjectReportEntries(this.report()));
 
   readonly columns: SortableColumn<ProjectReport>[] = [
     {

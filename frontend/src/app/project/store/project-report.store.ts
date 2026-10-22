@@ -1,6 +1,6 @@
 import { inject, Service, Signal, signal } from "@angular/core";
 import { Client } from "../../client/models/client.model";
-import { flattenReportEntries, ProjectReport } from "../../reports/models/report.model";
+import { flattenProjectReportEntries, ProjectReport } from "../../reports/models/report.model";
 import { ReportService } from "../../reports/services/report.service";
 import { ProjectService } from "../../services/project.service";
 import { Task } from "../../task/models/task.model";
@@ -27,7 +27,7 @@ export class ProjectReportStore {
       [],
       null
     ).subscribe(report => {
-      let projectReports: ProjectReport[] = flattenReportEntries(report);
+      let projectReports: ProjectReport[] = flattenProjectReportEntries(report);
       projectReports = this.populateMissingProjects(projects, projectReports);
 
       this._projectReports.set(projectReports);

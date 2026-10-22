@@ -1,5 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
-import { flattenReportEntries, ProjectReport } from '../../reports/models/report.model';
+import { flattenProjectReportEntries, ProjectReport } from '../../reports/models/report.model';
 import { ReportService } from '../../reports/services/report.service';
 import { MsToHHMMSSPipe } from '../../shared/pipes/ms-to-hhmmss.pipe';
 import { SortableColumn, SortableTable } from '../../shared/sortable-table/sortable-table';
@@ -36,7 +36,7 @@ export class ClientProjectList {
     effect(() => {
       const client: Client = this.client();
       this.reportService.generateAllTimeProjectReportByClient(client).subscribe(report =>
-        this.projectReports.set(flattenReportEntries(report)));
+        this.projectReports.set(flattenProjectReportEntries(report)));
     });
   }
 
