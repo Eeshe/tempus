@@ -77,7 +77,6 @@ export class ReportFiltersBar {
       this.descriptions(),
       this.isBillable(),
     ).subscribe(report => {
-      console.log(report);
       this.reportGenerateEvent.emit(report);
     });
   }

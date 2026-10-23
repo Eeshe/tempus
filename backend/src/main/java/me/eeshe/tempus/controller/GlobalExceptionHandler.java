@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import me.eeshe.tempus.dto.ErrorResponseDTO;
 import me.eeshe.tempus.exception.ClientNotFoundException;
+import me.eeshe.tempus.exception.InvalidZoneIdException;
 import me.eeshe.tempus.exception.ProjectNotFoundException;
 import me.eeshe.tempus.exception.StartTimeAfterEndTimeException;
 import me.eeshe.tempus.exception.TaskDoesNotBelongToProjectException;
@@ -125,6 +126,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StartTimeAfterEndTimeException.class)
     public ResponseEntity<ErrorResponseDTO> handleStartTimeAfterEndTimeException(
             StartTimeAfterEndTimeException exception) {
+        return new ResponseEntity<>(
+                new ErrorResponseDTO(exception.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidZoneIdException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidZoneIdException(InvalidZoneIdException exception) {
         return new ResponseEntity<>(
                 new ErrorResponseDTO(exception.getMessage()),
                 HttpStatus.BAD_REQUEST);

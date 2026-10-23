@@ -31,7 +31,44 @@ export function toInstantEnd(value: string | null): string | null {
   return date.toISOString();
 }
 
-function parseYYYYMMDDDate(value: string | null): Date | null {
+// Returns every day between both "yyyy-MM-dd" strings, inclusive, as local midnight dates.
+// An invalid or reversed range yields an empty list.
+export function enumerateDays(start: string | null, end: string | null): Date[] {
+  const startDate: Date | null = parseYYYYMMDDDate(start);
+  const endDate: Date | null = parseYYYYMMDDDate(end);
+  if (startDate == null || endDate == null || startDate.getTime() > endDate.getTime()) {
+    return [];
+  }
+  const days: Date[] = [];
+  const current: Date = new Date(startDate);
+  while (current.getTime() <= endDate.getTime()) {
+    days.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return days;
+}
+
+// Returns the first day of every month between both "yyyy-MM-dd" strings, inclusive.
+// An invalid or reversed range yields an empty list.
+export function enumerateMonths(start: string | null, end: string | null): Date[] {
+  const startDate: Date | null = parseYYYYMMDDDate(start);
+  const endDate: Date | null = parseYYYYMMDDDate(end);
+  if (startDate == null || endDate == null || startDate.getTime() > endDate.getTime()) {
+    return [];
+  }
+  const months: Date[] = [];
+  const current: Date = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const lastMonth: Date = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  while (current.getTime() <= lastMonth.getTime()) {
+    months.push(new Date(current));
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  return months;
+}
+
+export function parseYYYYMMDDDate(value: string | null): Date | null {
   if (value == null || value === "") {
     return null;
   }

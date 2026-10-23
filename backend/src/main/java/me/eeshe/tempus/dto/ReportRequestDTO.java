@@ -10,5 +10,6 @@ public record ReportRequestDTO(
         List<Long> taskIds,
         List<Long> clientIds,
         List<String> descriptions,
-        Boolean isBillable) {
+        Boolean isBillable,
+        String zoneId) {
 }

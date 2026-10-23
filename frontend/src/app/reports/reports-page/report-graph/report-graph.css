@@ -1,0 +1,368 @@
+:host {
+  display: block;
+
+  /* Tweakable graph knobs. */
+  --graph-plot-height: 14rem;
+  --graph-x-label-height: 2.25rem;
+  --graph-x-group-height: 1.5rem;
+  --graph-y-axis-width: 2.75rem;
+  --graph-column-min-width: 2rem;
+  --graph-column-gap: 0.25rem;
+  --graph-group-rule-inset: 0.5rem;
+  --graph-group-rule-gap: 0.4rem;
+  --graph-segment-gap: 2px;
+  --graph-segment-color: var(--good);
+}
+
+/*
+ * Bars are scaled against a Y axis max derived from the tallest bar of the current range (rounded
+ * up to the next REPORT_GRAPH_AXIS_CONFIG step), so the tallest bar always touches the top gridline
+ * unless the min: 2px segment height pushes it over. That 2px minimum plus the 2px gap also makes
+ * very small stacks gap-dominated: tune --graph-segment-gap / --graph-plot-height if needed.
+ */
+.graph {
+  position: relative;
+  padding: 0.75rem 1.5rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.graph__header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.graph__toggle {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.graph__toggle-button {
+  min-width: 1.75rem;
+  padding: 0.125rem 0.375rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.graph__toggle-button:hover {
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+.graph__toggle-button--active,
+.graph__toggle-button--active:hover {
+  color: var(--good);
+  border-color: var(--good);
+}
+
+.graph__body {
+  display: grid;
+  grid-template-columns: var(--graph-y-axis-width) 1fr;
+}
+
+.graph__y-axis {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  height: var(--graph-plot-height);
+  padding: 0 0.5rem calc(var(--graph-x-label-height) + var(--graph-x-group-height)) 0;
+  box-sizing: border-box;
+}
+
+.graph__y-label {
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph__scroll {
+  /* Zero min-size keeps the grid item narrower than its scroll content. */
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/*
+ * `width: max-content` sized against the bar columns plus `min-width: 100%` makes the plot box grow
+ * with its flex content. Without it a block only takes the scrollport width and the absolutely
+ * positioned `.graph__grid` gets clipped at that point, leaving the scrolled area without gridlines.
+ * `min-width: 100%` keeps bars stretched to full width when there are only a few of them.
+ */
+.graph__plot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: max-content;
+  height: var(--graph-plot-height);
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.graph__grid {
+  position: absolute;
+  inset: 0 0 calc(var(--graph-x-label-height) + var(--graph-x-group-height)) 0;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.graph__gridline {
+  height: 0;
+  border-top: 1px solid var(--border);
+}
+
+.graph__columns {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/*
+ * Column spacing lives in the padding instead of a flex `gap` so that one column occupies exactly
+ * one pitch of the row width. `.graph__groups` relies on that: each group has `flex-basis: 0` and a
+ * grow factor equal to its span, so it covers exactly its bars in both the stretched and the
+ * overflowing (max-content) case.
+ */
+.graph__column {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: var(--graph-column-min-width);
+  padding: 0 calc(var(--graph-column-gap) / 2);
+  box-sizing: border-box;
+}
+
+.graph__groups {
+  display: flex;
+  flex: 0 0 auto;
+  height: var(--graph-x-group-height);
+  min-height: 0;
+}
+
+.graph__group {
+  display: flex;
+  align-items: center;
+  gap: var(--graph-group-rule-gap);
+  flex: 1 1 0;
+  min-width: var(--graph-column-min-width);
+  padding: 0 var(--graph-group-rule-inset);
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/*
+ * Horizontal rules flanking the label (never crossing it): both are flex items, so the label keeps
+ * its own space. The group padding leaves ~1rem between neighbouring groups' rule ends.
+ */
+.graph__group::before,
+.graph__group::after {
+  content: '';
+  flex: 1 1 0;
+  min-width: 0.25rem;
+  height: 1px;
+  background: var(--muted);
+  transition: transform 250ms ease-out;
+}
+
+.graph__group::before {
+  transform-origin: right center;
+}
+
+.graph__group::after {
+  transform-origin: left center;
+}
+
+.graph__group-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 250ms ease-out;
+}
+
+.graph__track {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.graph__stack {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--graph-segment-gap);
+  transform-origin: bottom;
+  /* Animates existing bars towards their new height when a report changes; the enter animation
+     below takes over for freshly inserted bars. */
+  transition: height 250ms ease-out;
+}
+
+.graph__segment {
+  flex-basis: 0;
+  min-height: 2px;
+  background: var(--graph-segment-color);
+  border-radius: 2px;
+}
+
+.graph__track:hover .graph__segment {
+  filter: brightness(1.15);
+}
+
+.graph__x-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: var(--graph-x-label-height);
+  padding: 0 0.125rem;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph__x-label-primary {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.7rem;
+  color: var(--fg);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.graph__x-label-secondary {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.graph__tooltip {
+  position: absolute;
+  z-index: 2;
+  /*
+   * Absolute positioning with `left` makes `width: auto` shrink-to-fit against (card width − left),
+   * so the box narrowed into ellipsis as the cursor moved right. `max-content` sizes it against its
+   * own content instead; the max-width cap only kicks in on narrow cards (percentages resolve
+   * against the card, not the space left of the cursor).
+   */
+  width: max-content;
+  max-width: calc(100% - 1rem);
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transform: translate(0.75rem, -50%);
+}
+
+.graph__tooltip--flipped {
+  transform: translate(calc(-100% - 0.75rem), -50%);
+}
+
+.graph__tooltip-title {
+  margin-bottom: 0.375rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph__tooltip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.graph__tooltip-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph__tooltip-project {
+  max-width: 10rem;
+  overflow: hidden;
+  color: var(--fg);
+  text-overflow: ellipsis;
+}
+
+.graph__tooltip-duration,
+.graph__tooltip-percentage {
+  text-align: right;
+}
+
+.graph__tooltip-percentage {
+  min-width: 3.5rem;
+}
+
+.graph__stack.graph-bar-grow {
+  animation: graph-bar-grow 250ms ease-out;
+}
+
+/* Only `from` is declared, so the animation grows up to the element's current height percentage. */
+@keyframes graph-bar-grow {
+  from {
+    height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph__stack {
+    transition: none;
+  }
+
+  .graph__stack.graph-bar-grow {
+    animation: none;
+  }
+
+  .graph__group::before,
+  .graph__group::after,
+  .graph__group-label {
+    transition: none;
+  }
+}
+
+/*
+ * Entry state for the group row, applied only to newly inserted elements: both rules scale outwards
+ * from the label (their transform-origin) while the label fades in, matching the 250ms bar grow-up.
+ */
+@starting-style {
+  .graph__group::before,
+  .graph__group::after {
+    transform: scaleX(0);
+  }
+
+  .graph__group-label {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,112 @@
+<div class="graph">
+  <div class="graph__header">
+    <div class="graph__toggle" role="group" aria-label="Graph view">
+      <button
+        type="button"
+        class="graph__toggle-button"
+        [class.graph__toggle-button--active]="graphType() === 'month'"
+        [attr.aria-pressed]="graphType() === 'month'"
+        aria-label="Month graph"
+        (click)="graphType.set('month')"
+      >
+        M
+      </button>
+      <button
+        type="button"
+        class="graph__toggle-button"
+        [class.graph__toggle-button--active]="graphType() === 'year'"
+        [attr.aria-pressed]="graphType() === 'year'"
+        aria-label="Year graph"
+        (click)="graphType.set('year')"
+      >
+        Y
+      </button>
+    </div>
+  </div>
+
+  <div class="graph__body">
+    <div class="graph__y-axis" [attr.aria-label]="axisLabel()">
+      @for (tick of ticks(); track tick) {
+        <span class="graph__y-label">{{ formatHours(tick) }}</span>
+      }
+    </div>
+
+    <div class="graph__scroll">
+      <div class="graph__plot">
+        <div class="graph__grid" aria-hidden="true">
+          @for (tick of ticks(); track tick) {
+            <div class="graph__gridline"></div>
+          }
+        </div>
+
+        <div class="graph__columns">
+          @for (bar of bars(); track trackBar($index, bar)) {
+            <div class="graph__column">
+              <div
+                class="graph__track"
+                [attr.aria-label]="computeBarAriaLabel(bar)"
+                (mouseenter)="showBarTooltip(bar, $event)"
+                (mousemove)="updateBarTooltipPosition($event)"
+                (mouseleave)="hideBarTooltip()"
+              >
+                <div
+                  class="graph__stack"
+                  animate.enter="graph-bar-grow"
+                  [style.height.%]="calculateBarHeightPercent(bar)"
+                >
+                  @for (segment of bar.segments; track trackSegment($index, segment)) {
+                    <div class="graph__segment" [style.flexGrow]="segment.trackedTimeMillis"></div>
+                  }
+                </div>
+              </div>
+
+              @if (graphType() === 'month') {
+                <div class="graph__x-label graph__x-label--stacked">
+                  <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
+                  <span class="graph__x-label-secondary">{{ bar.secondaryLabel }}</span>
+                </div>
+              } @else {
+                <div class="graph__x-label">
+                  <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="graph__groups">
+          @for (group of groups(); track trackGroup($index, group)) {
+            <div class="graph__group" [style.flexGrow]="group.span">
+              <span class="graph__group-label">{{ group.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (hoveredBar(); as bar) {
+    <div
+      class="graph__tooltip"
+      [class.graph__tooltip--flipped]="tooltipFlipped()"
+      [style.left.px]="tooltipX()"
+      [style.top.px]="tooltipY()"
+      role="tooltip"
+    >
+      <div class="graph__tooltip-title">{{ bar.tooltipTitle }}</div>
+      <div class="graph__tooltip-rows">
+        @for (segment of bar.segments; track trackSegment($index, segment)) {
+          <div class="graph__tooltip-row">
+            <span class="graph__tooltip-project">{{ segment.label }}</span>
+            <span class="graph__tooltip-duration">{{
+              formatDuration(segment.trackedTimeMillis)
+            }}</span>
+            <span class="graph__tooltip-percentage">{{
+              formatPercentage(segment.percentage)
+            }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
