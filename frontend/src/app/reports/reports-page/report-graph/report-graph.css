@@ -4,8 +4,12 @@
   /* Tweakable graph knobs. */
   --graph-plot-height: 14rem;
   --graph-x-label-height: 2.25rem;
+  --graph-x-group-height: 1.5rem;
   --graph-y-axis-width: 2.75rem;
   --graph-column-min-width: 2rem;
+  --graph-column-gap: 0.25rem;
+  --graph-group-rule-inset: 0.5rem;
+  --graph-group-rule-gap: 0.4rem;
   --graph-segment-gap: 2px;
   --graph-segment-color: var(--good);
 }
@@ -74,7 +78,7 @@
   flex-direction: column-reverse;
   justify-content: space-between;
   height: var(--graph-plot-height);
-  padding: 0 0.5rem var(--graph-x-label-height) 0;
+  padding: 0 0.5rem calc(var(--graph-x-label-height) + var(--graph-x-group-height)) 0;
   box-sizing: border-box;
 }
 
@@ -103,8 +107,8 @@
 .graph__plot {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: stretch;
-  gap: 0.25rem;
   width: max-content;
   height: var(--graph-plot-height);
   min-width: 100%;
@@ -113,7 +117,7 @@
 
 .graph__grid {
   position: absolute;
-  inset: 0 0 var(--graph-x-label-height) 0;
+  inset: 0 0 calc(var(--graph-x-label-height) + var(--graph-x-group-height)) 0;
   display: flex;
   flex-direction: column-reverse;
   justify-content: space-between;
@@ -125,11 +129,78 @@
   border-top: 1px solid var(--border);
 }
 
+.graph__columns {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/*
+ * Column spacing lives in the padding instead of a flex `gap` so that one column occupies exactly
+ * one pitch of the row width. `.graph__groups` relies on that: each group has `flex-basis: 0` and a
+ * grow factor equal to its span, so it covers exactly its bars in both the stretched and the
+ * overflowing (max-content) case.
+ */
 .graph__column {
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
   min-width: var(--graph-column-min-width);
+  padding: 0 calc(var(--graph-column-gap) / 2);
+  box-sizing: border-box;
+}
+
+.graph__groups {
+  display: flex;
+  flex: 0 0 auto;
+  height: var(--graph-x-group-height);
+  min-height: 0;
+}
+
+.graph__group {
+  display: flex;
+  align-items: center;
+  gap: var(--graph-group-rule-gap);
+  flex: 1 1 0;
+  min-width: var(--graph-column-min-width);
+  padding: 0 var(--graph-group-rule-inset);
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/*
+ * Horizontal rules flanking the label (never crossing it): both are flex items, so the label keeps
+ * its own space. The group padding leaves ~1rem between neighbouring groups' rule ends.
+ */
+.graph__group::before,
+.graph__group::after {
+  content: '';
+  flex: 1 1 0;
+  min-width: 0.25rem;
+  height: 1px;
+  background: var(--muted);
+  transition: transform 250ms ease-out;
+}
+
+.graph__group::before {
+  transform-origin: right center;
+}
+
+.graph__group::after {
+  transform-origin: left center;
+}
+
+.graph__group-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 250ms ease-out;
 }
 
 .graph__track {
@@ -272,5 +343,26 @@
 
   .graph__stack.graph-bar-grow {
     animation: none;
+  }
+
+  .graph__group::before,
+  .graph__group::after,
+  .graph__group-label {
+    transition: none;
+  }
+}
+
+/*
+ * Entry state for the group row, applied only to newly inserted elements: both rules scale outwards
+ * from the label (their transform-origin) while the label fades in, matching the 250ms bar grow-up.
+ */
+@starting-style {
+  .graph__group::before,
+  .graph__group::after {
+    transform: scaleX(0);
+  }
+
+  .graph__group-label {
+    opacity: 0;
   }
 }

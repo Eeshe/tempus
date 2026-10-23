@@ -39,38 +39,48 @@
           }
         </div>
 
-        @for (bar of bars(); track trackBar($index, bar)) {
-          <div class="graph__column">
-            <div
-              class="graph__track"
-              [attr.aria-label]="computeBarAriaLabel(bar)"
-              (mouseenter)="showBarTooltip(bar, $event)"
-              (mousemove)="updateBarTooltipPosition($event)"
-              (mouseleave)="hideBarTooltip()"
-            >
+        <div class="graph__columns">
+          @for (bar of bars(); track trackBar($index, bar)) {
+            <div class="graph__column">
               <div
-                class="graph__stack"
-                animate.enter="graph-bar-grow"
-                [style.height.%]="calculateBarHeightPercent(bar)"
+                class="graph__track"
+                [attr.aria-label]="computeBarAriaLabel(bar)"
+                (mouseenter)="showBarTooltip(bar, $event)"
+                (mousemove)="updateBarTooltipPosition($event)"
+                (mouseleave)="hideBarTooltip()"
               >
-                @for (segment of bar.segments; track trackSegment($index, segment)) {
-                  <div class="graph__segment" [style.flexGrow]="segment.trackedTimeMillis"></div>
-                }
+                <div
+                  class="graph__stack"
+                  animate.enter="graph-bar-grow"
+                  [style.height.%]="calculateBarHeightPercent(bar)"
+                >
+                  @for (segment of bar.segments; track trackSegment($index, segment)) {
+                    <div class="graph__segment" [style.flexGrow]="segment.trackedTimeMillis"></div>
+                  }
+                </div>
               </div>
-            </div>
 
-            @if (graphType() === 'month') {
-              <div class="graph__x-label graph__x-label--stacked">
-                <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
-                <span class="graph__x-label-secondary">{{ bar.secondaryLabel }}</span>
-              </div>
-            } @else {
-              <div class="graph__x-label">
-                <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
-              </div>
-            }
-          </div>
-        }
+              @if (graphType() === 'month') {
+                <div class="graph__x-label graph__x-label--stacked">
+                  <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
+                  <span class="graph__x-label-secondary">{{ bar.secondaryLabel }}</span>
+                </div>
+              } @else {
+                <div class="graph__x-label">
+                  <span class="graph__x-label-primary">{{ bar.primaryLabel }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="graph__groups">
+          @for (group of groups(); track trackGroup($index, group)) {
+            <div class="graph__group" [style.flexGrow]="group.span">
+              <span class="graph__group-label">{{ group.label }}</span>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>

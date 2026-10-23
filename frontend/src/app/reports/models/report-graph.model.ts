@@ -31,11 +31,10 @@ export interface ReportGraphBar {
   segments: ReportGraphSegment[];
 }
 
-/**
- * <= 30 days of data renders one bar per day, 31 or more renders one bar per month.
- */
-export function resolveDefaultGraphType(reportDaysCount: number): ReportGraphType {
-  return reportDaysCount <= 30 ? 'month' : 'year';
+export interface ReportGraphGroup {
+  key: string;
+  label: string;
+  span: number;
 }
 
 export function getAxisStepHours(graphType: ReportGraphType): number {

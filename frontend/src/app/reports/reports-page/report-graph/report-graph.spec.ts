@@ -213,6 +213,50 @@ describe('ReportGraph', () => {
       ]);
     });
   });
+
+  describe('axis groups', () => {
+    it('groups the month graph bars by month with a full month name', async () => {
+      await setReport(createReport([], '2026-10-30', '2026-11-02'));
+
+      expect(component.groups()).toEqual([
+        { key: '2026-10', label: 'October', span: 2 },
+        { key: '2026-11', label: 'November', span: 2 },
+      ]);
+    });
+
+    it('renders a single full width group for a one month range', async () => {
+      await setReport(createReport([], '2026-08-01', '2026-08-03'));
+
+      expect(component.groups()).toEqual([{ key: '2026-08', label: 'August', span: 3 }]);
+    });
+
+    it('groups the year graph bars by year', async () => {
+      await setReport(createReport([], '2025-11-10', '2026-02-05'));
+      component.graphType.set('year');
+
+      expect(component.groups()).toEqual([
+        { key: '2025', label: '2025', span: 2 },
+        { key: '2026', label: '2026', span: 2 },
+      ]);
+    });
+
+    it('returns no groups when the report has no date range', async () => {
+      await setReport(createReport([], null, null));
+
+      expect(component.groups()).toEqual([]);
+    });
+
+    it('renders one group element per axis group', async () => {
+      await setReport(createReport([], '2026-10-30', '2026-11-02'));
+      const element: HTMLElement = fixture.nativeElement;
+      await fixture.whenStable();
+
+      const groupLabels: string[] = Array.from(element.querySelectorAll('.graph__group')).map(
+        (group: Element) => group.textContent?.trim() ?? '',
+      );
+      expect(groupLabels).toEqual(['October', 'November']);
+    });
+  });
 });
 
 function createReportWithDays(dayCount: number): Report<ProjectReport> {

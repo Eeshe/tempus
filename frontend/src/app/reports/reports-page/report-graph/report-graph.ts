@@ -9,16 +9,16 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { enumerateDays, enumerateMonths } from '../../../shared/util/date.util';
+import { enumerateDays, enumerateMonths, parseYYYYMMDDDate } from '../../../shared/util/date.util';
 import { durationFromMs, formatHHMMSSTime } from '../../../shared/util/time.util';
 import {
   buildAxisTicks,
-  resolveAxisMaxHours,
-  resolveAxisMaxMillis,
   ReportGraphBar,
+  ReportGraphGroup,
   ReportGraphSegment,
   ReportGraphType,
-  resolveDefaultGraphType,
+  resolveAxisMaxHours,
+  resolveAxisMaxMillis,
 } from '../../models/report-graph.model';
 import { ProjectReport, Report, ReportDay } from '../../models/report.model';
 
@@ -47,8 +47,15 @@ export class ReportGraph {
     // Every new report resets the graph to the view that best fits its amount of days.
     effect(() => {
       const reportDaysCount: number = this.report().reportDays.length;
-      untracked(() => this.graphType.set(resolveDefaultGraphType(reportDaysCount)));
+      untracked(() => this.graphType.set(this.resolveDefaultGraphType(reportDaysCount)));
     });
+  }
+
+  /**
+   * <= 30 days of data renders one bar per day, 31 or more renders one bar per month.
+   */
+  private resolveDefaultGraphType(reportDaysCount: number): ReportGraphType {
+    return reportDaysCount <= 30 ? 'month' : 'year';
   }
 
   readonly maxBarTrackedTimeMillis = computed<number>(() =>
@@ -76,6 +83,8 @@ export class ReportGraph {
       : this.buildYearGraphBars(report);
   });
 
+  readonly groups = computed<ReportGraphGroup[]>(() => this.buildGroups(this.bars()));
+
   readonly axisLabel = computed<string>(() => (this.graphType() === 'month' ? 'Day' : 'Month'));
 
   trackBar(_index: number, bar: ReportGraphBar): string {
@@ -84,6 +93,10 @@ export class ReportGraph {
 
   trackSegment(_index: number, segment: ReportGraphSegment): string {
     return segment.key;
+  }
+
+  trackGroup(_index: number, group: ReportGraphGroup): string {
+    return group.key;
   }
 
   calculateBarHeightPercent(bar: ReportGraphBar): number {
@@ -115,6 +128,19 @@ export class ReportGraph {
     this.positionTooltip(event);
   }
 
+  private positionTooltip(event: MouseEvent): void {
+    const bounds: DOMRect = this.host.nativeElement.getBoundingClientRect();
+    const x: number = event.clientX - bounds.left;
+    const y: number = event.clientY - bounds.top;
+    this.tooltipX.set(
+      Math.min(Math.max(x, TOOLTIP_EDGE_PADDING), bounds.width - TOOLTIP_EDGE_PADDING),
+    );
+    this.tooltipY.set(
+      Math.min(Math.max(y, TOOLTIP_EDGE_PADDING), bounds.height - TOOLTIP_EDGE_PADDING),
+    );
+    this.tooltipFlipped.set(x > bounds.width * TOOLTIP_FLIP_THRESHOLD);
+  }
+
   hideBarTooltip(): void {
     this.hoveredBar.set(null);
   }
@@ -131,17 +157,27 @@ export class ReportGraph {
     return `${percentage.toFixed(2)}%`;
   }
 
-  private positionTooltip(event: MouseEvent): void {
-    const bounds: DOMRect = this.host.nativeElement.getBoundingClientRect();
-    const x: number = event.clientX - bounds.left;
-    const y: number = event.clientY - bounds.top;
-    this.tooltipX.set(
-      Math.min(Math.max(x, TOOLTIP_EDGE_PADDING), bounds.width - TOOLTIP_EDGE_PADDING),
-    );
-    this.tooltipY.set(
-      Math.min(Math.max(y, TOOLTIP_EDGE_PADDING), bounds.height - TOOLTIP_EDGE_PADDING),
-    );
-    this.tooltipFlipped.set(x > bounds.width * TOOLTIP_FLIP_THRESHOLD);
+  private buildGroups(bars: ReportGraphBar[]): ReportGraphGroup[] {
+    const isMonthGraph: boolean = this.graphType() === 'month';
+    const groups: ReportGraphGroup[] = [];
+    for (const bar of bars) {
+      const key: string = isMonthGraph ? bar.key.slice(0, 7) : bar.key.slice(0, 4);
+      const lastGroup: ReportGraphGroup | undefined = groups[groups.length - 1];
+      if (lastGroup?.key === key) {
+        lastGroup.span++;
+        continue;
+      }
+      groups.push({ key, label: this.formatGroupLabel(key, isMonthGraph), span: 1 });
+    }
+    return groups;
+  }
+
+  private formatGroupLabel(key: string, isMonthGraph: boolean): string {
+    if (!isMonthGraph) {
+      return key;
+    }
+    const monthStart: Date | null = parseYYYYMMDDDate(`${key}-01`);
+    return monthStart == null ? key : formatDate(monthStart, 'MMMM', LOCALE);
   }
 
   private buildMonthGraphBars(report: Report<ProjectReport>): ReportGraphBar[] {
@@ -221,7 +257,7 @@ export class ReportGraph {
       trackedTimeByProjectName.set(
         reportEntry.project.name,
         (trackedTimeByProjectName.get(reportEntry.project.name) ?? 0) +
-          reportEntry.trackedTimeMillis,
+        reportEntry.trackedTimeMillis,
       );
     }
     const totalTrackedTimeMillis: number = this.sumTrackedTimeMillis(reportEntries);
