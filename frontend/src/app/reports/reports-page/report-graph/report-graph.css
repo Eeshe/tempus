@@ -146,6 +146,10 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--graph-segment-gap);
+  transform-origin: bottom;
+  /* Animates existing bars towards their new height when a report changes; the enter animation
+     below takes over for freshly inserted bars. */
+  transition: height 250ms ease-out;
 }
 
 .graph__segment {
@@ -187,6 +191,14 @@
 .graph__tooltip {
   position: absolute;
   z-index: 2;
+  /*
+   * Absolute positioning with `left` makes `width: auto` shrink-to-fit against (card width − left),
+   * so the box narrowed into ellipsis as the cursor moved right. `max-content` sizes it against its
+   * own content instead; the max-width cap only kicks in on narrow cards (percentages resolve
+   * against the card, not the space left of the cursor).
+   */
+  width: max-content;
+  max-width: calc(100% - 1rem);
   min-width: 12rem;
   padding: 0.5rem 0.75rem;
   background: var(--bg);
@@ -240,4 +252,25 @@
 
 .graph__tooltip-percentage {
   min-width: 3.5rem;
+}
+
+.graph__stack.graph-bar-grow {
+  animation: graph-bar-grow 250ms ease-out;
+}
+
+/* Only `from` is declared, so the animation grows up to the element's current height percentage. */
+@keyframes graph-bar-grow {
+  from {
+    height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph__stack {
+    transition: none;
+  }
+
+  .graph__stack.graph-bar-grow {
+    animation: none;
+  }
 }

@@ -48,7 +48,11 @@
               (mousemove)="updateBarTooltipPosition($event)"
               (mouseleave)="hideBarTooltip()"
             >
-              <div class="graph__stack" [style.height.%]="calculateBarHeightPercent(bar)">
+              <div
+                class="graph__stack"
+                animate.enter="graph-bar-grow"
+                [style.height.%]="calculateBarHeightPercent(bar)"
+              >
                 @for (segment of bar.segments; track trackSegment($index, segment)) {
                   <div class="graph__segment" [style.flexGrow]="segment.trackedTimeMillis"></div>
                 }
