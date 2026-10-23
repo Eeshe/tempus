@@ -5,6 +5,7 @@ import { Project } from '../../project/models/project.model';
 import { ProjectTaskSelectorButton } from '../../project/project-selector-button/project-task-selector-button';
 import { TimerService } from '../../shared/services/timer.service';
 import { durationFromMs, formatHHMMSSTime } from '../../shared/util/time.util';
+import { Task } from '../../task/models/task.model';
 import { TimeEntry } from '../models/time-entry.model';
 import { TimeEntryStore } from '../stores/time-entry.store';
 import { TimeEntryBillableButton } from '../time-entry-billable-button/time-entry-billable-button';
@@ -50,5 +51,9 @@ export class ActiveTimeEntry {
 
   updateTimeEntryProject(project: Project): void {
     this.timeEntryStore.patchProject(this.activeTimeEntry(), project);
+  }
+
+  updateTimeEntryTask(newProject: Project, newTask: Task): void {
+    this.timeEntryStore.patchTask(this.activeTimeEntry(), newProject, newTask);
   }
 }
