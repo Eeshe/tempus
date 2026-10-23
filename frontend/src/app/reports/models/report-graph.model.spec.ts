@@ -3,25 +3,11 @@ import {
   buildAxisTicks,
   resolveAxisMaxHours,
   resolveAxisMaxMillis,
-  resolveDefaultGraphType,
 } from './report-graph.model';
 
 const HOUR_MILLIS = 3_600_000;
 
 describe('report-graph.model', () => {
-  describe('resolveDefaultGraphType', () => {
-    it('picks the month graph up to 30 days', () => {
-      expect(resolveDefaultGraphType(0)).toBe('month');
-      expect(resolveDefaultGraphType(1)).toBe('month');
-      expect(resolveDefaultGraphType(30)).toBe('month');
-    });
-
-    it('picks the year graph from 31 days', () => {
-      expect(resolveDefaultGraphType(31)).toBe('year');
-      expect(resolveDefaultGraphType(365)).toBe('year');
-    });
-  });
-
   describe('axis config', () => {
     it('exposes the tweakable step values', () => {
       expect(REPORT_GRAPH_AXIS_CONFIG.month).toEqual({ stepHours: 4 });

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Client } from '../../../client/models/client.model';
 import { Project } from '../../../project/models/project.model';
+import { formatYYYYMMDDDate } from '../../../shared/util/date.util';
 import { ReportGraphBar } from '../../models/report-graph.model';
 import { ProjectReport, Report, ReportDay } from '../../models/report.model';
 import { ReportGraph } from './report-graph';
@@ -29,14 +30,20 @@ describe('ReportGraph', () => {
     await fixture.whenStable();
   }
 
-  it('defaults to the month graph for small reports', () => {
-    expect(component.graphType()).toBe('month');
+  it('picks the month graph up to 30 days', async () => {
+    for (const dayCount of [0, 1, 30]) {
+      await setReport(createReportWithDays(dayCount));
+
+      expect(component.graphType()).toBe('month');
+    }
   });
 
-  it('defaults to the year graph when the report has 31 days or more', async () => {
-    await setReport(createReportWithDays(31));
+  it('picks the year graph from 31 days', async () => {
+    for (const dayCount of [31, 365]) {
+      await setReport(createReportWithDays(dayCount));
 
-    expect(component.graphType()).toBe('year');
+      expect(component.graphType()).toBe('year');
+    }
   });
 
   it('resets the manually selected graph type when a new report arrives', async () => {
@@ -260,15 +267,21 @@ describe('ReportGraph', () => {
 });
 
 function createReportWithDays(dayCount: number): Report<ProjectReport> {
+  const startDate: Date = new Date(2026, 0, 1);
   const reportDays: ReportDay<ProjectReport>[] = [];
-  for (let day = 1; day <= dayCount; day++) {
+  let lastDate: string = formatYYYYMMDDDate(startDate);
+  for (let dayIndex = 0; dayIndex < dayCount; dayIndex++) {
+    const currentDay: Date = new Date(startDate);
+    currentDay.setDate(startDate.getDate() + dayIndex);
+    lastDate = formatYYYYMMDDDate(currentDay);
     reportDays.push(
-      createReportDay(`2026-01-${String(day).padStart(2, '0')}`, [
-        createProjectReport(createProject('ProjectA'), 3_600_000),
-      ]),
+      createReportDay(lastDate, [createProjectReport(createProject('ProjectA'), 3_600_000)]),
     );
   }
-  return createReport(reportDays, '2026-01-01', `2026-01-${String(dayCount).padStart(2, '0')}`);
+  if (dayCount === 0) {
+    return createReport(reportDays, null, null);
+  }
+  return createReport(reportDays, formatYYYYMMDDDate(startDate), lastDate);
 }
 
 function createProject(name: string): Project {
