@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "me.eeshe"
-version = "0.20.0-SNAPSHOT"
+version = "0.21.0-SNAPSHOT"
 
 java {
 	toolchain {
