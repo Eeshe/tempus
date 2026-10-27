@@ -1,6 +1,5 @@
 package me.eeshe.tempus.mapper.impl;
 
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 import me.eeshe.tempus.dto.ClientDTO;
@@ -65,7 +64,7 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.hourlyRate(),
-                JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))),
+                patchProjectRequestDTO.clientId().map(clientId -> resolveClient(userId, clientId)),
                 patchProjectRequestDTO.isArchived(),
                 patchProjectRequestDTO.color());
     }
