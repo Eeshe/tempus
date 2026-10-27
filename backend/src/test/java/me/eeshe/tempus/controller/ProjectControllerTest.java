@@ -17,7 +17,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import me.eeshe.tempus.controller.ProjectController;
 import me.eeshe.tempus.dto.CreateProjectRequestDTO;
 import me.eeshe.tempus.dto.PatchProjectRequestDTO;
 import me.eeshe.tempus.entity.Project;
