@@ -30,7 +30,7 @@
   background: none;
   border: none;
   font: inherit;
-  color: var(--fg);
+  color: var(--project-color, var(--fg));
   text-align: left;
   width: 100%;
   max-width: 100%;

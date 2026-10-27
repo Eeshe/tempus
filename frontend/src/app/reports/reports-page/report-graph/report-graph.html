@@ -55,7 +55,7 @@
                   [style.height.%]="calculateBarHeightPercent(bar)"
                 >
                   @for (segment of bar.segments; track trackSegment($index, segment)) {
-                    <div class="graph__segment" [style.flexGrow]="segment.trackedTimeMillis"></div>
+                    <div class="graph__segment" [style.background]="segment.color" [style.flexGrow]="segment.trackedTimeMillis"></div>
                   }
                 </div>
               </div>
@@ -97,7 +97,7 @@
       <div class="graph__tooltip-rows">
         @for (segment of bar.segments; track trackSegment($index, segment)) {
           <div class="graph__tooltip-row">
-            <span class="graph__tooltip-project">{{ segment.label }}</span>
+            <span class="graph__tooltip-project" [style.color]="segment.color">{{ segment.label }}</span>
             <span class="graph__tooltip-duration">{{
               formatDuration(segment.trackedTimeMillis)
             }}</span>

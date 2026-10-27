@@ -8,6 +8,7 @@ interface CreateProjectRequest {
   name: string;
   clientId: number | null;
   hourlyRate: number | null;
+  color: string;
 }
 
 interface PatchProjectRequest {
@@ -15,6 +16,7 @@ interface PatchProjectRequest {
   isArchived: boolean | null;
   clientId: number | null;
   hourlyRate: number | null;
+  color: string | null;
 }
 
 @Service()
@@ -26,14 +28,22 @@ export class ProjectService {
     return this.http.get<Project[]>(this.url, { withCredentials: true });
   }
 
-  createProject(name: string, client: Client | null, hourlyRate: number | null): Observable<Project> {
+  createProject(name: string, client: Client | null, hourlyRate: number | null, color: string): Observable<Project> {
     const clientId: number | null = client?.id ?? null;
     const createProjectRequest: CreateProjectRequest = {
       name: name,
       clientId: clientId,
       hourlyRate: hourlyRate,
+      color: color,
     };
     return this.http.post<Project>(this.url, createProjectRequest, { withCredentials: true });
+  }
+
+  patchProjectColor(project: Project, newColor: string): Observable<Project> {
+    const patchProjectRequest: Partial<PatchProjectRequest> = {
+      color: newColor,
+    }
+    return this.http.patch<Project>(`${this.url}/${project.id}`, patchProjectRequest, { withCredentials: true });
   }
 
   patchProjectName(project: Project, newName: string): Observable<Project> {

@@ -1,0 +1,87 @@
+/*
+ * ngx-color-picker theme overrides.
+ *
+ * The library renders its dialog with ViewEncapsulation.None and hardcoded light colors, so global
+ * selectors are the only way to theme it. Scoping through the `color-picker` host element keeps
+ * these rules above the library's own specificity regardless of style injection order.
+ */
+color-picker .color-picker {
+  background-color: var(--surface);
+  border-color: var(--border-strong);
+  border-radius: 0.375rem;
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+color-picker .color-picker input {
+  background: var(--bg);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+color-picker .color-picker input:focus {
+  border-color: var(--good);
+  outline: none;
+}
+
+color-picker .color-picker :is(.hex-text, .cmyk-text, .hsla-text, .rgba-text, .value-text) .box input {
+  background: var(--bg);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+color-picker .color-picker :is(.hex-text, .cmyk-text, .hsla-text, .rgba-text, .value-text) .box div,
+color-picker .color-picker .preset-area .preset-label {
+  color: var(--muted);
+}
+
+color-picker .color-picker .preset-area hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+color-picker .color-picker .preset-area .preset-label {
+  font-size: 0.85rem;
+}
+
+color-picker .color-picker .preset-area .preset-colors {
+  text-align: center;
+}
+
+color-picker .color-picker .preset-area .preset-color,
+color-picker .color-picker .selected-color {
+  border-color: var(--border-strong);
+}
+
+color-picker .color-picker .cursor {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 1px var(--bg);
+}
+
+color-picker .color-picker .button-area button {
+  padding: 0.375rem 0.75rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+color-picker .color-picker .button-area button:hover {
+  border-color: var(--good);
+  color: var(--good);
+}
+
+color-picker .color-picker .button-area button:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}
+
+color-picker .color-picker .type-policy {
+  display: none;
+}

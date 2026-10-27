@@ -1,11 +1,11 @@
-<button #triggerButton type="button" class="project-item" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{ selectedProject()?.name ?? 'Select a Project' }}</button>
+<button #triggerButton type="button" class="project-item" [style.--project-color]="selectedProject()?.color ?? null" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{ selectedProject()?.name ?? 'Select a Project' }}</button>
 
 <div class="selector__popup" [class.selector__popup--open]="isOpen()"
      [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
   <app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
   <div class="selector__popup-list">
     @for (project of filteredProjects(); track project.id) {
-      <button type="button" class="project-item" [attr.title]="project.name" (click)="changeProject(project)">{{ project.name }}</button>
+      <button type="button" class="project-item" [style.--project-color]="project.color" [attr.title]="project.name" (click)="changeProject(project)">{{ project.name }}</button>
     }
   </div>
 </div>

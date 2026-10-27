@@ -65,6 +65,11 @@ export class ProjectReportStore {
       this.replace(patchedProject));
   }
 
+  editProjectColor(project: Project, newColor: string): void {
+    this.projectService.patchProjectColor(project, newColor).subscribe(patchedProject =>
+      this.replace(patchedProject));
+  }
+
   editProjectArchived(project: Project, isArchived: boolean): void {
     this.projectService.patchProjectArchived(project, isArchived).subscribe(patchedProject =>
       this.replace(patchedProject));

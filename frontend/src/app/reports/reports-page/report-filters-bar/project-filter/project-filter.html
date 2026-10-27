@@ -32,7 +32,7 @@
 			<label class="selector__popup-item">
 				<input type="checkbox" class="selector__popup-checkbox" [checked]="isSelected(project)" (change)="toggleProject(project)">
 				<span class="selector__popup-check"></span>
-				<span class="selector__popup-name">{{ project.name }}</span>
+				<span class="selector__popup-name" [style.--project-color]="project.color">{{ project.name }}</span>
 			</label>
 			}
 		</div>

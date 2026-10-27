@@ -16,6 +16,11 @@
   </div>
 
   <div class="project-modal__field">
+    <label class="project-modal__field-label" for="projectColor">Color</label>
+    <app-color-input id="projectColor" [value]="project().color" (valueChange)="editProjectColor($event)" />
+  </div>
+
+  <div class="project-modal__field">
     <span class="project-modal__field-label">Hourly Rate</span>
     <div class="project-modal__rate-input">
       <span class="project-modal__rate-prefix" aria-hidden="true">$</span>

@@ -1,3 +1,11 @@
 :host {
   display: block;
 }
+
+.project-name {
+  color: var(--project-color, var(--fg));
+}
+
+.project-name--archived {
+  color: var(--muted);
+}

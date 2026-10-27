@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ClientSelectorButton } from '../../client/client-selector-button/client-selector-button';
 import { Client } from '../../client/models/client.model';
 import { DeleteConfirmationModal } from '../../shared/delete-confirmation-modal/delete-confirmation-modal';
+import { ColorInput } from '../../shared/input/color-input/color-input';
 import { InlineEditInput } from '../../shared/input/inline-edit-input/inline-edit-input';
 import { AppModal } from '../../shared/modal/modal';
 import { ModalBase } from '../../shared/modal/modal-base';
@@ -17,6 +18,7 @@ import { ProjectReportStore } from '../store/project-report.store';
     RouterLink,
     InlineEditInput,
     ClientSelectorButton,
+    ColorInput,
     TaskList,
     DeleteConfirmationModal
   ],
@@ -55,6 +57,10 @@ export class ProjectModal extends ModalBase {
 
   editProjectClient(newClient: Client | null): void {
     this.projectReportStore.editProjectClient(this.project(), newClient);
+  }
+
+  editProjectColor(newColor: string): void {
+    this.projectReportStore.editProjectColor(this.project(), newColor);
   }
 
   toggleProjectArchived(event: Event): void {

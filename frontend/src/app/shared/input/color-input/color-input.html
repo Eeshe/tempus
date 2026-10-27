@@ -1,0 +1,18 @@
+<button
+  type="button"
+  class="color-input"
+  [attr.id]="id() || null"
+  [attr.aria-label]="label()"
+  [colorPicker]="value()"
+  [cpOutputFormat]="'hex'"
+  [cpAlphaChannel]="'disabled'"
+  [cpPresetLabel]="'Preset colors'"
+  [cpPresetColors]="presetColors"
+  cpPresetColorsClass="preset-colors"
+  [cpOKButton]="true"
+  [cpCancelButton]="true"
+  (colorPickerSelect)="commitColor($event)"
+>
+  <span class="color-input__swatch" [style.background]="value()" aria-hidden="true"></span>
+  <span class="color-input__hex">{{ value().toUpperCase() }}</span>
+</button>

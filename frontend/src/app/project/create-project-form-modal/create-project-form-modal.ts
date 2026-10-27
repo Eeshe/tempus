@@ -5,18 +5,20 @@ import { firstValueFrom } from 'rxjs';
 import { ClientSelectorButton } from '../../client/client-selector-button/client-selector-button';
 import { Client } from '../../client/models/client.model';
 import { ProjectService } from '../../services/project.service';
+import { ColorInput } from '../../shared/input/color-input/color-input';
 import { AppModal } from '../../shared/modal/modal';
 import { ModalBase } from '../../shared/modal/modal-base';
-import { Project } from '../models/project.model';
+import { DEFAULT_PROJECT_COLOR, Project } from '../models/project.model';
 
 interface CreateProjectModel {
   name: string;
   client: Client | null;
   hourlyRate: number | null;
+  color: string;
 }
 
 @Component({
-  imports: [FormField, AppModal, ClientSelectorButton],
+  imports: [FormField, AppModal, ClientSelectorButton, ColorInput],
   selector: 'app-create-project-form-modal',
   styleUrl: './create-project-form-modal.css',
   templateUrl: './create-project-form-modal.html',
@@ -28,6 +30,7 @@ export class CreateProjectFormModal extends ModalBase {
     name: "",
     client: null,
     hourlyRate: null,
+    color: DEFAULT_PROJECT_COLOR,
   });
   readonly projectForm = form(this.projectModel, (fieldPath) => {
     required(fieldPath.name, { message: "You must provide a project name" });
@@ -43,6 +46,13 @@ export class CreateProjectFormModal extends ModalBase {
     }));
   }
 
+  changeColor(color: string): void {
+    this.projectModel.update(model => ({
+      ...model,
+      color: color,
+    }));
+  }
+
   onSubmit(event: Event): void {
     event.preventDefault();
 
@@ -51,7 +61,8 @@ export class CreateProjectFormModal extends ModalBase {
         const project: Project = await firstValueFrom(this.projectService.createProject(
           this.projectModel().name,
           this.projectModel().client,
-          this.projectModel().hourlyRate
+          this.projectModel().hourlyRate,
+          this.projectModel().color
         ));
         this.projectCreateEvent.emit(project);
         this.close();

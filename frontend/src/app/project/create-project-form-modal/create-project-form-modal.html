@@ -42,6 +42,11 @@
           </div>
         }
       </div>
+
+      <div class="field">
+        <label for="color">Color</label>
+        <app-color-input id="color" [value]="projectModel().color" (valueChange)="changeColor($event)" />
+      </div>
     </div>
 
     @if (projectForm().errors().length > 0) {
