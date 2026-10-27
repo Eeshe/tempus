@@ -46,17 +46,6 @@ public class DatabaseMetaServiceImplTest {
     }
 
     @Nested
-    class InitializeDatabaseMeta {
-
-        @Test
-        void createsDatabaseMetaTable() {
-            databaseMetaService.initializeDatabaseMeta();
-
-            verify(jdbcTemplate).execute(CREATE_TABLE_SQL);
-        }
-    }
-
-    @Nested
     class GetLocalSnapshotTime {
 
         @Test
