@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import me.eeshe.tempus.service.SyncService;
 
 @Component
-@Order(2)
+@Order(1)
 public class AutoSyncRunner implements ApplicationRunner {
     private final SyncService syncService;
 

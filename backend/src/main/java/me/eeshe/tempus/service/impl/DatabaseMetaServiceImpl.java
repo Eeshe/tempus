@@ -25,12 +25,6 @@ public class DatabaseMetaServiceImpl implements DatabaseMetaService {
     }
 
     @Override
-    public void initializeDatabaseMeta() {
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER NOT NULL)"
-                .formatted(META_TABLE, TIME_COLUMN));
-    }
-
-    @Override
     public Optional<Instant> getLocalSnapshotTime() {
         final List<Instant> times = jdbcTemplate.query("SELECT %s FROM %s".formatted(TIME_COLUMN, META_TABLE),
                 (resultSet, rowNumber) -> Instant.ofEpochMilli(resultSet.getLong(TIME_COLUMN)));

@@ -8,8 +8,6 @@ public interface DatabaseMetaService {
     Path SNAPSHOT_DIRECTORY = Path.of("data/sync");
     Path SNAPSHOT_FILE = SNAPSHOT_DIRECTORY.resolve("snapshot.db");
 
-    void initializeDatabaseMeta();
-
     Optional<Instant> getLocalSnapshotTime();
 
     Optional<Instant> getRemoteSnapshotTime();

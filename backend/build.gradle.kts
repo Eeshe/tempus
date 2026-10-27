@@ -26,6 +26,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
     implementation("com.opencsv:opencsv:5.12.0")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
 
 	runtimeOnly("org.xerial:sqlite-jdbc")
 
