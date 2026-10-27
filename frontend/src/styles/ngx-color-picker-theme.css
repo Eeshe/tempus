@@ -5,6 +5,10 @@
  * selectors are the only way to theme it. Scoping through the `color-picker` host element keeps
  * these rules above the library's own specificity regardless of style injection order.
  */
+/*
+ * The library toggles inline `display` to hide the dialog. Keep it rendered and use visibility
+ * instead, so opacity/transform transitions can animate both open and close without a flicker.
+ */
 color-picker .color-picker {
   background-color: var(--surface);
   border-color: var(--border-strong);
@@ -13,6 +17,32 @@ color-picker .color-picker {
   font-family: 'Inter', system-ui, sans-serif;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
   color-scheme: dark;
+  display: block !important;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  visibility: hidden !important;
+  pointer-events: none;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 140ms;
+}
+
+color-picker .color-picker.open {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+/*
+ * ngx-color-picker keeps the dialog inline-hidden until it has calculated its position. Respect
+ * that flag so the first frame does not appear at the previous/default position.
+ */
+color-picker .color-picker.open:not([style*='hidden']) {
+  visibility: visible !important;
 }
 
 color-picker .color-picker input {
@@ -84,4 +114,10 @@ color-picker .color-picker .button-area button:focus-visible {
 
 color-picker .color-picker .type-policy {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  color-picker .color-picker {
+    transition: none;
+  }
 }
