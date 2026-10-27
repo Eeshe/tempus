@@ -59,7 +59,7 @@ public abstract class RepositoryTestBase {
 
     protected Project createProject(
             String name, User user, BigDecimal hourlyRate, Client client, boolean isArchived) {
-        final Project project = new Project(name, user, hourlyRate, client);
+        final Project project = new Project(name, user, hourlyRate, client, null);
         project.setArchived(isArchived);
 
         return projectRepository.save(project);

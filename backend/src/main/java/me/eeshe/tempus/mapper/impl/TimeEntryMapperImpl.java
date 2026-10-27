@@ -143,7 +143,8 @@ public class TimeEntryMapperImpl implements TimeEntryMapper {
                     finalProjectName,
                     user,
                     csvTimeEntry.getHourlyRate(),
-                    client));
+                    client,
+                    null));
         });
     }
 

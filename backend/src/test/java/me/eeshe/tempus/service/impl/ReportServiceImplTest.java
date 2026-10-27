@@ -277,8 +277,8 @@ public class ReportServiceImplTest extends EntityTestBase {
             final Report<ProjectReportEntry> report = reportService.generateProjectReport(REPORT_REQUEST);
 
             assertThat(report.reportDays()).hasSize(2);
-            assertThat(report.reportDays()).allSatisfy(reportDay ->
-                    assertThat(reportDay.totalAccumulatedPay()).isEqualByComparingTo(HOURLY_RATE));
+            assertThat(report.reportDays()).allSatisfy(
+                    reportDay -> assertThat(reportDay.totalAccumulatedPay()).isEqualByComparingTo(HOURLY_RATE));
             assertThat(report.totalAccumulatedPay()).isEqualByComparingTo(new BigDecimal("100.00"));
         }
 
@@ -401,7 +401,7 @@ public class ReportServiceImplTest extends EntityTestBase {
     }
 
     private static Project createProject(long id, BigDecimal hourlyRate, Client client) {
-        final Project project = new Project("MyProject", createUser(USER_ID), hourlyRate, client);
+        final Project project = new Project("MyProject", createUser(USER_ID), hourlyRate, client, null);
         ReflectionTestUtils.setField(project, "id", id);
 
         return project;

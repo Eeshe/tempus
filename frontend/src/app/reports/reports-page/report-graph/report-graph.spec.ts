@@ -152,8 +152,8 @@ describe('ReportGraph', () => {
     });
 
     it('merges entries of the same project and computes percentages', async () => {
-      const projectA: Project = createProject('ProjectA');
-      const projectB: Project = createProject('ProjectB');
+      const projectA: Project = createProject('ProjectA', '#FF0000');
+      const projectB: Project = createProject('ProjectB', '#00FF00');
       await setReport(
         createReport(
           [
@@ -171,6 +171,7 @@ describe('ReportGraph', () => {
       const segments = component.bars()[0].segments;
 
       expect(segments.map((segment) => segment.label)).toEqual(['ProjectA', 'ProjectB']);
+      expect(segments.map((segment) => segment.color)).toEqual(['#FF0000', '#00FF00']);
       expect(segments.map((segment) => segment.trackedTimeMillis)).toEqual([3_600_000, 1_800_000]);
       expect(segments.map((segment) => segment.percentage)).toEqual([(2 / 3) * 100, (1 / 3) * 100]);
     });
@@ -284,7 +285,7 @@ function createReportWithDays(dayCount: number): Report<ProjectReport> {
   return createReport(reportDays, formatYYYYMMDDDate(startDate), lastDate);
 }
 
-function createProject(name: string): Project {
+function createProject(name: string, color = '#FFFFFF'): Project {
   return {
     id: 1,
     name,
@@ -292,6 +293,7 @@ function createProject(name: string): Project {
     isPrivate: false,
     isArchived: false,
     hourlyRate: 0,
+    color,
     tasks: [],
     client: createClient(),
     createdAt: '2026-01-01T00:00:00Z',

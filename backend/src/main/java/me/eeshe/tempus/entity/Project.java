@@ -22,6 +22,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "projects")
 public class Project {
+    public static final String DEFAULT_COLOR = "#FFFFFF";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +41,10 @@ public class Project {
     @ColumnDefault("false")
     private boolean isArchived;
 
+    @Column(nullable = false)
+    @ColumnDefault("'#FFFFFF'")
+    private String color = DEFAULT_COLOR;
+
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Client client;
@@ -56,11 +61,12 @@ public class Project {
     public Project() {
     }
 
-    public Project(String name, User user, BigDecimal hourlyRate, Client client) {
+    public Project(String name, User user, BigDecimal hourlyRate, Client client, String color) {
         this.name = name;
         this.user = user;
         this.hourlyRate = hourlyRate;
         this.client = client;
+        this.color = color == null ? DEFAULT_COLOR : color;
     }
 
     @PrePersist
@@ -98,6 +104,14 @@ public class Project {
 
     public void setArchived(boolean isArchived) {
         this.isArchived = isArchived;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public Set<Task> getTasks() {

@@ -108,7 +108,7 @@
 }
 
 .selector__popup-name {
-  color: var(--fg);
+  color: var(--project-color, var(--fg));
   font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;

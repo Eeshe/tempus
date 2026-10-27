@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN color varchar(7) NOT NULL DEFAULT '#FFFFFF';

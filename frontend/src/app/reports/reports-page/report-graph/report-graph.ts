@@ -252,23 +252,27 @@ export class ReportGraph {
   }
 
   private buildSegments(reportEntries: ProjectReport[]): ReportGraphSegment[] {
-    const trackedTimeByProjectName: Map<string, number> = new Map();
+    const trackedTimeByProjectName: Map<string, { trackedTimeMillis: number; color: string }> =
+      new Map();
     for (const reportEntry of reportEntries) {
-      trackedTimeByProjectName.set(
-        reportEntry.project.name,
-        (trackedTimeByProjectName.get(reportEntry.project.name) ?? 0) +
-        reportEntry.trackedTimeMillis,
-      );
+      const current = trackedTimeByProjectName.get(reportEntry.project.name);
+      trackedTimeByProjectName.set(reportEntry.project.name, {
+        trackedTimeMillis: (current?.trackedTimeMillis ?? 0) + reportEntry.trackedTimeMillis,
+        color: reportEntry.project.color,
+      });
     }
     const totalTrackedTimeMillis: number = this.sumTrackedTimeMillis(reportEntries);
 
     return [...trackedTimeByProjectName.entries()]
-      .map(([projectName, trackedTimeMillis]: [string, number]) => ({
+      .map(([projectName, projectTrackedTime]) => ({
         key: projectName,
         label: projectName,
-        trackedTimeMillis,
+        color: projectTrackedTime.color,
+        trackedTimeMillis: projectTrackedTime.trackedTimeMillis,
         percentage:
-          totalTrackedTimeMillis === 0 ? 0 : (trackedTimeMillis / totalTrackedTimeMillis) * 100,
+          totalTrackedTimeMillis === 0
+            ? 0
+            : (projectTrackedTime.trackedTimeMillis / totalTrackedTimeMillis) * 100,
       }))
       .sort(
         (segmentA: ReportGraphSegment, segmentB: ReportGraphSegment) =>

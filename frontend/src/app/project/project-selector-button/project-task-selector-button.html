@@ -1,4 +1,4 @@
-<button #triggerButton type="button" class="project-item" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{displayText()}}</button>
+<button #triggerButton type="button" class="project-item" [style.--project-color]="selectedProject()?.color ?? null" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()" (click)="toggle()">{{displayText()}}</button>
 
 <div class="selector__popup" [class.selector__popup--open]="isOpen()"
      [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
@@ -7,7 +7,7 @@
     @for (project of filteredProjects(); track project.id) {
       <div class="project-group">
         <div class="project-row">
-          <button type="button" class="project-item" [attr.title]="project.name" (click)="changeTimeEntryProject(project)">{{ project.name }}</button>
+          <button type="button" class="project-item" [style.--project-color]="project.color" [attr.title]="project.name" (click)="changeTimeEntryProject(project)">{{ project.name }}</button>
           <button type="button" class="project-toggle"
                   [class.project-toggle--expanded]="isProjectExpanded(project)"
                   [attr.aria-expanded]="isProjectExpanded(project)"

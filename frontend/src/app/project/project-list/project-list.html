@@ -16,7 +16,11 @@
     (rowClickEvent)="openProjectModal($event.project)"
   >
     <ng-template #projectCell let-projectReport>
-      {{ projectReport.project.name }}
+      <span
+        class="project-name"
+        [class.project-name--archived]="projectReport.project.isArchived"
+        [style.--project-color]="projectReport.project.color"
+      >{{ projectReport.project.name }}</span>
     </ng-template>
     <ng-template #durationCell let-projectReport>
       {{ projectReport.trackedTimeMillis | msToHHMMSS }}

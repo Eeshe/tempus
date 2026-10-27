@@ -33,9 +33,8 @@ public class SecurityConfig {
                 .permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll())
+                .csrf(csrf -> csrf.spa())
                 .httpBasic(basic -> basic.authenticationEntryPoint(restAuthenticationEntryPoint));
-
-        http.csrf(csrf -> csrf.spa());
 
         return http.build();
     }

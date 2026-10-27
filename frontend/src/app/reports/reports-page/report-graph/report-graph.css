@@ -226,7 +226,7 @@
 .graph__segment {
   flex-basis: 0;
   min-height: 2px;
-  background: var(--graph-segment-color);
+  background: var(--graph-segment-color, var(--good));
   border-radius: 2px;
 }
 

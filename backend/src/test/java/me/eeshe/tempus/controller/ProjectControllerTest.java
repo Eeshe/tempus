@@ -17,7 +17,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import me.eeshe.tempus.controller.ProjectController;
 import me.eeshe.tempus.dto.CreateProjectRequestDTO;
 import me.eeshe.tempus.dto.PatchProjectRequestDTO;
 import me.eeshe.tempus.entity.Project;
@@ -217,6 +216,7 @@ public class ProjectControllerTest extends ControllerTestBase {
             final CreateProjectRequestDTO createProjectRequestDTO = new CreateProjectRequestDTO(
                     "MyProject",
                     CLIENT_ID,
+                    null,
                     null);
             final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
 
@@ -316,6 +316,178 @@ public class ProjectControllerTest extends ControllerTestBase {
 
             verifyNoInteractions(projectMapper, projectService);
         }
+
+        @Test
+        void createsProjectWithHexColor() {
+            final String color = "#FF0000";
+            final Project createdProject = createProject();
+            final CreateProjectRequest createProjectRequest = new CreateProjectRequest(
+                    "MyProject", createUser(USER_ID), null, null, color);
+            final CreateProjectRequestDTO createProjectRequestDTO = new CreateProjectRequestDTO(
+                    "MyProject", null, null, color);
+
+            when(projectMapper.fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createProjectRequest);
+            when(projectService.createProject(createProjectRequest)).thenReturn(createdProject);
+            when(projectMapper.toDTO(eq(createdProject))).thenReturn(createProjectDTO(color));
+
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "%s"
+                    }""".formatted(color);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson(color));
+
+            verify(projectMapper).fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).createProject(createProjectRequest);
+        }
+
+        @Test
+        void createsProjectWithShortHexColor() {
+            final String color = "#5";
+            final Project createdProject = createProject();
+            final CreateProjectRequest createProjectRequest = new CreateProjectRequest(
+                    "MyProject", createUser(USER_ID), null, null, color);
+            final CreateProjectRequestDTO createProjectRequestDTO = new CreateProjectRequestDTO(
+                    "MyProject", null, null, color);
+
+            when(projectMapper.fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createProjectRequest);
+            when(projectService.createProject(createProjectRequest)).thenReturn(createdProject);
+            when(projectMapper.toDTO(eq(createdProject))).thenReturn(createProjectDTO(color));
+
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "%s"
+                    }""".formatted(color);
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson(color));
+
+            verify(projectMapper).fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).createProject(createProjectRequest);
+        }
+
+        @Test
+        void defaultsToWhiteWhenColorNotProvided() {
+            final Project createdProject = createProject();
+            final CreateProjectRequest createProjectRequest = createProjectRequest();
+            final CreateProjectRequestDTO createProjectRequestDTO = createCreateProjectRequestDTO();
+
+            when(projectMapper.fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(createProjectRequest);
+            when(projectService.createProject(createProjectRequest)).thenReturn(createdProject);
+            when(projectMapper.toDTO(eq(createdProject))).thenReturn(createProjectDTO());
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(CREATE_PROJECT_JSON_BODY))
+                    .hasStatus(201)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson());
+
+            verify(projectMapper).fromDTO(
+                    eq(createProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).createProject(createProjectRequest);
+        }
+
+        @Test
+        void rejectsTooLongColor() {
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "#1234567"
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_LENGTH);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
+
+        @Test
+        void rejectsColorWithoutHash() {
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "FFFFFF"
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_FORMAT);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
+
+        @Test
+        void rejectsNonHexColor() {
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "#GG"
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_FORMAT);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
+
+        @Test
+        void rejectsHashOnlyColor() {
+            final String jsonBody = """
+                    {
+                        "name": "MyProject",
+                        "color": "#"
+                    }""";
+
+            assertThat(mockMvc.post().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(CreateProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_LENGTH);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
     }
 
     @Nested
@@ -362,12 +534,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     null,
                     JsonNullable.of(hourlyRate),
                     JsonNullable.undefined(),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.of(hourlyRate),
                     JsonNullable.undefined(),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -407,12 +579,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.of(createClient()),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.of(CLIENT_ID),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -452,12 +624,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.undefined(),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.undefined(),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -493,12 +665,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     "MyProject",
                     JsonNullable.of(hourlyRate),
                     JsonNullable.of(createClient()),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     "MyProject",
                     JsonNullable.of(hourlyRate),
                     JsonNullable.of(CLIENT_ID),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -540,12 +712,12 @@ public class ProjectControllerTest extends ControllerTestBase {
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.undefined(),
-                    JsonNullable.of(true));
+                    JsonNullable.of(true), null);
             final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.undefined(),
-                    JsonNullable.of(true));
+                    JsonNullable.of(true), null);
 
             when(projectMapper.fromDTO(
                     eq(patchProjectRequestDTO),
@@ -585,7 +757,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                     null,
                     JsonNullable.undefined(),
                     JsonNullable.of(CLIENT_ID),
-                    JsonNullable.undefined());
+                    JsonNullable.undefined(), null);
             final ClientNotFoundException exception = new ClientNotFoundException(CLIENT_ID);
 
             when(projectMapper.fromDTO(
@@ -701,6 +873,90 @@ public class ProjectControllerTest extends ControllerTestBase {
 
             verifyNoInteractions(projectMapper, projectService);
         }
+
+        @Test
+        void patchesProjectColor() {
+            final String color = "#123456";
+            final Project patchedProject = createProject();
+            final PatchProjectRequest patchProjectRequest = new PatchProjectRequest(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    color);
+            final PatchProjectRequestDTO patchProjectRequestDTO = new PatchProjectRequestDTO(
+                    null,
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    JsonNullable.undefined(),
+                    color);
+
+            when(projectMapper.fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID)))
+                    .thenReturn(patchProjectRequest);
+            when(projectService.patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest))).thenReturn(patchedProject);
+            when(projectMapper.toDTO(eq(patchedProject))).thenReturn(createProjectDTO(color));
+
+            final String jsonBody = """
+                    {
+                        "color": "%s"
+                    }""".formatted(color);
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .isEqualTo(createProjectDTOJson(color));
+
+            verify(projectMapper).fromDTO(
+                    eq(patchProjectRequestDTO),
+                    eq(USER_ID));
+            verify(projectService).patchProject(
+                    eq(USER_ID),
+                    eq(PROJECT_ID),
+                    eq(patchProjectRequest));
+        }
+
+        @Test
+        void rejectsTooLongColor() {
+            final String jsonBody = """
+                    {
+                        "color": "#1234567"
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_LENGTH);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
+
+        @Test
+        void rejectsNonHexColor() {
+            final String jsonBody = """
+                    {
+                        "color": "#GG"
+                    }""";
+
+            assertThat(mockMvc.patch().uri(URL, PROJECT_ID).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchProjectRequestDTO.ERROR_MESSAGE_INVALID_COLOR_FORMAT);
+
+            verifyNoInteractions(projectMapper, projectService);
+        }
     }
 
     @Nested
@@ -738,11 +994,11 @@ public class ProjectControllerTest extends ControllerTestBase {
     }
 
     private static CreateProjectRequest createProjectRequest() {
-        return new CreateProjectRequest("MyProject", createUser(USER_ID), null, null);
+        return new CreateProjectRequest("MyProject", createUser(USER_ID), null, null, null);
     }
 
     private static CreateProjectRequestDTO createCreateProjectRequestDTO() {
-        return new CreateProjectRequestDTO("MyProject", null, null);
+        return new CreateProjectRequestDTO("MyProject", null, null, null);
     }
 
     private static PatchProjectRequest createPatchProjectRequest() {
@@ -750,7 +1006,7 @@ public class ProjectControllerTest extends ControllerTestBase {
                 "MyProject",
                 JsonNullable.undefined(),
                 JsonNullable.undefined(),
-                JsonNullable.undefined());
+                JsonNullable.undefined(), null);
     }
 
     private static PatchProjectRequestDTO createPatchProjectRequestDTO() {
@@ -758,6 +1014,6 @@ public class ProjectControllerTest extends ControllerTestBase {
                 "MyProject",
                 JsonNullable.undefined(),
                 JsonNullable.undefined(),
-                JsonNullable.undefined());
+                JsonNullable.undefined(), null);
     }
 }

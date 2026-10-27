@@ -18,6 +18,7 @@ const MILLIS_PER_HOUR = 3_600_000;
 export interface ReportGraphSegment {
   key: string;
   label: string;
+  color: string;
   trackedTimeMillis: number;
   percentage: number;
 }

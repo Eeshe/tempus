@@ -17,6 +17,7 @@ describe('TimeEntryStore', () => {
     isPrivate: false,
     isArchived: false,
     hourlyRate: 0,
+    color: '#FFFFFF',
     tasks: [],
     client: { id: 1, name: 'Client', userId: 1, createdAt: '2026-01-01T00:00:00Z' },
     createdAt: '2026-01-01T00:00:00Z',

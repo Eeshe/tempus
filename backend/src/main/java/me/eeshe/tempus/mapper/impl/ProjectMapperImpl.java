@@ -1,6 +1,5 @@
 package me.eeshe.tempus.mapper.impl;
 
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 import me.eeshe.tempus.dto.ClientDTO;
@@ -46,7 +45,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.getTasks().stream().map(taskMapper::toDTO).toList(),
                 clientDTO,
                 project.getCreatedAt(),
-                project.isArchived());
+                project.isArchived(),
+                project.getColor());
     }
 
     @Override
@@ -55,7 +55,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 createProjectRequestDTO.name(),
                 userService.getUser(userId),
                 createProjectRequestDTO.hourlyRate(),
-                resolveClient(userId, createProjectRequestDTO.clientId()));
+                resolveClient(userId, createProjectRequestDTO.clientId()),
+                createProjectRequestDTO.color());
     }
 
     @Override
@@ -63,8 +64,9 @@ public class ProjectMapperImpl implements ProjectMapper {
         return new PatchProjectRequest(
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.hourlyRate(),
-                JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))),
-                patchProjectRequestDTO.isArchived());
+                patchProjectRequestDTO.clientId().map(clientId -> resolveClient(userId, clientId)),
+                patchProjectRequestDTO.isArchived(),
+                patchProjectRequestDTO.color());
     }
 
     private Client resolveClient(long userId, Long clientId) {

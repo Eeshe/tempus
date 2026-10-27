@@ -117,7 +117,7 @@ public class ProjectRepositoryTest extends RepositoryTestBase {
             final Client client = createClient("MyClient", user);
 
             final Project saved = projectRepository
-                    .save(new Project("MyProject", user, HOURLY_RATE, client));
+                    .save(new Project("MyProject", user, HOURLY_RATE, client, null));
 
             assertThat(saved.getId()).isPositive();
             assertThat(saved.getCreatedAt()).isNotNull();
@@ -131,6 +131,24 @@ public class ProjectRepositoryTest extends RepositoryTestBase {
             assertThat(found.get().getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(found.get().getClient()).isEqualTo(client);
             assertThat(found.get().isArchived()).isFalse();
+            assertThat(found.get().getColor()).isEqualTo(Project.DEFAULT_COLOR);
+        }
+
+        @Test
+        void savePersistsCustomColor() {
+            final User user = createUser("MyUser");
+            final String color = "#0A0B0C";
+
+            final Project saved = projectRepository
+                    .save(new Project("MyProject", user, HOURLY_RATE, null, color));
+
+            entityManager.flush();
+            entityManager.clear();
+
+            final Optional<Project> found = projectRepository.findById(saved.getId());
+
+            assertThat(found).isPresent();
+            assertThat(found.get().getColor()).isEqualTo(color);
         }
 
         @Test

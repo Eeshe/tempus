@@ -34,6 +34,7 @@ import me.eeshe.tempus.support.EntityTestBase;
 @ExtendWith(MockitoExtension.class)
 public class ProjectServiceImplTest extends EntityTestBase {
     private static final BigDecimal HOURLY_RATE = new BigDecimal("50.00");
+    private static final String COLOR = "#FF0000";
 
     @Mock
     private ProjectRepository projectRepository;
@@ -108,7 +109,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             final User user = createUser(USER_ID);
             final Client client = createClient();
             final CreateProjectRequest createProjectRequest = new CreateProjectRequest(
-                    "MyProject", user, HOURLY_RATE, client);
+                    "MyProject", user, HOURLY_RATE, client, COLOR);
             final Project savedProject = createProject();
 
             when(projectRepository.findByUserIdAndName(USER_ID, "MyProject")).thenReturn(Optional.empty());
@@ -125,7 +126,27 @@ public class ProjectServiceImplTest extends EntityTestBase {
             assertThat(projectCaptor.getValue().getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(projectCaptor.getValue().getClient()).isEqualTo(client);
             assertThat(projectCaptor.getValue().isArchived()).isFalse();
+            assertThat(projectCaptor.getValue().getColor()).isEqualTo(COLOR);
             assertThat(project).isEqualTo(savedProject);
+        }
+
+        @Test
+        void savesProjectWithDefaultColorWhenNoneProvided() {
+            final User user = createUser(USER_ID);
+            final CreateProjectRequest createProjectRequest = new CreateProjectRequest(
+                    "MyProject", user, HOURLY_RATE, null, null);
+            final Project savedProject = createProject();
+
+            when(projectRepository.findByUserIdAndName(USER_ID, "MyProject")).thenReturn(Optional.empty());
+            when(projectRepository.save(any(Project.class))).thenReturn(savedProject);
+
+            projectService.createProject(createProjectRequest);
+
+            final ArgumentCaptor<Project> projectCaptor = ArgumentCaptor.forClass(Project.class);
+
+            verify(projectRepository).save(projectCaptor.capture());
+
+            assertThat(projectCaptor.getValue().getColor()).isEqualTo(Project.DEFAULT_COLOR);
         }
 
         @Test
@@ -138,7 +159,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
                     .thenReturn(Optional.of(existingProject));
 
             assertThatThrownBy(() -> projectService.createProject(
-                    new CreateProjectRequest("MyProject", user, HOURLY_RATE, client)))
+                    new CreateProjectRequest("MyProject", user, HOURLY_RATE, client, COLOR)))
                     .isInstanceOf(UserProjectAlreadyExistsException.class)
                     .hasMessage("User 1 already has a project named MyProject");
 
@@ -157,7 +178,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined()));
+                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined(), null));
 
             assertThat(patchedProject.getName()).isEqualTo("MyNewProject");
 
@@ -172,7 +193,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.of(HOURLY_RATE), JsonNullable.undefined(), JsonNullable.undefined()));
+                    null, JsonNullable.of(HOURLY_RATE), JsonNullable.undefined(), JsonNullable.undefined(), null));
 
             assertThat(patchedProject.getHourlyRate()).isEqualByComparingTo(HOURLY_RATE);
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
@@ -189,7 +210,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.undefined(), JsonNullable.of(client), JsonNullable.undefined()));
+                    null, JsonNullable.undefined(), JsonNullable.of(client), JsonNullable.undefined(), null));
 
             assertThat(patchedProject.getClient()).isEqualTo(client);
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
@@ -205,12 +226,13 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined()));
+                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined(), null));
 
             assertThat(patchedProject.getName()).isEqualTo("MyProject");
             assertThat(patchedProject.getHourlyRate()).isNull();
             assertThat(patchedProject.getClient()).isNull();
             assertThat(patchedProject.isArchived()).isFalse();
+            assertThat(patchedProject.getColor()).isEqualTo(Project.DEFAULT_COLOR);
 
             verify(projectRepository).save(project);
         }
@@ -223,9 +245,25 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.save(project)).thenReturn(project);
 
             final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.of(true)));
+                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.of(true), null));
 
             assertThat(patchedProject.isArchived()).isTrue();
+
+            verify(projectRepository).save(project);
+        }
+
+        @Test
+        void patchesColorAndSaves() {
+            final Project project = createProject();
+
+            when(projectRepository.findByIdAndUserId(PROJECT_ID, USER_ID)).thenReturn(Optional.of(project));
+            when(projectRepository.save(project)).thenReturn(project);
+
+            final Project patchedProject = projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
+                    null, JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined(), COLOR));
+
+            assertThat(patchedProject.getColor()).isEqualTo(COLOR);
+            assertThat(patchedProject.getName()).isEqualTo("MyProject");
 
             verify(projectRepository).save(project);
         }
@@ -235,7 +273,7 @@ public class ProjectServiceImplTest extends EntityTestBase {
             when(projectRepository.findByIdAndUserId(PROJECT_ID, USER_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> projectService.patchProject(USER_ID, PROJECT_ID, new PatchProjectRequest(
-                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined())))
+                    "MyNewProject", JsonNullable.undefined(), JsonNullable.undefined(), JsonNullable.undefined(), null)))
                     .isInstanceOf(ProjectNotFoundException.class)
                     .hasMessage("Project with ID 20 does not exist");
 

@@ -10,5 +10,6 @@ public record PatchProjectRequest(
         String name,
         JsonNullable<BigDecimal> hourlyRate,
         JsonNullable<Client> client,
-        JsonNullable<Boolean> isArchived) {
+        JsonNullable<Boolean> isArchived,
+        String color) {
 }

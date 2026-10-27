@@ -134,6 +134,7 @@ describe('report.model', () => {
       isPrivate: false,
       isArchived: false,
       hourlyRate: 0,
+      color: '#FFFFFF',
       tasks: [],
       client: createClient(1, 'MyClient'),
       createdAt: '2026-01-01T00:00:00Z',
