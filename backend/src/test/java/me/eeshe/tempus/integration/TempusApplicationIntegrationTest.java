@@ -137,7 +137,8 @@ public class TempusApplicationIntegrationTest {
                     {
                          "name": "MyProject",
                          "clientId": %s,
-                         "hourlyRate": 50.00
+                         "hourlyRate": 50.00,
+                         "color": "#123456"
                      }""".formatted(clientId);
             final MvcTestResult projectResult = mockMvc.post().uri(PROJECTS_URL).with(csrf())
                     .cookie(sessionCookie)
@@ -146,6 +147,7 @@ public class TempusApplicationIntegrationTest {
                     .exchange();
 
             assertThat(projectResult).hasStatus(201);
+            assertThat(json(projectResult).get("color").asString()).isEqualTo("#123456");
             final long projectId = json(projectResult).get("id").asLong();
 
             final String createTaskJson = """

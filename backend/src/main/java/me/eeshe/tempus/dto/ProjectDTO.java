@@ -12,5 +12,6 @@ public record ProjectDTO(
         List<TaskDTO> tasks,
         ClientDTO client,
         Instant createdAt,
-        boolean isArchived) {
+        boolean isArchived,
+        String color) {
 }

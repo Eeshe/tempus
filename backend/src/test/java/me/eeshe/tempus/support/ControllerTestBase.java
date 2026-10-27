@@ -18,6 +18,7 @@ import me.eeshe.tempus.dto.ClientDTO;
 import me.eeshe.tempus.dto.ProjectDTO;
 import me.eeshe.tempus.dto.TaskDTO;
 import me.eeshe.tempus.dto.UserDTO;
+import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.security.RestAuthenticationEntryPoint;
 import me.eeshe.tempus.security.UserDetailsImpl;
@@ -85,7 +86,13 @@ public abstract class ControllerTestBase extends EntityTestBase {
     protected static ProjectDTO createProjectDTO(
             long id, String name, Instant createdAt, BigDecimal hourlyRate, ClientDTO client,
             boolean isArchived) {
-        return new ProjectDTO(id, name, USER_ID, hourlyRate, List.of(), client, createdAt, isArchived);
+        return createProjectDTO(id, name, createdAt, hourlyRate, client, isArchived, Project.DEFAULT_COLOR);
+    }
+
+    protected static ProjectDTO createProjectDTO(
+            long id, String name, Instant createdAt, BigDecimal hourlyRate, ClientDTO client,
+            boolean isArchived, String color) {
+        return new ProjectDTO(id, name, USER_ID, hourlyRate, List.of(), client, createdAt, isArchived, color);
     }
 
     protected static ProjectDTO createProjectDTO() {
@@ -94,6 +101,10 @@ public abstract class ControllerTestBase extends EntityTestBase {
 
     protected static ProjectDTO createProjectDTO(BigDecimal hourlyRate, ClientDTO client) {
         return createProjectDTO(PROJECT_ID, "MyProject", CREATED_AT, hourlyRate, client);
+    }
+
+    protected static ProjectDTO createProjectDTO(String color) {
+        return createProjectDTO(PROJECT_ID, "MyProject", CREATED_AT, null, null, false, color);
     }
 
     protected static ProjectDTO createSecondProjectDTO() {
@@ -108,6 +119,12 @@ public abstract class ControllerTestBase extends EntityTestBase {
     protected static String createProjectDTOJson(
             long id, String name, Instant createdAt, BigDecimal hourlyRate, String clientJson,
             boolean isArchived) {
+        return createProjectDTOJson(id, name, createdAt, hourlyRate, clientJson, isArchived, Project.DEFAULT_COLOR);
+    }
+
+    protected static String createProjectDTOJson(
+            long id, String name, Instant createdAt, BigDecimal hourlyRate, String clientJson,
+            boolean isArchived, String color) {
         return """
                 {
                     "id": %s,
@@ -117,9 +134,10 @@ public abstract class ControllerTestBase extends EntityTestBase {
                     "tasks": [],
                     "client": %s,
                     "createdAt": "%s",
-                    "isArchived": %s
+                    "isArchived": %s,
+                    "color": "%s"
                 }""".formatted(id, name, USER_ID, hourlyRate, clientJson == null ? "null" : clientJson, createdAt,
-                isArchived);
+                isArchived, color);
     }
 
     protected static String createProjectDTOJson() {
@@ -128,6 +146,10 @@ public abstract class ControllerTestBase extends EntityTestBase {
 
     protected static String createProjectDTOJson(BigDecimal hourlyRate, String clientJson) {
         return createProjectDTOJson(PROJECT_ID, "MyProject", CREATED_AT, hourlyRate, clientJson);
+    }
+
+    protected static String createProjectDTOJson(String color) {
+        return createProjectDTOJson(PROJECT_ID, "MyProject", CREATED_AT, null, null, false, color);
     }
 
     protected static String createSecondProjectDTOJson() {

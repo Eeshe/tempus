@@ -54,7 +54,7 @@ public abstract class EntityTestBase {
     }
 
     protected static Project createProject(long id, String name, Instant createdAt) {
-        final Project project = new Project(name, createUser(USER_ID), null, null);
+        final Project project = new Project(name, createUser(USER_ID), null, null, null);
         ReflectionTestUtils.setField(project, "id", id);
         ReflectionTestUtils.setField(project, "createdAt", createdAt);
 

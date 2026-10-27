@@ -48,7 +48,8 @@ public class ProjectServiceImpl implements ProjectService {
                 createProjectRequest.name(),
                 createProjectRequest.user(),
                 createProjectRequest.hourlyRate(),
-                createProjectRequest.client()));
+                createProjectRequest.client(),
+                createProjectRequest.color()));
     }
 
     @Override
@@ -60,6 +61,9 @@ public class ProjectServiceImpl implements ProjectService {
         patchProjectRequest.hourlyRate().ifPresent(project::setHourlyRate);
         patchProjectRequest.client().ifPresent(project::setClient);
         patchProjectRequest.isArchived().ifPresent(project::setArchived);
+        if (patchProjectRequest.color() != null) {
+            project.setColor(patchProjectRequest.color());
+        }
 
         return projectRepository.save(project);
     }

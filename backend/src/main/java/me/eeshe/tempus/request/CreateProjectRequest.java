@@ -9,5 +9,6 @@ public record CreateProjectRequest(
         String name,
         User user,
         BigDecimal hourlyRate,
-        Client client) {
+        Client client,
+        String color) {
 }

@@ -46,7 +46,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 project.getTasks().stream().map(taskMapper::toDTO).toList(),
                 clientDTO,
                 project.getCreatedAt(),
-                project.isArchived());
+                project.isArchived(),
+                project.getColor());
     }
 
     @Override
@@ -55,7 +56,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 createProjectRequestDTO.name(),
                 userService.getUser(userId),
                 createProjectRequestDTO.hourlyRate(),
-                resolveClient(userId, createProjectRequestDTO.clientId()));
+                resolveClient(userId, createProjectRequestDTO.clientId()),
+                createProjectRequestDTO.color());
     }
 
     @Override
@@ -64,7 +66,8 @@ public class ProjectMapperImpl implements ProjectMapper {
                 patchProjectRequestDTO.name(),
                 patchProjectRequestDTO.hourlyRate(),
                 JsonNullable.of(resolveClient(userId, patchProjectRequestDTO.clientId().orElse(null))),
-                patchProjectRequestDTO.isArchived());
+                patchProjectRequestDTO.isArchived(),
+                patchProjectRequestDTO.color());
     }
 
     private Client resolveClient(long userId, Long clientId) {
