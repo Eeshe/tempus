@@ -19,7 +19,11 @@
     [cellTemplates]="{ project: projectCell, duration: durationCell }"
   >
     <ng-template #projectCell let-entry>
-      {{ entry.project.name }}
+      <span
+        class="project-name"
+        [class.project-name--archived]="entry.project.isArchived"
+        [style.--project-color]="entry.project.color"
+      >{{ entry.project.name }}</span>
     </ng-template>
     <ng-template #durationCell let-entry>
       {{ entry.trackedTimeMillis | msToHHMMSS }}

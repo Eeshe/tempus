@@ -26,3 +26,11 @@
   color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
+
+.project-name {
+  color: var(--project-color, var(--fg));
+}
+
+.project-name--archived {
+  color: var(--muted);
+}
