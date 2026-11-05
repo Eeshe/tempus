@@ -1,4 +1,4 @@
-<app-modal header="Import from Clockify" (closeEvent)="close()">
+<app-modal header="Import from Clockify" i18n-header (closeEvent)="close()">
   @switch (phase()) {
     @case ('select') {
       <input
@@ -22,22 +22,22 @@
         (dragleave)="disableDragging()"
         (drop)="addDraggedFiles($event)"
       >
-        <span class="dropzone__text">Click to select or drop CSV files here</span>
+        <span class="dropzone__text" i18n>Click to select or drop CSV files here</span>
       </div>
     }
 
     @case ('confirm') {
-      <p class="message">You are about to import {{ fileCount() }} CSV files</p>
+      <p class="message">{{ importConfirmationMessage() }}</p>
       <div class="actions">
-        <button type="button" class="secondary" (click)="close()">Cancel</button>
-        <button type="button" class="primary" (click)="confirmImport()">Confirm</button>
+        <button type="button" class="secondary" (click)="close()" i18n>Cancel</button>
+        <button type="button" class="primary" (click)="confirmImport()" i18n>Confirm</button>
       </div>
     }
 
     @case ('importing') {
       <div class="importing" role="status">
         <span class="spinner" aria-hidden="true"></span>
-        <span>Importing your time entries...</span>
+        <span i18n>Importing your time entries...</span>
       </div>
     }
 
@@ -45,12 +45,12 @@
       @if (importResult(); as result) {
         @if (result.importedCount > 0) {
           <p class="message message--success">
-            Successfully imported {{ result.importedCount }} entries
+            {{ importSuccessMessage() }}
           </p>
         }
         @if (result.skippedEntries.length > 0) {
           <div class="errors">
-            <p class="errors__title">There were the following import errors ({{result.skippedEntries.length}})</p>
+            <p class="errors__title">{{ importErrorsTitle() }}</p>
             <ul class="errors__list">
               @for (entry of result.skippedEntries; track $index) {
                 <li class="errors__item">
@@ -63,14 +63,14 @@
         }
       }
       <div class="actions">
-        <button type="button" class="primary" (click)="close()">Close</button>
+        <button type="button" class="primary" (click)="close()" i18n>Close</button>
       </div>
     }
 
     @case ('error') {
-      <p class="message message--error" role="alert">Import failed. Please try again.</p>
+      <p class="message message--error" role="alert" i18n>Import failed. Please try again.</p>
       <div class="actions">
-        <button type="button" class="secondary" (click)="close()">Close</button>
+        <button type="button" class="secondary" (click)="close()" i18n>Close</button>
       </div>
     }
   }

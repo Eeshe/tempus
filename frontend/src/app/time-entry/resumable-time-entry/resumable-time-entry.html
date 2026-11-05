@@ -10,8 +10,8 @@
 			<span class="time-entry__separator">–</span>
 			<app-time-input [(value)]="endTimeInput" (timeChangeEvent)="updateTimeEntryEndTime($event)"/>
 			<span class="time-entry__duration">{{ timeEntry().startTime | duration: timeEntry().endTime }}</span>
-			<button class="time-entry__icon time-entry__icon--continue" type="button" (click)="resumeTimeEntry()" aria-label="Continue entry"></button>
-			<button class="time-entry__icon time-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+			<button class="time-entry__icon time-entry__icon--continue" type="button" (click)="resumeTimeEntry()" aria-label="Continue entry" i18n-aria-label></button>
+			<button class="time-entry__icon time-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry" i18n-aria-label></button>
 		</div>
 	</div>
 </div>

@@ -3,11 +3,11 @@
 <form (submit)="onSubmit($event)">
   <div class="card">
     <div class="header">
-      <h1>Create account</h1>
+      <h1 i18n>Create account</h1>
     </div>
 
     <div class="field">
-      <label for="username">Username</label>
+      <label for="username" i18n>Username</label>
       <input id="username" [formField]="registerForm.username" />
       @if (registerForm.username().invalid() && registerForm.username().touched()) {
         <div class="error">
@@ -19,7 +19,7 @@
     </div>
 
     <div class="field">
-      <label for="password">Password</label>
+      <label for="password" i18n>Password</label>
       <input id="password" type="password" [formField]="registerForm.password" />
       @if (registerForm.password().invalid() && registerForm.password().touched()) {
         <div class="error">
@@ -31,7 +31,7 @@
     </div>
 
     <div class="field">
-      <label for="passwordConfirmation">Password Confirmation</label>
+      <label for="passwordConfirmation" i18n>Password Confirmation</label>
       <input id="passwordConfirmation" type="password" [formField]="registerForm.passwordConfirmation" />
       @if (registerForm.passwordConfirmation().invalid() && registerForm.passwordConfirmation().touched()) {
         <div class="error">
@@ -50,8 +50,8 @@
       </div>
     }
 
-    <button type="submit" [disabled]="registerForm().invalid()">Register</button>
+    <button type="submit" [disabled]="registerForm().invalid()" i18n>Register</button>
 
-    <p class="footer">Already have an account? <a routerLink="/login">Log in</a></p>
+    <p class="footer" i18n>Already have an account? <a routerLink="/login">Log in</a></p>
   </div>
 </form>

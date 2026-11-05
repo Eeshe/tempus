@@ -1,15 +1,16 @@
 <div class="graph">
   <div class="graph__header">
-    <div class="graph__toggle" role="group" aria-label="Graph view">
+    <div class="graph__toggle" role="group" aria-label="Graph view" i18n-aria-label>
       <button
         type="button"
         class="graph__toggle-button"
         [class.graph__toggle-button--active]="graphType() === 'month'"
         [attr.aria-pressed]="graphType() === 'month'"
         aria-label="Month graph"
+        i18n-aria-label
         (click)="graphType.set('month')"
       >
-        M
+        <span i18n="graph.month|Month graph toggle button label">M</span>
       </button>
       <button
         type="button"
@@ -17,9 +18,10 @@
         [class.graph__toggle-button--active]="graphType() === 'year'"
         [attr.aria-pressed]="graphType() === 'year'"
         aria-label="Year graph"
+        i18n-aria-label
         (click)="graphType.set('year')"
       >
-        Y
+        <span i18n="graph.year|Year graph toggle button label">Y</span>
       </button>
     </div>
   </div>

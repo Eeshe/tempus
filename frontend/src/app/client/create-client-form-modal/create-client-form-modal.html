@@ -1,7 +1,7 @@
-<app-modal header="Create client" size="sm" (closeEvent)="close()">
+<app-modal header="Create client" i18n-header size="sm" (closeEvent)="close()">
   <form (submit)="onSubmit($event)">
     <div class="field">
-      <label for="name">Client Name</label>
+      <label for="name" i18n>Client Name</label>
       <input id="name" [formField]="clientForm.name" />
       @if (clientForm.name().invalid() && clientForm.name().touched()) {
         <div class="error">
@@ -21,8 +21,8 @@
     }
 
     <div class="actions">
-      <button type="button" class="secondary" (click)="close()">Cancel</button>
-      <button type="submit" [disabled]="clientForm().invalid()">Create client</button>
+      <button type="button" class="secondary" (click)="close()" i18n>Cancel</button>
+      <button type="submit" [disabled]="clientForm().invalid()" i18n>Create client</button>
     </div>
   </form>
 </app-modal>

@@ -15,10 +15,10 @@
         }
       </div>
       <div class="task-list__buttons">
-        <button type="button" class="task-list__icon-button task-list__edit-button" (click)="editedTask.set(task)" aria-label="Edit task" title="Edit">
+        <button type="button" class="task-list__icon-button task-list__edit-button" (click)="editedTask.set(task)" aria-label="Edit task" i18n-aria-label title="Edit" i18n-title>
           <span class="task-list__glyph task-list__glyph--edit" aria-hidden="true"></span>
         </button>
-        <button type="button" class="task-list__icon-button task-list__delete-button" (click)="openDeleteConfirmationModal(task)" aria-label="Delete task" title="Delete">
+        <button type="button" class="task-list__icon-button task-list__delete-button" (click)="openDeleteConfirmationModal(task)" aria-label="Delete task" i18n-aria-label title="Delete" i18n-title>
           <span class="task-list__glyph task-list__glyph--delete" aria-hidden="true"></span>
         </button>
       </div>

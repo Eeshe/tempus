@@ -1,4 +1,5 @@
-import { Component, computed, input } from '@angular/core';
+import { formatNumber } from '@angular/common';
+import { Component, computed, inject, input, LOCALE_ID } from '@angular/core';
 import { MsToHHMMSSPipe } from '../../../shared/pipes/ms-to-hhmmss.pipe';
 import { SortableColumn, SortableTable } from '../../../shared/sortable-table/sortable-table';
 import { durationFromMs, formatHHMMSSTime } from '../../../shared/util/time.util';
@@ -11,6 +12,8 @@ import { flattenProjectReportEntries, ProjectReport, Report } from '../../models
   templateUrl: './report-details-list.html',
 })
 export class ReportDetailsList {
+  private readonly localeId: string = inject(LOCALE_ID);
+
   readonly report = input.required<Report<ProjectReport>>();
 
   readonly reportEntries = computed<ProjectReport[]>(() => flattenProjectReportEntries(this.report()));
@@ -18,13 +21,13 @@ export class ReportDetailsList {
   readonly columns: SortableColumn<ProjectReport>[] = [
     {
       key: "project",
-      label: "Project",
+      label: $localize`:Table column|Project name:Project`,
       align: "left",
       sortValue: (entry) => entry.project.name,
     },
     {
       key: "duration",
-      label: "Duration",
+      label: $localize`:Table column|Tracked duration:Duration`,
       align: "right",
       sortValue: (entry) => entry.trackedTimeMillis,
     },
@@ -47,6 +50,6 @@ export class ReportDetailsList {
   });
 
   readonly formattedTotalAccumulatedPay = computed<string>(() => {
-    return this.report().totalAccumulatedPay.toFixed(2);
+    return formatNumber(this.report().totalAccumulatedPay, this.localeId, '1.2-2');
   });
 }

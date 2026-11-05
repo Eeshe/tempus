@@ -2,12 +2,12 @@
 
 <div class="selector__popup" [class.selector__popup--open]="isOpen()" [style.top.px]="popupPosition().top" [style.left.px]="popupPosition().left">
 	<div class="selector__popup-list">
-		<button type="button" class="client-item" (click)="changeClient(null)">None</button>
+		<button type="button" class="client-item" (click)="changeClient(null)" i18n>None</button>
 		@for (client of clients(); track client.id) {
 		<button type="button" class="client-item" [attr.title]="client.name" (click)="changeClient(client)">{{ client.name }}</button>
 		}
 	</div>
-	<button type="button" class="popup__new" (click)="toggleCreateClientFormModal()">New Client</button>
+	<button type="button" class="popup__new" (click)="toggleCreateClientFormModal()" i18n>New Client</button>
 </div>
 
 @if (isCreateClientModalOpen()) {

@@ -3,11 +3,11 @@
 <form (submit)="onSubmit($event)">
   <div class="card">
     <div class="header">
-      <h1>Log In</h1>
+      <h1 i18n>Log In</h1>
     </div>
 
     <div class="field">
-      <label for="username">Username</label>
+      <label for="username" i18n>Username</label>
       <input id="username" [formField]="loginForm.username">
       @if(loginForm.username().invalid() && loginForm.username().touched()) {
       <div class="error">
@@ -19,7 +19,7 @@
     </div>
 
     <div class="field">
-      <label for="password">Password</label>
+      <label for="password" i18n>Password</label>
       <input id="password" type="password" [formField]="loginForm.password">
       @if(loginForm.password().invalid() && loginForm.password().touched()) {
       <div class="error">
@@ -38,8 +38,8 @@
       </div>
     }
 
-    <button type="submit" [disabled]="loginForm().invalid()">Log in</button>
+    <button type="submit" [disabled]="loginForm().invalid()" i18n>Log in</button>
 
-    <p class="footer">Don't have an account yet? <a routerLink="/register">Create one</a></p>
+    <p class="footer" i18n>Don't have an account yet? <a routerLink="/register">Create one</a></p>
   </div>
 </form>

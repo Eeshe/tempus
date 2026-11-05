@@ -20,13 +20,13 @@ export class ClientList {
   readonly columns: SortableColumn<ClientReport>[] = [
     {
       key: "client",
-      label: "Client",
+      label: $localize`:Table column|Client name:Client`,
       align: "left",
       sortValue: (clientReport) => clientReport.client.name,
     },
     {
       key: "duration",
-      label: "Duration",
+      label: $localize`:Table column|Tracked duration:Duration`,
       align: "left",
       sortValue: (clientReport) => clientReport.trackedTimeMillis,
     },

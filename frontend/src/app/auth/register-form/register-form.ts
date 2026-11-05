@@ -26,9 +26,11 @@ export class RegisterForm {
   });
 
   registerForm = form(this.registerModel, (fieldPath) => {
-    required(fieldPath.username, { message: 'Username is required' });
-    required(fieldPath.password, { message: 'Password is required' });
-    required(fieldPath.passwordConfirmation, { message: 'You must confirm your password' });
+    required(fieldPath.username, { message: $localize`:Validation|Username required:Username is required` });
+    required(fieldPath.password, { message: $localize`:Validation|Password required:Password is required` });
+    required(fieldPath.passwordConfirmation, {
+      message: $localize`:Validation|Password confirmation required:You must confirm your password`,
+    });
     validate(fieldPath.passwordConfirmation, (value) => {
       if (value.value() === '') {
         return null;
@@ -36,7 +38,7 @@ export class RegisterForm {
       return value.value() !== this.registerForm.password().value()
         ? {
           kind: 'passwordMismatch',
-          message: 'Passwords must match',
+          message: $localize`:Validation|Password mismatch:Passwords must match`,
         }
         : null;
     });
@@ -68,9 +70,9 @@ export class RegisterForm {
         return undefined;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status == 400) {
-          return { kind: 'usernameTaken', message: 'Username is taken. Try a different one' };
+          return { kind: 'usernameTaken', message: $localize`:Validation|Username already taken:Username is taken. Try a different one` };
         }
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }

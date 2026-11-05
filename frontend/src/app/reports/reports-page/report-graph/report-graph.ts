@@ -1,4 +1,4 @@
-import { formatDate } from '@angular/common';
+import { formatPercent } from '@angular/common';
 import {
   Component,
   computed,
@@ -6,10 +6,11 @@ import {
   ElementRef,
   inject,
   input,
+  LOCALE_ID,
   signal,
   untracked,
 } from '@angular/core';
-import { enumerateDays, enumerateMonths, parseYYYYMMDDDate } from '../../../shared/util/date.util';
+import { enumerateDays, enumerateMonths, formatCapitalizedDate, parseYYYYMMDDDate } from '../../../shared/util/date.util';
 import { durationFromMs, formatHHMMSSTime } from '../../../shared/util/time.util';
 import {
   buildAxisTicks,
@@ -24,7 +25,6 @@ import { ProjectReport, Report, ReportDay } from '../../models/report.model';
 
 const TOOLTIP_EDGE_PADDING = 8;
 const TOOLTIP_FLIP_THRESHOLD = 0.6;
-const LOCALE = 'en-us';
 
 @Component({
   selector: 'app-report-graph',
@@ -33,6 +33,7 @@ const LOCALE = 'en-us';
 })
 export class ReportGraph {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly localeId: string = inject(LOCALE_ID);
 
   readonly report = input.required<Report<ProjectReport>>();
 
@@ -85,7 +86,11 @@ export class ReportGraph {
 
   readonly groups = computed<ReportGraphGroup[]>(() => this.buildGroups(this.bars()));
 
-  readonly axisLabel = computed<string>(() => (this.graphType() === 'month' ? 'Day' : 'Month'));
+  readonly axisLabel = computed<string>(() =>
+    this.graphType() === 'month'
+      ? $localize`:Report graph|Month graph y-axis label:Day`
+      : $localize`:Report graph|Year graph y-axis label:Month`,
+  );
 
   trackBar(_index: number, bar: ReportGraphBar): string {
     return bar.key;
@@ -108,9 +113,10 @@ export class ReportGraph {
   }
 
   computeBarAriaLabel(bar: ReportGraphBar): string {
-    const periodLabel: string =
-      bar.secondaryLabel == null ? bar.primaryLabel : `${bar.secondaryLabel} ${bar.primaryLabel}`;
-    return `${periodLabel}: ${this.formatDuration(bar.totalTrackedTimeMillis)}`;
+    const periodLabel: string = bar.secondaryLabel == null ?
+      bar.primaryLabel : `${bar.secondaryLabel} ${bar.primaryLabel}`;
+
+    return $localize`:Report graph|Accessible label for a bar:${periodLabel}:period: - ${this.formatDuration(bar.totalTrackedTimeMillis)}:duration:`;
   }
 
   showBarTooltip(bar: ReportGraphBar, event: MouseEvent): void {
@@ -146,7 +152,7 @@ export class ReportGraph {
   }
 
   formatHours(hours: number): string {
-    return `${hours}h`;
+    return $localize`:Report graph|Hours unit label:${hours}:hours:h`;
   }
 
   formatDuration(trackedTimeMillis: number): string {
@@ -154,7 +160,7 @@ export class ReportGraph {
   }
 
   formatPercentage(percentage: number): string {
-    return `${percentage.toFixed(2)}%`;
+    return formatPercent(percentage / 100, this.localeId, '1.2-2');
   }
 
   private buildGroups(bars: ReportGraphBar[]): ReportGraphGroup[] {
@@ -177,7 +183,7 @@ export class ReportGraph {
       return key;
     }
     const monthStart: Date | null = parseYYYYMMDDDate(`${key}-01`);
-    return monthStart == null ? key : formatDate(monthStart, 'MMMM', LOCALE);
+    return monthStart == null ? key : formatCapitalizedDate(monthStart, 'MMMM', this.localeId);
   }
 
   private buildMonthGraphBars(report: Report<ProjectReport>): ReportGraphBar[] {
@@ -195,8 +201,8 @@ export class ReportGraph {
       return {
         key: this.formatDateKey(date),
         primaryLabel: String(date.getDate()).padStart(2, '0'),
-        secondaryLabel: formatDate(date, 'EEE', LOCALE),
-        tooltipTitle: `${formatDate(date, 'EEE, MMM d', LOCALE)} - ${this.formatDuration(totalTrackedTimeMillis)}`,
+        secondaryLabel: formatCapitalizedDate(date, 'EEE', this.localeId),
+        tooltipTitle: `${formatCapitalizedDate(date, 'EEE, MMM d', this.localeId)} - ${this.formatDuration(totalTrackedTimeMillis)}`,
         totalTrackedTimeMillis,
         segments: this.buildSegments(reportEntries),
       };
@@ -216,9 +222,9 @@ export class ReportGraph {
 
       return {
         key: monthKey,
-        primaryLabel: formatDate(date, 'MMMM', LOCALE),
+        primaryLabel: formatCapitalizedDate(date, 'MMMM', this.localeId),
         secondaryLabel: null,
-        tooltipTitle: `${formatDate(date, 'MMMM, y', LOCALE)} - ${this.formatDuration(totalTrackedTimeMillis)}`,
+        tooltipTitle: `${formatCapitalizedDate(date, 'MMMM, y', this.localeId)} - ${this.formatDuration(totalTrackedTimeMillis)}`,
         totalTrackedTimeMillis,
         segments: this.buildSegments(reportEntries),
       };

@@ -6,6 +6,7 @@ import { authGuard } from './guards/auth.guard';
 import { Home } from './home/home';
 import { ProjectsPage } from './project/projects-page/projects-page';
 import { ReportsPage } from './reports/reports-page/reports-page';
+import { LanguageSettings } from './settings/language-settings/language-settings';
 import { MigrationSettings } from './settings/migration-settings/migration-settings';
 import { SettingsPage } from './settings/settings-page/settings-page';
 
@@ -17,52 +18,57 @@ export const routes: Routes = [
   },
   {
     path: 'register',
-    title: 'Register',
+    title: 'route.register',
     component: RegisterForm,
   },
   {
     path: 'login',
-    title: 'Login',
+    title: 'route.login',
     component: LoginForm,
   },
   {
     path: 'home',
-    title: 'Home',
+    title: 'route.home',
     component: Home,
     canActivate: [authGuard],
   },
   {
     path: 'reports',
-    title: 'Reports',
+    title: 'route.reports',
     component: ReportsPage,
     canActivate: [authGuard],
   },
   {
     path: 'projects',
-    title: 'Projects',
+    title: 'route.projects',
     component: ProjectsPage,
     canActivate: [authGuard],
   },
   {
     path: 'clients',
-    title: 'Clients',
+    title: 'route.clients',
     component: ClientsPage,
     canActivate: [authGuard],
   },
   {
     path: 'settings',
-    title: 'Settings',
+    title: 'route.settings',
     component: SettingsPage,
     canActivate: [authGuard],
     children: [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'migration',
+        redirectTo: 'language',
+      },
+      {
+        path: 'language',
+        title: 'route.settings.language',
+        component: LanguageSettings,
       },
       {
         path: 'migration',
-        title: 'Migration',
+        title: 'route.settings.migration',
         component: MigrationSettings,
       },
     ],

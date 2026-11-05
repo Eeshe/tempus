@@ -15,7 +15,9 @@ export class ClientSelectorButton extends PopupSelectorBase {
 
   readonly selectedClient = input<Client | null>(null);
   readonly displayText = computed<string>(() => {
-    return this.selectedClient() == null ? "None" : this.selectedClient()!.name;
+    return this.selectedClient() == null
+      ? $localize`:Client selector|No client selected:None`
+      : this.selectedClient()!.name;
   });
 
   readonly clients = signal<Client[]>([]);

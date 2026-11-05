@@ -7,7 +7,7 @@
 	        [attr.aria-expanded]="isOpen()"
 	        (click)="toggle()"
 	>
-		Billable
+		<span i18n>Billable</span>
 		@if (isBillable() === null) {
 		<span class="selector__indicator--all">-</span>
 		} @else {
@@ -23,13 +23,13 @@
 	     [style.top.px]="popupPosition().top"
 	     [style.left.px]="popupPosition().left"
 	>
-		<div class="selector__popup-list" role="group" aria-label="Billable">
+		<div class="selector__popup-list" role="group" aria-label="Billable" i18n-aria-label>
 			<button type="button"
 			        class="selector__popup-option"
 			        [class.selector__popup-option--selected]="isSelected(null)"
 			        (click)="select(null)"
 			>
-				<span class="selector__popup-name">All</span>
+				<span class="selector__popup-name" i18n>All</span>
 				<span class="selector__popup-check"></span>
 			</button>
 
@@ -38,7 +38,7 @@
 			        [class.selector__popup-option--selected]="isSelected(true)"
 			        (click)="select(true)"
 			>
-				<span class="selector__popup-name">Yes</span>
+				<span class="selector__popup-name" i18n>Yes</span>
 				<span class="selector__popup-check"></span>
 			</button>
 
@@ -47,7 +47,7 @@
 			        [class.selector__popup-option--selected]="isSelected(false)"
 			        (click)="select(false)"
 			>
-				<span class="selector__popup-name">No</span>
+				<span class="selector__popup-name" i18n>No</span>
 				<span class="selector__popup-check"></span>
 			</button>
 		</div>

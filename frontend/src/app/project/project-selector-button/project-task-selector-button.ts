@@ -17,7 +17,7 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
   readonly selectedTask = input<Task | null>();
   readonly displayText = computed<string>(() => {
     if (this.selectedProject() == null) {
-      return "Select a Project";
+      return $localize`:Project selector|No project selected:Select a Project`;
     }
     if (this.selectedTask() == null) {
       return this.selectedProject()!.name;
@@ -79,5 +79,9 @@ export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
       }
       return next;
     });
+  }
+
+  toggleTasksLabel(project: Project): string {
+    return $localize`:Project selector|Toggle task list for a project:Toggle tasks for ${project.name}:projectName:`;
   }
 }

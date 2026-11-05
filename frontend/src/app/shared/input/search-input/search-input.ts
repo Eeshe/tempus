@@ -8,7 +8,7 @@ import { Component, input, linkedSignal, output } from '@angular/core';
 })
 export class SearchInput {
   readonly value = input<string>('');
-  readonly placeholder = input<string>('Search');
+  readonly placeholder = input<string>($localize`:Search input|Placeholder:Search`);
 
   readonly searchChangeEvent = output<string>();
 

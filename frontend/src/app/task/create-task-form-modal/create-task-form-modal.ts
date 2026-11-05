@@ -29,8 +29,12 @@ export class CreateTaskFormModal extends ModalBase {
     project: this.selectedProject(),
   }));
   readonly taskForm = form(this.taskModel, (fieldPath) => {
-    required(fieldPath.name, { message: "You must provide a task name" });
-    required(fieldPath.project, { message: "You must select a project" });
+    required(fieldPath.name, {
+      message: $localize`:Validation|Task name required:You must provide a task name`,
+    });
+    required(fieldPath.project, {
+      message: $localize`:Validation|Task project required:You must select a project`,
+    });
   });
 
   readonly taskCreateEvent = output<{ project: Project, task: Task }>();
@@ -57,9 +61,12 @@ export class CreateTaskFormModal extends ModalBase {
         return null;
       } catch (error) {
         if (error instanceof HttpErrorResponse && (error.status == 400 || error.status == 409)) {
-          return { kind: 'usedTaskName', message: "You already have a task with this name in this project" };
+          return {
+            kind: 'usedTaskName',
+            message: $localize`:Validation|Task name already used:You already have a task with this name in this project`,
+          };
         }
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }
