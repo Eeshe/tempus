@@ -1,7 +1,8 @@
 import { formatDate } from "@angular/common";
-import { computed, inject, Service, Signal, signal } from "@angular/core";
+import { computed, inject, LOCALE_ID, Service, Signal, signal } from "@angular/core";
 import { Observable, tap } from "rxjs";
 import { Project } from "../../project/models/project.model";
+import { formatCapitalizedDate } from "../../shared/util/date.util";
 import { computeDuration, Duration, durationFromMs, formatHHMMSSTime } from "../../shared/util/time.util";
 import { Task } from "../../task/models/task.model";
 import { createEmptyTimeEntryPage, TimeEntryPage } from "../models/time-entry-page.model";
@@ -28,6 +29,7 @@ export interface DayGroupedTimeEntries {
 @Service()
 export class TimeEntryStore {
   private readonly timeEntryService: TimeEntryService = inject(TimeEntryService);
+  private readonly localeId: string = inject(LOCALE_ID);
 
   private readonly _timeEntryPage = signal<TimeEntryPage>(createEmptyTimeEntryPage());
   private readonly _lastStoppedTimeEntry = signal<TimeEntry | null>(null);
@@ -206,7 +208,9 @@ export class TimeEntryStore {
   }
 
   private formatDayDate(date: string | null) {
-    return date ? formatDate(date, 'EEEE, MMM d', 'en-US') : 'Unknown';
+    return date
+      ? formatCapitalizedDate(date, 'EEEE, MMM d', this.localeId)
+      : $localize`:Time entries|Unknown date:Unknown`;
   }
 
   private formatDayKey(date: string | null) {

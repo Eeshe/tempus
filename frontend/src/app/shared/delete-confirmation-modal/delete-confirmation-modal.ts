@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { AppModal } from '../modal/modal';
 import { ModalBase } from '../modal/modal-base';
 
@@ -11,6 +11,10 @@ import { ModalBase } from '../modal/modal-base';
 export class DeleteConfirmationModal extends ModalBase {
 
   readonly toDeleteName = input.required<string>();
+
+  readonly header = computed<string>(() =>
+    $localize`:Delete confirmation|Question shown before deleting an item:Are you sure you want to delete ${this.toDeleteName()}:name:?`,
+  );
 
   readonly confirmationOptionSelectEvent = output<boolean>();
 }

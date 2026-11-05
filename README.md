@@ -79,6 +79,18 @@ You'll be greeted with a login page, you can create an account and then access t
 
 https://github.com/user-attachments/assets/6619e69b-a053-4c2a-a2ec-09295fc7e965
 
+## Localization
+
+Tempus supports English (`en-US`) and Latin American Spanish (`es-419`). The language can be changed in `Settings → Language`. The choice is stored in `localStorage` under `tempus.locale` and the page reloads to apply it after clicking one of them.
+
+Translations use Angular's runtime `$localize` support. Source strings are marked in templates and TypeScript, then extracted with:
+
+```sh
+npm run i18n:extract
+```
+
+This writes `src/locale/messages.en-US.json`. Translation files live next to it as `src/locale/messages.<locale>.json` and are served from `/locale/`. When translating, keep message IDs, `{$...}` placeholder tokens, ICU expressions and inline HTML placeholders unchanged.
+
 ## Moving from Clockify
 
 After using Clockify for +4 years, one of my main priorities was making Tempus compatible with previous Clockify data. Now, to my surprise, when I went to export my data from Clockify's reports page, not only did it not let me export more than one month at a time without upgrading from the free tier, it only let me export it in PDF format, which would be a nightmare to parse into SQL format.

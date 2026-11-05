@@ -19,7 +19,7 @@ export class TaskList {
   readonly columns: SortableColumn<Task>[] = [
     {
       key: "task",
-      label: "Name",
+      label: $localize`:Table column|Task name:Name`,
       align: "left",
       sortValue: (task) => task.name
     }

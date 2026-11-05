@@ -27,11 +27,12 @@ const PRESET_PROJECT_COLORS: string[] = [
 export class ColorInput {
   readonly id = input<string>('');
   readonly value = input<string>(DEFAULT_PROJECT_COLOR);
-  readonly label = input<string>('Color');
+  readonly label = input<string>($localize`:Color input|Accessible label:Color`);
 
   readonly valueChange = output<string>();
 
   readonly presetColors: string[] = PRESET_PROJECT_COLORS;
+  readonly presetLabel: string = $localize`:Color picker|Preset colors label:Preset colors`;
 
   commitColor(color: string): void {
     const nextColor: string | null = color?.trim() || this.value() || DEFAULT_PROJECT_COLOR;

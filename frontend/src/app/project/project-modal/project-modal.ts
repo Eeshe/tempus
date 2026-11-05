@@ -35,9 +35,8 @@ export class ProjectModal extends ModalBase {
 
   readonly isEditingName = signal<boolean>(false);
   readonly isDeleteConfirmationModalOpen = signal<boolean>(false);
-  readonly archivedInfoTooltip =
-    'Archiving a project removes it from the project selection when creating a new time entry. ' +
-    'You can still see previous time entries of that project both in the home and reports page';
+  readonly archivedInfoTooltip: string =
+    $localize`:Project modal|Explanation of archived projects:Archiving a project removes it from the project selection when creating a new time entry. You can still see previous time entries of that project both in the home and reports page`;
   readonly hourlyRateDraft = linkedSignal<string>(() =>
     this.project().hourlyRate?.toString() ?? '');
   readonly hourlyRateError = signal<string | null>(null);
@@ -81,7 +80,9 @@ export class ProjectModal extends ModalBase {
     }
     const parsed = Number(raw);
     if (!Number.isFinite(parsed) || parsed < 0) {
-      this.hourlyRateError.set('Hourly rate cannot be negative');
+      this.hourlyRateError.set(
+        $localize`:Validation|Hourly rate cannot be negative:Hourly rate cannot be negative`,
+      );
       return;
     }
     this.hourlyRateError.set(null);

@@ -29,7 +29,6 @@ export class DateInput implements FormValueControl<string | null> {
     const element: HTMLInputElement = picker.nativeElement;
     element.value = this.value() ?? '';
 
-    // const showPicker = (element as unknown as { showPicker?: () => void }).showPicker;
     const showPicker = element.showPicker;
     showPicker?.call(element);
   }

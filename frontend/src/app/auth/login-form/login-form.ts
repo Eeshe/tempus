@@ -24,8 +24,8 @@ export class LoginForm {
   });
 
   loginForm = form(this.loginModel, (fieldPath) => {
-    required(fieldPath.username, { message: 'Username is required' });
-    required(fieldPath.password, { message: 'Pasword is required' });
+    required(fieldPath.username, { message: $localize`:Validation|Username required:Username is required` });
+    required(fieldPath.password, { message: $localize`:Validation|Password required:Password is required` });
   });
 
   constructor(
@@ -45,9 +45,9 @@ export class LoginForm {
         return undefined;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status == 401) {
-          return { kind: 'invalidCredentials', message: 'Invalid credentials' };
+          return { kind: 'invalidCredentials', message: $localize`:Validation|Invalid login credentials:Invalid credentials` };
         }
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }

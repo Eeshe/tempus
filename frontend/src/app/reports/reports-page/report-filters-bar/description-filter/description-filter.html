@@ -8,7 +8,7 @@
     [attr.aria-expanded]="isOpen()"
     (click)="toggle()"
   >
-    Descriptions
+    <span i18n>Descriptions</span>
     <span
       class="selector__badge"
       [class.selector__badge--visible]="descriptions().length > 0"
@@ -29,11 +29,12 @@
         type="text"
         class="selector__popup-text"
         placeholder="Add description..."
+        i18n-placeholder
         [value]="inputValue()"
         (input)="onInput($event)"
         (keydown.enter)="addDescription()"
       />
-      <button type="button" class="selector__popup-add" (click)="addDescription()" aria-label="Add description"></button>
+      <button type="button" class="selector__popup-add" (click)="addDescription()" aria-label="Add description" i18n-aria-label></button>
     </div>
 
     <div class="selector__popup-list">
@@ -45,6 +46,7 @@
             class="selector__popup-remove"
             (click)="removeDescription(description)"
             aria-label="Remove description"
+            i18n-aria-label
           ></button>
         </div>
       }

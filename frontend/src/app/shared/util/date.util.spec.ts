@@ -1,6 +1,43 @@
-import { enumerateDays, enumerateMonths, formatYYYYMMDDDate, parseYYYYMMDDDate } from './date.util';
+import { registerLocaleData } from '@angular/common';
+import localeEs419 from '@angular/common/locales/es-419';
+import {
+  enumerateDays,
+  enumerateMonths,
+  formatCapitalizedDate,
+  formatYYYYMMDDDate,
+  parseYYYYMMDDDate,
+} from './date.util';
+
+registerLocaleData(localeEs419, 'es-419');
 
 describe('date.util', () => {
+  describe('formatCapitalizedDate', () => {
+    it('capitalizes Spanish day names', () => {
+      expect(formatCapitalizedDate(new Date(2026, 0, 5), 'EEEE', 'es-419')).toBe('Lunes');
+    });
+
+    it('capitalizes Spanish month names', () => {
+      expect(formatCapitalizedDate(new Date(2026, 0, 5), 'MMMM', 'es-419')).toBe('Enero');
+    });
+
+    it('capitalizes abbreviated Spanish day and month names', () => {
+      expect(formatCapitalizedDate(new Date(2026, 0, 5), 'EEE, MMM d', 'es-419')).toBe(
+        'Lun, Ene 5',
+      );
+    });
+
+    it('does not capitalize connector words', () => {
+      expect(
+        formatCapitalizedDate(new Date(2026, 0, 5), "EEEE, d 'de' MMMM 'de' y", 'es-419'),
+      ).toBe('Lunes, 5 de Enero de 2026');
+    });
+
+    it('leaves English date names unchanged', () => {
+      expect(formatCapitalizedDate(new Date(2026, 0, 5), 'EEEE, MMM d', 'en-US')).toBe(
+        'Monday, Jan 5',
+      );
+    });
+  });
   describe('parseYYYYMMDDDate', () => {
     it('parses a yyyy-MM-dd string into a local midnight date', () => {
       expect(parseYYYYMMDDDate('2026-08-21')).toEqual(new Date(2026, 7, 21));

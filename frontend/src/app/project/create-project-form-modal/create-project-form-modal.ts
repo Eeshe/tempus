@@ -33,8 +33,12 @@ export class CreateProjectFormModal extends ModalBase {
     color: DEFAULT_PROJECT_COLOR,
   });
   readonly projectForm = form(this.projectModel, (fieldPath) => {
-    required(fieldPath.name, { message: "You must provide a project name" });
-    min(fieldPath.hourlyRate, 0, { message: "Hourly rate cannot be negative" });
+    required(fieldPath.name, {
+      message: $localize`:Validation|Project name required:You must provide a project name`,
+    });
+    min(fieldPath.hourlyRate, 0, {
+      message: $localize`:Validation|Hourly rate cannot be negative:Hourly rate cannot be negative`,
+    });
   });
 
   readonly projectCreateEvent = output<Project>();
@@ -69,9 +73,12 @@ export class CreateProjectFormModal extends ModalBase {
         return null;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status == 400) {
-          return { kind: 'usedProjectName', message: "You already have a project with this name" };
+          return {
+            kind: 'usedProjectName',
+            message: $localize`:Validation|Project name already used:You already have a project with this name`,
+          };
         }
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }

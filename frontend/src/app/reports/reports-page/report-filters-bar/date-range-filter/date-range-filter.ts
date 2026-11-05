@@ -18,6 +18,9 @@ export class DateRangeFilter extends PopupSelectorBase {
   readonly startDateInvalid = signal<boolean>(false);
   readonly endDateInvalid = signal<boolean>(false);
 
+  readonly startLabel: string = $localize`:Date range|Start date placeholder:Start`;
+  readonly endLabel: string = $localize`:Date range|End date placeholder:End`;
+
   onStartDateChange(value: string | null): void {
     this.datesChangeEvent.emit({ startDate: value, endDate: this.endDate() });
 

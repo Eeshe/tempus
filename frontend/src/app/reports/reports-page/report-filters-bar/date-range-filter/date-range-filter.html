@@ -8,9 +8,9 @@
     [attr.aria-expanded]="isOpen()"
     (click)="toggle()"
   >
-    Date Range
+    <span i18n>Date Range</span>
     <span class="selector__trigger-value">
-      {{ startDate() ?? 'Start' }} — {{ endDate() ?? 'End' }}
+      {{ startDate() ?? startLabel }} — {{ endDate() ?? endLabel }}
     </span>
   </button>
 
@@ -21,19 +21,19 @@
     [style.left.px]="popupPosition().left"
   >
     <div class="selector__popup-presets">
-      <button type="button" class="selector__popup-preset" (click)="setPreset('today')">Today</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('yesterday')">Yesterday</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisWeek')">This Week</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastWeek')">Last Week</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisMonth')">This Month</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastMonth')">Last Month</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisYear')">This Year</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastYear')">Last Year</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('today')" i18n>Today</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('yesterday')" i18n>Yesterday</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisWeek')" i18n>This Week</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastWeek')" i18n>Last Week</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisMonth')" i18n>This Month</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastMonth')" i18n>Last Month</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('thisYear')" i18n>This Year</button>
+      <button type="button" class="selector__popup-preset" (click)="setPreset('lastYear')" i18n>Last Year</button>
     </div>
 
     <div class="selector__popup-dates">
       <div class="selector__popup-date-field">
-        <label class="selector__popup-label">Start Date</label>
+        <label class="selector__popup-label" i18n>Start Date</label>
         <app-date-input
           [value]="startDate()"
           (valueChange)="onStartDateChange($event)"
@@ -42,7 +42,7 @@
         />
       </div>
       <div class="selector__popup-date-field">
-        <label class="selector__popup-label">End Date</label>
+        <label class="selector__popup-label" i18n>End Date</label>
         <app-date-input
           [value]="endDate()"
           (valueChange)="onEndDateChange($event)"

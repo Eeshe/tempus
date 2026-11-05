@@ -16,13 +16,16 @@ describe('SettingsPage', () => {
     expect(harness.routeNativeElement).toBeTruthy();
   });
 
-  it('renders a link to the migration section', async () => {
+  it('renders links to the settings sections', async () => {
     const harness = await RouterTestingHarness.create('/settings');
-    const link: HTMLAnchorElement = harness.routeNativeElement!.querySelector(
-      '.settings__nav-item',
-    )!;
+    const links: HTMLAnchorElement[] = Array.from(
+      harness.routeNativeElement!.querySelectorAll('.settings__nav-item'),
+    );
 
-    expect(link.textContent?.trim()).toBe('Migration');
-    expect(link.getAttribute('href')).toBe('/settings/migration');
+    expect(links.map((link) => link.textContent?.trim())).toEqual(['Language', 'Migration']);
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/settings/language',
+      '/settings/migration',
+    ]);
   });
 });

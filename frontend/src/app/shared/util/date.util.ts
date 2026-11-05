@@ -1,10 +1,63 @@
 import { formatDate } from '@angular/common';
 
+const DATE_NAME_WIDTHS = ['long', 'short', 'narrow'] as const;
+const localeDateNamesCache = new Map<string, ReadonlySet<string>>();
+
+export function formatCapitalizedDate(
+  date: Date | string | number,
+  format: string,
+  locale: string,
+): string {
+  const formattedDate: string = formatDate(date, format, locale);
+  const dateNames: ReadonlySet<string> = getLocaleDateNames(locale);
+
+  return formattedDate.replace(/\p{L}[\p{L}.]*/gu, (word: string) =>
+    dateNames.has(word.toLocaleLowerCase(locale)) ? capitalizeFirstLetter(word, locale) : word,
+  );
+}
+
+function getLocaleDateNames(locale: string): ReadonlySet<string> {
+  const cachedNames: ReadonlySet<string> | undefined = localeDateNamesCache.get(locale);
+  if (cachedNames != null) {
+    return cachedNames;
+  }
+  const dateNames = new Set<string>();
+  for (const width of DATE_NAME_WIDTHS) {
+    const monthFormatter = new Intl.DateTimeFormat(locale, {
+      month: width,
+      timeZone: 'UTC',
+    });
+    for (let month = 0; month < 12; month++) {
+      addDateName(dateNames, monthFormatter.format(new Date(Date.UTC(2026, month, 15))), locale);
+    }
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, {
+      weekday: width,
+      timeZone: 'UTC',
+    });
+    for (let day = 0; day < 7; day++) {
+      addDateName(dateNames, weekdayFormatter.format(new Date(Date.UTC(2026, 0, 4 + day))), locale);
+    }
+  }
+  localeDateNamesCache.set(locale, dateNames);
+  return dateNames;
+}
+
+function addDateName(target: Set<string>, name: string, locale: string): void {
+  if (name == null) {
+    return;
+  }
+  target.add(name.toLocaleLowerCase(locale));
+}
+
+function capitalizeFirstLetter(value: string, locale: string): string {
+  return value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
+}
+
 export function formatYYYYMMDDDate(date: Date | null): string {
   if (date == null) {
-    return "";
+    return '';
   }
-  return formatDate(date, "yyyy-MM-dd", "en-us");
+  return formatDate(date, 'yyyy-MM-dd', 'en-us');
 }
 
 // Converts a "yyyy-MM-dd" string to an ISO-8601 instant at the start of that local day,
@@ -69,10 +122,10 @@ export function enumerateMonths(start: string | null, end: string | null): Date[
 }
 
 export function parseYYYYMMDDDate(value: string | null): Date | null {
-  if (value == null || value === "") {
+  if (value == null || value === '') {
     return null;
   }
-  const parts: string[] = value.split("-");
+  const parts: string[] = value.split('-');
   if (parts.length !== 3) {
     return null;
   }

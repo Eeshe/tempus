@@ -1,15 +1,15 @@
-<app-modal header="New Time Entry" (closeEvent)="close()">
+<app-modal header="New Time Entry" i18n-header (closeEvent)="close()">
   <form (submit)="onSubmit($event)">
     <div class="row">
       <div class="field">
-        <label for="description">Project/Task</label>
+        <label for="description" i18n>Project/Task</label>
         <app-project-task-selector-button [selectedProject]="newTimeEntryModel().project" [selectedTask]="newTimeEntryModel().task" (projectSelectEvent)="assignProject($event)" (taskSelectEvent)="assignTask($event.newProject, $event.newTask)"/>
       </div>
     </div>
 
     <div class="row">
       <div class="field">
-        <label for="description">Description</label>
+        <label for="description" i18n>Description</label>
         <input id="description" type="text" [formField]="newTimeEntryForm.description" />
         @if (newTimeEntryForm.description().invalid() && newTimeEntryForm.description().touched()) {
           <div class="error">
@@ -21,7 +21,7 @@
       </div>
 
       <div class="field checkbox-field">
-        <label for="billable">Billable</label>
+        <label for="billable" i18n>Billable</label>
         <div class="control">
           <input id="billable" type="checkbox" [formField]="newTimeEntryForm.billable" />
           <span class="billable-icon" aria-hidden="true">$</span>
@@ -31,7 +31,7 @@
 
     <div class="time-row">
       <div class="field">
-        <label for="startDate">Start Date</label>
+        <label for="startDate" i18n>Start Date</label>
         <app-date-input id="startDate" [formField]="newTimeEntryForm.startDate" />
         @if (newTimeEntryForm.startDate().invalid() && newTimeEntryForm.startDate().touched()) {
           <div class="error">
@@ -43,7 +43,7 @@
       </div>
 
       <div class="field">
-        <label for="startTime">Start Time</label>
+        <label for="startTime" i18n>Start Time</label>
         <app-time-input id="startTime" [formField]="newTimeEntryForm.startTime" />
         @if (newTimeEntryForm.startTime().invalid() && newTimeEntryForm.startTime().touched()) {
           <div class="error">
@@ -57,7 +57,7 @@
       <span class="time-arrow" aria-hidden="true">&rarr;</span>
 
       <div class="field">
-        <label for="endDate">End Date</label>
+        <label for="endDate" i18n>End Date</label>
         <app-date-input id="endDate" [formField]="newTimeEntryForm.endDate" />
         @if (newTimeEntryForm.endDate().invalid() && newTimeEntryForm.endDate().touched()) {
           <div class="error">
@@ -69,7 +69,7 @@
       </div>
 
       <div class="field">
-        <label for="endTime">End Time</label>
+        <label for="endTime" i18n>End Time</label>
         <app-time-input id="endTime" [formField]="newTimeEntryForm.endTime" />
         @if (newTimeEntryForm.endTime().invalid() && newTimeEntryForm.endTime().touched()) {
           <div class="error">
@@ -90,8 +90,8 @@
     }
 
     <div class="actions">
-      <button type="button" class="secondary" (click)="close()">Cancel</button>
-      <button type="submit" [disabled]="newTimeEntryForm().invalid()">Create time entry</button>
+      <button type="button" class="secondary" (click)="close()" i18n>Cancel</button>
+      <button type="submit" [disabled]="newTimeEntryForm().invalid()" i18n>Create time entry</button>
     </div>
   </form>
 </app-modal>

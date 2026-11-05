@@ -7,8 +7,8 @@
 		<div class="active-entry__right">
 			<app-time-entry-billable-button [timeEntry]="activeTimeEntry()"/>
 			<span class="active-entry__elapsed">{{elapsedTime$ | async}}</span>
-			<button class="active-entry__icon active-entry__icon--stop" type="button" (click)="stopTimeEntry()" aria-label="Stop (S)" title="Stop (S)"></button>
-			<button class="active-entry__icon active-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry"></button>
+			<button class="active-entry__icon active-entry__icon--stop" type="button" (click)="stopTimeEntry()" aria-label="Stop (S)" i18n-aria-label title="Stop (S)" i18n-title></button>
+			<button class="active-entry__icon active-entry__icon--delete" type="button" (click)="deleteTimeEntry()" aria-label="Delete entry" i18n-aria-label></button>
 		</div>
 	</div>
 </div>

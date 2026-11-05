@@ -12,6 +12,8 @@ import { ProjectPopupSelectorBase } from '../project-popup-selector-base';
 export class ProjectSelectorButton extends ProjectPopupSelectorBase {
   readonly selectedProject = input<Project | null>();
 
+  readonly selectProjectLabel: string = $localize`:Project selector|No project selected:Select a Project`;
+
   readonly filteredProjects = computed<Project[]>(() =>
     this.projects().filter((project) => this.matchesSearch(project.name) && !project.isArchived)
   );

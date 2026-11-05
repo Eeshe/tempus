@@ -1,0 +1,21 @@
+<section class="language">
+  <h2 id="language-title" class="language__title" i18n>Language</h2>
+  <p class="language__description" i18n>
+    Choose the language used across the app. The page will reload to apply the change.
+  </p>
+
+  <div class="language__options" role="radiogroup" aria-labelledby="language-title">
+    @for (locale of locales; track locale.id) {
+      <label class="language__option">
+        <input
+          type="radio"
+          name="locale"
+          [value]="locale.id"
+          [checked]="selectedLocale() === locale.id"
+          (change)="selectLocale(locale.id)"
+        />
+        <span class="language__option-label">{{ locale.label }}</span>
+      </label>
+    }
+  </div>
+</section>

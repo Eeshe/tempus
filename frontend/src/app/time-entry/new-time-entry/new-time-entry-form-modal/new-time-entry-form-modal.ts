@@ -67,17 +67,43 @@ export class NewTimeEntryFormModal extends ModalBase {
   });
 
   readonly newTimeEntryForm = form(this.newTimeEntryModel, (fieldPath) => {
-    required(fieldPath.project, { message: 'Project is required' });
-    required(fieldPath.startDate, { message: 'Start date is required' });
-    required(fieldPath.startTime, { message: 'Start time is required' });
+    required(fieldPath.project, {
+      message: $localize`:Validation|Time entry project required:Project is required`,
+    });
+    required(fieldPath.startDate, {
+      message: $localize`:Validation|Time entry start date required:Start date is required`,
+    });
+    required(fieldPath.startTime, {
+      message: $localize`:Validation|Time entry start time required:Start time is required`,
+    });
     validate(fieldPath.startDate, (ctx) =>
-      isValidDate(ctx.value()) ? null : { kind: 'dateFormat', message: 'Enter a valid date (YYYY-MM-DD)' });
+      isValidDate(ctx.value())
+        ? null
+        : {
+            kind: 'dateFormat',
+            message: $localize`:Validation|Invalid date format:Enter a valid date (YYYY-MM-DD)`,
+          });
     validate(fieldPath.endDate, (ctx) =>
-      ctx.value() === null || isValidDate(ctx.value()) ? null : { kind: 'dateFormat', message: 'Enter a valid date (YYYY-MM-DD)' });
+      ctx.value() === null || isValidDate(ctx.value())
+        ? null
+        : {
+            kind: 'dateFormat',
+            message: $localize`:Validation|Invalid date format:Enter a valid date (YYYY-MM-DD)`,
+          });
     validate(fieldPath.startTime, (ctx) =>
-      isValidTime(ctx.value()) ? null : { kind: 'timeFormat', message: 'Enter a valid time (HHmm)' });
+      isValidTime(ctx.value())
+        ? null
+        : {
+            kind: 'timeFormat',
+            message: $localize`:Validation|Invalid time format:Enter a valid time (HHmm)`,
+          });
     validate(fieldPath.endTime, (ctx) =>
-      ctx.value() === null || isValidTime(ctx.value()) ? null : { kind: 'timeFormat', message: 'Enter a valid time (HHmm)' });
+      ctx.value() === null || isValidTime(ctx.value())
+        ? null
+        : {
+            kind: 'timeFormat',
+            message: $localize`:Validation|Invalid time format:Enter a valid time (HHmm)`,
+          });
   });
 
   assignProject(project: Project): void {
@@ -106,7 +132,7 @@ export class NewTimeEntryFormModal extends ModalBase {
         this.close();
         return null;
       } catch (error) {
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }

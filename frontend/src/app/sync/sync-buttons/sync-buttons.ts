@@ -1,7 +1,9 @@
-import { afterNextRender, Component, computed, HostListener, inject, OnDestroy, signal } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { afterNextRender, Component, computed, HostListener, inject, LOCALE_ID, OnDestroy, signal } from '@angular/core';
 import { Subscription, timer } from 'rxjs';
 import { DeleteConfirmationModal } from '../../shared/delete-confirmation-modal/delete-confirmation-modal';
 import { PopupSelectorBase } from '../../shared/selector/popup-selector-base';
+import { formatCapitalizedDate } from '../../shared/util/date.util';
 import { SyncData } from '../model/sync-data.model';
 import { SyncDataService } from '../service/sync-data.service';
 
@@ -13,6 +15,7 @@ import { SyncDataService } from '../service/sync-data.service';
 })
 export class SyncButtons extends PopupSelectorBase implements OnDestroy {
   private readonly syncDataService: SyncDataService = inject(SyncDataService);
+  private readonly localeId: string = inject(LOCALE_ID);
 
   protected override readonly alignPopupRight: boolean = true;
 
@@ -42,20 +45,24 @@ export class SyncButtons extends PopupSelectorBase implements OnDestroy {
   );
 
   readonly exportConfirmationName = computed<string>(() =>
-    `the newer snapshot from ${this.formattedLastImportTime()}`,
+    $localize`:Sync|Export confirmation item description:the newer snapshot from ${this.formattedLastImportTime()}:snapshotTime:`,
+  );
+
+  readonly importTitle = computed<string>(() =>
+    $localize`:Sync|Import action tooltip:Current snapshot: ${this.formattedLastImportTime()}:snapshotTime:`,
+  );
+
+  readonly exportTitle = computed<string>(() =>
+    $localize`:Sync|Export action tooltip:Last export: ${this.formattedLastExportTime()}:snapshotTime:`,
   );
 
   private formatSnapshotTime(dateStr: string | null): string {
     if (dateStr == null) {
-      return 'N/A';
+      return $localize`:Sync|No snapshot date:N/A`;
     }
     const date: Date = new Date(dateStr);
     const now: Date = new Date();
-    const timeStr: string = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
+    const timeStr: string = formatDate(date, 'HH:mm', this.localeId);
 
     const isToday: boolean = this.isSameDay(date, now);
     const yesterday: Date = new Date(now);
@@ -63,10 +70,10 @@ export class SyncButtons extends PopupSelectorBase implements OnDestroy {
     const isYesterday: boolean = this.isSameDay(date, yesterday);
 
     const dayLabel: string = isToday
-      ? 'Today'
+      ? $localize`:Sync|Snapshot date is today:Today`
       : isYesterday
-        ? 'Yesterday'
-        : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        ? $localize`:Sync|Snapshot date was yesterday:Yesterday`
+        : formatCapitalizedDate(date, 'MMM d', this.localeId);
 
     return `${dayLabel}, ${timeStr}`;
   }

@@ -29,11 +29,13 @@
       {{ projectReport.project.client == null ? '-' : projectReport.project.client.name }}
     </ng-template>
     <ng-template #hourlyRateCell let-projectReport>
-      {{ projectReport.project.hourlyRate ?? '-' }}
+      {{ projectReport.project.hourlyRate == null ? '-' : (projectReport.project.hourlyRate | number:'1.0-2') }}
     </ng-template>
     <ng-template #accumulatedPayCell let-projectReport>
       {{
-        calculateAccumulatedPay(projectReport) == -1 ? '-' : calculateAccumulatedPay(projectReport)
+        calculateAccumulatedPay(projectReport) == -1
+          ? '-'
+          : (calculateAccumulatedPay(projectReport) | number:'1.0-2')
       }}
     </ng-template>
   </app-sortable-table>

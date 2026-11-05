@@ -22,6 +22,27 @@ export class ImportModal extends ModalBase {
 
   readonly fileCount = computed<number>(() => this.selectedFiles().length);
 
+  readonly importConfirmationMessage = computed<string>(() => {
+    const count: number = this.fileCount();
+    return count === 1
+      ? $localize`:Import modal|Single CSV file confirmation:You are about to import 1 CSV file`
+      : $localize`:Import modal|Multiple CSV files confirmation:You are about to import ${count}:count: CSV files`;
+  });
+
+  readonly importSuccessMessage = computed<string>(() => {
+    const count: number = this.importResult()?.importedCount ?? 0;
+    return count === 1
+      ? $localize`:Import modal|Single entry imported:Successfully imported 1 entry`
+      : $localize`:Import modal|Multiple entries imported:Successfully imported ${count}:count: entries`;
+  });
+
+  readonly importErrorsTitle = computed<string>(() => {
+    const count: number = this.importResult()?.skippedEntries.length ?? 0;
+    return count === 1
+      ? $localize`:Import modal|Single import error:There was the following import error`
+      : $localize`:Import modal|Multiple import errors:There were the following import errors (${count}:count:)`;
+  });
+
   addSelectedFiles(event: Event): void {
     const input: HTMLInputElement = event.target as HTMLInputElement;
     this.acceptFiles(Array.from(input.files ?? []));

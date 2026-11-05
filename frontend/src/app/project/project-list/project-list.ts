@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ProjectReport } from '../../reports/models/report.model';
 import { MsToHHMMSSPipe } from '../../shared/pipes/ms-to-hhmmss.pipe';
@@ -7,7 +8,7 @@ import { ProjectModal } from '../project-modal/project-modal';
 import { ProjectReportStore } from '../store/project-report.store';
 
 @Component({
-  imports: [SortableTable, MsToHHMMSSPipe, ProjectModal],
+  imports: [SortableTable, MsToHHMMSSPipe, ProjectModal, DecimalPipe],
   selector: 'app-project-list',
   styleUrl: './project-list.css',
   templateUrl: './project-list.html',
@@ -20,32 +21,32 @@ export class ProjectList {
   readonly columns: SortableColumn<ProjectReport>[] = [
     {
       key: "project",
-      label: "Project",
+      label: $localize`:Table column|Project name:Project`,
       align: "left",
       sortValue: (projectReport) => projectReport.project.name,
     },
     {
       key: "duration",
-      label: "Duration",
+      label: $localize`:Table column|Tracked duration:Duration`,
       align: "left",
       sortValue: (projectReport) => projectReport.trackedTimeMillis,
     },
     {
       key: "client",
-      label: "Client",
+      label: $localize`:Table column|Client name:Client`,
       align: "left",
       sortValue: (projectReport) => projectReport.project.client?.name ?? "",
     },
     {
       key: "hourlyRate",
-      label: "Hourly Rate (USD)",
+      label: $localize`:Table column|Project hourly rate in USD:Hourly Rate (USD)`,
       align: "center",
       cellAlign: "center",
       sortValue: (projectReport) => projectReport.project.hourlyRate ?? -1,
     },
     {
       key: "accumulatedPay",
-      label: "Accumulated Pay (USD)",
+      label: $localize`:Table column|Project accumulated pay in USD:Accumulated Pay (USD)`,
       align: "center",
       cellAlign: "center",
       sortValue: (projectReport) => this.calculateAccumulatedPay(projectReport),

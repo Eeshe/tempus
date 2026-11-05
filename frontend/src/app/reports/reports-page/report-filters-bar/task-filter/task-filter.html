@@ -7,7 +7,7 @@
 	        [attr.aria-expanded]="isOpen()"
 	        (click)="toggle()"
 	>
-		Tasks
+		<span i18n>Tasks</span>
 		<span class="selector__badge"
 		      [class.selector__badge--visible]="selectedTasks().length > 0"
 		>
@@ -23,7 +23,11 @@
 		<div class="selector__popup-header">
 			<app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
 			<button type="button" class="selector__popup-select-all" (click)="toggleSelectAll()">
-				{{ allSelected() ? 'Unselect All' : 'Select All' }}
+				@if (allSelected()) {
+					<span i18n>Unselect All</span>
+				} @else {
+					<span i18n>Select All</span>
+				}
 			</button>
 		</div>
 

@@ -1,8 +1,8 @@
-<app-modal header="Create project" size="sm" (closeEvent)="close()">
+<app-modal header="Create project" i18n-header size="sm" (closeEvent)="close()">
   <form (submit)="onSubmit($event)">
     <div class="row">
       <div class="field">
-        <label for="name">Project Name</label>
+        <label for="name" i18n>Project Name</label>
         <input id="name" [formField]="projectForm.name" />
         @if (projectForm.name().invalid() && projectForm.name().touched()) {
           <div class="error">
@@ -14,7 +14,7 @@
       </div>
 
       <div class="field">
-        <label for="hourlyRate">Hourly Rate</label>
+        <label for="hourlyRate" i18n>Hourly Rate</label>
         <div class="input-group">
           <span class="prefix" aria-hidden="true">$</span>
           <input id="hourlyRate" type="number" step="0.01" inputmode="decimal"
@@ -32,7 +32,7 @@
 
     <div class="row">
       <div class="field">
-        <label for="clientId">Client</label>
+        <label for="clientId" i18n>Client</label>
         <app-client-selector-button [selectedClient]="projectModel().client" (clientSelectEvent)="changeClient($event)"/>
         @if (projectForm.client().invalid() && projectForm.client().touched()) {
           <div class="error">
@@ -44,7 +44,7 @@
       </div>
 
       <div class="field">
-        <label for="color">Color</label>
+        <label for="color" i18n>Color</label>
         <app-color-input id="color" [value]="projectModel().color" (valueChange)="changeColor($event)" />
       </div>
     </div>
@@ -58,8 +58,8 @@
     }
 
     <div class="actions">
-      <button type="button" class="secondary" (click)="close()">Cancel</button>
-      <button type="submit" [disabled]="projectForm().invalid()">Create project</button>
+      <button type="button" class="secondary" (click)="close()" i18n>Cancel</button>
+      <button type="submit" [disabled]="projectForm().invalid()" i18n>Create project</button>
     </div>
   </form>
 </app-modal>

@@ -11,7 +11,7 @@
           <button type="button" class="project-toggle"
                   [class.project-toggle--expanded]="isProjectExpanded(project)"
                   [attr.aria-expanded]="isProjectExpanded(project)"
-                  [attr.aria-label]="'Toggle tasks for ' + project.name"
+                  [attr.aria-label]="toggleTasksLabel(project)"
                   (click)="toggleProjectTasks(project)"></button>
         </div>
 
@@ -20,13 +20,13 @@
             @for (task of project.tasks; track task.id) {
               <button type="button" class="task-item" [attr.title]="task.name" (click)="changeTimeEntryTask(project, task)">{{ task.name }}</button>
             }
-            <button type="button" class="popup__new popup__new--task" (click)="setCreateTaskFormModalProject(project)">New Task</button>
+            <button type="button" class="popup__new popup__new--task" (click)="setCreateTaskFormModalProject(project)" i18n>New Task</button>
           </div>
         }
       </div>
     }
   </div>
-  <button type="button" class="popup__new" (click)="toggleCreateProjectForm()">New Project</button>
+  <button type="button" class="popup__new" (click)="toggleCreateProjectForm()" i18n>New Project</button>
 </div>
 
 @if (isCreateProjectFormModalOpen()) {

@@ -24,7 +24,9 @@ export class CreateClientFormModal extends ModalBase {
     name: "",
   });
   readonly clientForm = form(this.clientModel, (fieldPath) => {
-    required(fieldPath.name, { message: "You must provide a client name" });
+    required(fieldPath.name, {
+      message: $localize`:Validation|Client name required:You must provide a client name`,
+    });
   });
 
   readonly clientCreateEvent = output<Client>();
@@ -42,9 +44,12 @@ export class CreateClientFormModal extends ModalBase {
         return null;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status == 400) {
-          return { kind: 'usedClientName', message: "You already have a client with this name" };
+          return {
+            kind: 'usedClientName',
+            message: $localize`:Validation|Client name already used:You already have a client with this name`,
+          };
         }
-        return { kind: 'serverError', message: "Something's wrong server-side" };
+        return { kind: 'serverError', message: $localize`:Validation|Generic server error:Something's wrong server-side` };
       }
     });
   }

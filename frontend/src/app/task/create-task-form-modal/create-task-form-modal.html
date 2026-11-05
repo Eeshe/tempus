@@ -1,7 +1,7 @@
-<app-modal header="Create task" size="sm" (closeEvent)="close()">
+<app-modal header="Create task" i18n-header size="sm" (closeEvent)="close()">
   <form (submit)="onSubmit($event)">
     <div class="field">
-      <label for="project">Project</label>
+      <label for="project" i18n>Project</label>
       <app-project-selector-button
         [selectedProject]="taskModel().project"
         (projectSelectEvent)="changeProject($event)"
@@ -16,7 +16,7 @@
     </div>
 
     <div class="field">
-      <label for="name">Name</label>
+      <label for="name" i18n>Name</label>
       <input id="name" [formField]="taskForm.name"/>
       @if (taskForm.name().invalid() && taskForm.name().touched()) {
         <div class="error">
@@ -36,8 +36,8 @@
     }
 
     <div class="actions">
-      <button type="button" class="secondary" (click)="close()">Cancel</button>
-      <button type="submit" [disabled]="taskForm().invalid()">Create task</button>
+      <button type="button" class="secondary" (click)="close()" i18n>Cancel</button>
+      <button type="submit" [disabled]="taskForm().invalid()" i18n>Create task</button>
     </div>
   </form>
 </app-modal>
