@@ -14,7 +14,7 @@
   color: var(--fg);
   font-family: inherit;
   font-size: 0.8125rem;
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .search-input::placeholder {
@@ -23,5 +23,6 @@
 
 .search-input:focus-visible {
   outline: none;
-  border-color: var(--good);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }

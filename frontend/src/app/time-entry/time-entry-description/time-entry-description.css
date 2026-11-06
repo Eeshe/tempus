@@ -13,12 +13,12 @@
   padding: 0.625rem 0.75rem;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 0.3125rem;
+  border-radius: 0.5rem;
   color: var(--fg);
   font-family: inherit;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .active-entry__description-input:hover {
@@ -26,6 +26,7 @@
 }
 
 .active-entry__description-input:focus {
-  border-color: var(--good);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
