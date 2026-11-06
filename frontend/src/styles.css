@@ -108,6 +108,28 @@ app-navigation-bar {
   animation: none;
 }
 
+/*
+ * The settings sidebar gets `view-transition-name: settings-nav` from
+ * settings-page.css, so it is lifted out of the root snapshot: switching
+ * settings sub-routes only fades the content pane. Its own snapshots are
+ * captured before the nav item's background/color CSS transition starts, so
+ * crossfading old -> new is what makes the active pill fade out/in instead of
+ * popping when the overlay is torn down. Pixels that are identical in both
+ * snapshots (labels, idle items) are a no-op blend, so only the pill and the
+ * active label color actually fade.
+ */
+::view-transition-group(settings-nav) {
+  animation: none;
+}
+
+::view-transition-old(settings-nav) {
+  animation: route-fade-out 150ms ease-in both;
+}
+
+::view-transition-new(settings-nav) {
+  animation: route-fade-in 150ms ease-out both;
+}
+
 ::view-transition {
   background-color: var(--bg);
 }
@@ -125,7 +147,10 @@ app-navigation-bar {
   ::view-transition-new(root),
   ::view-transition-group(nav),
   ::view-transition-old(nav),
-  ::view-transition-new(nav) {
+  ::view-transition-new(nav),
+  ::view-transition-group(settings-nav),
+  ::view-transition-old(settings-nav),
+  ::view-transition-new(settings-nav) {
     animation: none;
   }
 }
