@@ -13,8 +13,10 @@ import org.springframework.orm.jpa.JpaSystemException;
 import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.entity.UserSettings;
 import me.eeshe.tempus.support.RepositoryTestBase;
 
 public class UserRepositoryTest extends RepositoryTestBase {
@@ -75,6 +77,25 @@ public class UserRepositoryTest extends RepositoryTestBase {
                 entityManager.flush();
             }).isInstanceOf(JpaSystemException.class)
                     .hasMessageContaining("UNIQUE constraint failed: users.name");
+        }
+
+        @Test
+        void saveCascadesDefaultUserSettings() {
+            final User saved = userRepository.save(new User("MyUser", "MyPassword"));
+
+            assertThat(saved.getSettings()).isNotNull();
+            assertThat(saved.getSettings().getId()).isPositive();
+            assertThat(saved.getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
+
+            entityManager.flush();
+            entityManager.clear();
+
+            final UserSettings savedSettings = userSettingsRepository
+                    .findById(saved.getSettings().getId())
+                    .orElseThrow();
+
+            assertThat(savedSettings.getTheme()).isEqualTo(Theme.DEFAULT);
+            assertThat(savedSettings.getUser().getId()).isEqualTo(saved.getId());
         }
     }
 
@@ -151,6 +172,21 @@ public class UserRepositoryTest extends RepositoryTestBase {
             entityManager.clear();
 
             assertThat(timeEntryRepository.findById(timeEntry.getId())).isEmpty();
+        }
+
+        @Test
+        void deleteCascadesToUserSettings() {
+            final User user = createUser("MyUser");
+            final long userSettingsId = user.getSettings().getId();
+
+            entityManager.flush();
+            entityManager.clear();
+
+            userRepository.deleteById(user.getId());
+            entityManager.flush();
+            entityManager.clear();
+
+            assertThat(userSettingsRepository.findById(userSettingsId)).isEmpty();
         }
 
         @Test

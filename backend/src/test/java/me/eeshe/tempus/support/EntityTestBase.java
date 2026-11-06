@@ -7,6 +7,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import me.eeshe.tempus.entity.Client;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Task;
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.User;
 
 public abstract class EntityTestBase {
@@ -27,6 +28,15 @@ public abstract class EntityTestBase {
         ReflectionTestUtils.setField(user, "id", userId);
 
         return user;
+    }
+
+    protected static Theme createTheme() {
+        return new Theme(
+                Theme.DEFAULT_BACKGROUND,
+                Theme.DEFAULT_SURFACE,
+                Theme.DEFAULT_TEXT,
+                Theme.DEFAULT_ACCENT,
+                Theme.DEFAULT_DANGER);
     }
 
     protected static Client createClient() {

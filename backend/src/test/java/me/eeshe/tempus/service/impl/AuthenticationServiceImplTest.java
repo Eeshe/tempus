@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
 import me.eeshe.tempus.repository.UserRepository;
@@ -82,6 +83,8 @@ public class AuthenticationServiceImplTest extends EntityTestBase {
 
             assertThat(userCaptor.getValue().getName()).isEqualTo(USER_NAME);
             assertThat(userCaptor.getValue().getPassword()).isEqualTo(ENCODED_PASSWORD);
+            assertThat(userCaptor.getValue().getSettings()).isNotNull();
+            assertThat(userCaptor.getValue().getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
             assertThat(user).isEqualTo(savedUser);
         }
 

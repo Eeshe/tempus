@@ -5,5 +5,6 @@ import java.time.Instant;
 public record UserDTO(
         long id,
         String name,
+        UserSettingsDTO settings,
         Instant createdAt) {
 }

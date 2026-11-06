@@ -37,7 +37,7 @@
 }
 
 .time-entry:hover {
-  background: rgba(232, 234, 240, 0.03);
+  background: var(--fg-ghost);
   border-color: var(--border-strong);
 }
 
@@ -108,7 +108,7 @@ app-time-input {
   font-family: inherit;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .time-entry__description-input::placeholder {
@@ -120,7 +120,8 @@ app-time-input {
 }
 
 .time-entry__description-input:focus {
-  border-color: var(--good);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
 .time-entry__separator {

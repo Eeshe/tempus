@@ -12,6 +12,9 @@
 
 .settings__sidebar {
   flex: 0 0 12rem;
+  /* Own snapshot (crossfaded) in styles.css: keeps the sidebar out of the root
+     view transition so only the content pane fades on sub-route changes. */
+  view-transition-name: settings-nav;
 }
 
 .settings__nav {

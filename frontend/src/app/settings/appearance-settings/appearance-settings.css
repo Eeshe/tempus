@@ -1,0 +1,117 @@
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.appearance {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.appearance__title {
+  margin: 0 0 0.5rem;
+  color: var(--fg);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.appearance__description {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.appearance__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.appearance__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+
+.appearance__field-label {
+  color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.appearance__error {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.875rem;
+  color: var(--bad);
+  background: var(--bad-bg);
+  border: 1px solid var(--bad-border);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.appearance__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-top: 1.25rem;
+}
+
+.appearance__actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.appearance__button {
+  padding: 0.625rem 1rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition:
+    opacity 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.appearance__button--primary {
+  background: var(--fg);
+  color: var(--bg);
+  border: none;
+}
+
+.appearance__button--primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.appearance__button--secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+}
+
+.appearance__button--secondary:hover:not(:disabled) {
+  border-color: var(--bad);
+}
+
+.appearance__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.appearance__button:focus-visible {
+  outline: 2px solid var(--good);
+  outline-offset: 2px;
+}

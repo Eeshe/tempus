@@ -22,9 +22,14 @@ describe('SettingsPage', () => {
       harness.routeNativeElement!.querySelectorAll('.settings__nav-item'),
     );
 
-    expect(links.map((link) => link.textContent?.trim())).toEqual(['Language', 'Migration']);
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      'Language',
+      'Appearance',
+      'Migration',
+    ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/settings/language',
+      '/settings/appearance',
       '/settings/migration',
     ]);
   });

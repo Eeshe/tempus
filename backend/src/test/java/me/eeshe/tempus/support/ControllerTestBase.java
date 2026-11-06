@@ -17,8 +17,11 @@ import me.eeshe.tempus.config.SecurityConfig;
 import me.eeshe.tempus.dto.ClientDTO;
 import me.eeshe.tempus.dto.ProjectDTO;
 import me.eeshe.tempus.dto.TaskDTO;
+import me.eeshe.tempus.dto.ThemeDTO;
 import me.eeshe.tempus.dto.UserDTO;
+import me.eeshe.tempus.dto.UserSettingsDTO;
 import me.eeshe.tempus.entity.Project;
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.security.RestAuthenticationEntryPoint;
 import me.eeshe.tempus.security.UserDetailsImpl;
@@ -45,7 +48,20 @@ public abstract class ControllerTestBase extends EntityTestBase {
     }
 
     protected static UserDTO createTestUserDTO(long userId, Instant createdAt) {
-        return new UserDTO(userId, "MyUser", createdAt);
+        return new UserDTO(userId, "MyUser", createUserSettingsDTO(), createdAt);
+    }
+
+    protected static UserSettingsDTO createUserSettingsDTO() {
+        return new UserSettingsDTO(createThemeDTO());
+    }
+
+    protected static ThemeDTO createThemeDTO() {
+        return new ThemeDTO(
+                Theme.DEFAULT_BACKGROUND,
+                Theme.DEFAULT_SURFACE,
+                Theme.DEFAULT_TEXT,
+                Theme.DEFAULT_ACCENT,
+                Theme.DEFAULT_DANGER);
     }
 
     protected static ClientDTO createClientDTO(long id, String name, Instant createdAt) {

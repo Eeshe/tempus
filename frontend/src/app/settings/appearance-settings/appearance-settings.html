@@ -1,0 +1,59 @@
+<section class="appearance">
+  <h2 class="appearance__title" i18n>Appearance</h2>
+  <p class="appearance__description" i18n>Pick the colors used across the app. Changes preview instantly, and are saved when you applythem.</p>
+
+  <div class="appearance__fields">
+    @for (themeField of themeFields; track themeField.field) {
+      <div class="appearance__field">
+        <label class="appearance__field-label" [attr.for]="themeField.id">{{ themeField.label }}</label>
+        <app-color-input
+          [id]="themeField.id"
+          [label]="themeField.label"
+          [value]="draft()[themeField.field]"
+          [presetColors]="noPresetColors"
+          (valueChange)="updateColor(themeField.field, $event)"
+        />
+      </div>
+    }
+  </div>
+
+  @if (saveError(); as error) {
+    <p class="appearance__error" role="alert">{{ error }}</p>
+  }
+
+  <div class="appearance__actions">
+    <div class="appearance__actions-group">
+      <button
+        type="button"
+        class="appearance__button appearance__button--secondary"
+        [disabled]="!isDirty() || isSaving()"
+        (click)="reset()"
+        i18n
+      >Reset</button>
+      <button
+        type="button"
+        class="appearance__button appearance__button--secondary"
+        [disabled]="isDefaultTheme() || isSaving()"
+        (click)="restoreDefaultColors()"
+        i18n
+      >Restore defaults
+      </button>
+    </div>
+    <button
+      type="button"
+      class="appearance__button appearance__button--primary"
+      [disabled]="!isDirty() || isSaving()"
+      (click)="apply()"
+      i18n
+    >Apply</button>
+  </div>
+</section>
+
+@if (isDiscardConfirmationOpen()) {
+  <app-delete-confirmation-modal
+    [headerOverride]="discardHeader"
+    [confirmLabel]="discardConfirmLabel"
+    (confirmationOptionSelectEvent)="handleDiscardConfirmation($event)"
+    (closeEvent)="handleDiscardConfirmation(false)"
+  />
+}

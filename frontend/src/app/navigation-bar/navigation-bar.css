@@ -52,10 +52,16 @@
 }
 
 .nav__brand {
+  --icon: url('/icons/tempus.svg');
+
   display: block;
   height: 2.2rem;
-  width: auto;
+  /* 799x232 viewBox: keeps the logotype proportions */
+  width: calc(2.2rem * 799 / 232);
   flex-shrink: 0;
+  background-color: var(--good);
+  -webkit-mask: var(--icon) center/contain no-repeat;
+  mask: var(--icon) center/contain no-repeat;
 }
 
 .nav__actions {

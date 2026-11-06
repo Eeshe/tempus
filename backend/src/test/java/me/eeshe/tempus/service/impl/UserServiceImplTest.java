@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.exception.UserNotFoundException;
 import me.eeshe.tempus.repository.UserRepository;
@@ -90,6 +91,8 @@ public class UserServiceImplTest extends EntityTestBase {
 
             assertThat(userCaptor.getValue().getName()).isEqualTo("MyNewUser");
             assertThat(userCaptor.getValue().getPassword()).isEqualTo("MyNewPassword");
+            assertThat(userCaptor.getValue().getSettings()).isNotNull();
+            assertThat(userCaptor.getValue().getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
             assertThat(user).isEqualTo(savedUser);
         }
     }

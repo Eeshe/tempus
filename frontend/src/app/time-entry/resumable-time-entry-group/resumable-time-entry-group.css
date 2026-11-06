@@ -117,7 +117,7 @@
   font-family: inherit;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .time-group__description-input::placeholder {
@@ -129,7 +129,8 @@
 }
 
 .time-group__description-input:focus {
-  border-color: var(--good);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
 .time-group__project {

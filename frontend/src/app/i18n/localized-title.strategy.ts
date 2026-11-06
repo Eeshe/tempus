@@ -12,6 +12,7 @@ const ROUTE_TITLE_TRANSLATIONS: Readonly<Record<string, () => string>> = {
   'route.settings': () => $localize`:Browser tab title|Settings page:Settings`,
   'route.settings.migration': () => $localize`:Browser tab title|Migration settings page:Migration`,
   'route.settings.language': () => $localize`:Browser tab title|Language settings page:Language`,
+  'route.settings.appearance': () => $localize`:Browser tab title|Appearance settings page:Appearance`,
 };
 
 @Service()
