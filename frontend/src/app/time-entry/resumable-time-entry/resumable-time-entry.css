@@ -37,7 +37,7 @@
 }
 
 .time-entry:hover {
-  background: rgba(232, 234, 240, 0.03);
+  background: var(--fg-ghost);
   border-color: var(--border-strong);
 }
 

@@ -1,17 +1,31 @@
 @import './styles/ngx-color-picker-theme.css';
 
+/*
+ * Theme palette.
+ *
+ * Only the five base colors below define the palette. ThemeService (and the inline bootstrap
+ * script in index.html, for the first paint) overrides exactly these five variables at runtime
+ * from the user's stored theme. Every other color is derived from them, so a single palette
+ * change re-themes the whole app.
+ */
 :root {
   --nav-height: 3.25rem;
   --bg: #101318;
   --surface: #161a22;
   --fg: #e8eaf0;
-  --muted: #9aa3b2;
-  --border: #262c38;
-  --border-strong: #353c4a;
-  --bad: #f2555c;
-  --bad-bg: rgba(242, 85, 92, 0.08);
   --good: #3dd68c;
+  --bad: #f2555c;
+
+  /* Derived colors: never hardcode these values outside this block. */
+  --muted: color-mix(in srgb, var(--fg) 62%, var(--surface));
+  --border: color-mix(in srgb, var(--fg) 8%, var(--surface));
+  --border-strong: color-mix(in srgb, var(--fg) 13%, var(--surface));
+  --bad-bg: color-mix(in srgb, var(--bad) 8%, transparent);
+  --bad-border: color-mix(in srgb, var(--bad) 25%, transparent);
+  --fg-faint: color-mix(in srgb, var(--fg) 6%, transparent);
+  --fg-ghost: color-mix(in srgb, var(--fg) 3%, transparent);
   --surface-hover: color-mix(in srgb, var(--fg) 3%, var(--surface));
+
   --z-sticky-content: 10;
   --z-nav: 100;
   --z-modal: 1000;

@@ -6,6 +6,8 @@ import { authGuard } from './guards/auth.guard';
 import { Home } from './home/home';
 import { ProjectsPage } from './project/projects-page/projects-page';
 import { ReportsPage } from './reports/reports-page/reports-page';
+import { AppearanceSettings } from './settings/appearance-settings/appearance-settings';
+import { unsavedThemeChangesGuard } from './settings/appearance-settings/unsaved-theme-changes.guard';
 import { LanguageSettings } from './settings/language-settings/language-settings';
 import { MigrationSettings } from './settings/migration-settings/migration-settings';
 import { SettingsPage } from './settings/settings-page/settings-page';
@@ -65,6 +67,12 @@ export const routes: Routes = [
         path: 'language',
         title: 'route.settings.language',
         component: LanguageSettings,
+      },
+      {
+        path: 'appearance',
+        title: 'route.settings.appearance',
+        component: AppearanceSettings,
+        canDeactivate: [unsavedThemeChangesGuard],
       },
       {
         path: 'migration',

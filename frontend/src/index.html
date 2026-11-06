@@ -6,6 +6,39 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!--
+    Applies the cached theme before the first paint so users with a custom palette never see the
+    default one. ThemeService keeps this cache in sync with GET /api/v1/auth/me. The variable map
+    mirrors THEME_CSS_VARIABLES in src/app/services/theme.service.ts and cannot be imported here
+    because this script has to run before the bundle boots.
+  -->
+  <script>
+    (function () {
+      try {
+        var rawTheme = localStorage.getItem('tempus.theme');
+        if (!rawTheme) {
+          return;
+        }
+        var theme = JSON.parse(rawTheme);
+        var variables = {
+          background: '--bg',
+          surface: '--surface',
+          text: '--fg',
+          accent: '--good',
+          danger: '--bad',
+        };
+        var hexColorPattern = /^#[0-9a-fA-F]{6}$/;
+        Object.keys(variables).forEach(function (field) {
+          var color = theme && theme[field];
+          if (typeof color === 'string' && hexColorPattern.test(color)) {
+            document.documentElement.style.setProperty(variables[field], color);
+          }
+        });
+      } catch (error) {
+        // A corrupt cache must never prevent the app from booting.
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

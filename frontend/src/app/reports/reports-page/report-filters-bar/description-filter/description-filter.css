@@ -44,7 +44,7 @@
 
 .selector__popup-text:focus {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
 .selector__popup-add {

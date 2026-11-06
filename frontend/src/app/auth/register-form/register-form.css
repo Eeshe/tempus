@@ -74,7 +74,7 @@ h1 {
 
 .field input:focus {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
 .field .error {
@@ -101,7 +101,7 @@ h1 {
   font-size: 0.875rem;
   color: var(--bad);
   background: var(--bad-bg);
-  border: 1px solid rgba(242, 85, 92, 0.25);
+  border: 1px solid var(--bad-border);
   border-radius: 0.5rem;
 }
 

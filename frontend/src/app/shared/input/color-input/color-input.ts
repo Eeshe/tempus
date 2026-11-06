@@ -31,7 +31,7 @@ export class ColorInput {
 
   readonly valueChange = output<string>();
 
-  readonly presetColors: string[] = PRESET_PROJECT_COLORS;
+  readonly presetColors = input<string[]>(PRESET_PROJECT_COLORS);
   readonly presetLabel: string = $localize`:Color picker|Preset colors label:Preset colors`;
 
   commitColor(color: string): void {

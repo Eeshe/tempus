@@ -27,7 +27,7 @@
 
 .time-input:focus {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px rgba(232, 234, 240, 0.06);
+  box-shadow: 0 0 0 3px var(--fg-faint);
 }
 
 .time-input.invalid {
@@ -35,5 +35,5 @@
 }
 
 .time-input.invalid:focus {
-  box-shadow: 0 0 0 3px rgba(242, 85, 92, 0.08);
+  box-shadow: 0 0 0 3px var(--bad-bg);
 }
