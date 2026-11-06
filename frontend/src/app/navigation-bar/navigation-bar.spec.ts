@@ -18,4 +18,11 @@ describe('NavigationBar', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('renders the logo as a themed image', () => {
+    const brand: HTMLElement | null = fixture.nativeElement.querySelector('.nav__brand');
+
+    expect(brand?.getAttribute('role')).toBe('img');
+    expect(brand?.getAttribute('aria-label')).toBe('Tempus');
+  });
 });
