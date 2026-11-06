@@ -41,6 +41,13 @@
   padding: 0.375rem;
 }
 
+/* Own view transition group (rules in styles.css): the popup is fixed below the
+   nav box, so inside the pinned nav snapshot its overflow would be frozen in the
+   old image for the whole route transition. */
+.profile__popup {
+  view-transition-name: profile-popup;
+}
+
 .profile-action {
   display: flex;
   align-items: center;

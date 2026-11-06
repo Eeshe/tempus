@@ -130,6 +130,25 @@ app-navigation-bar {
   animation: route-fade-in 150ms ease-out both;
 }
 
+/*
+ * Nav popups are `position: fixed` below the nav's border box, and the nav is pinned with
+ * `animation: none`. Chrome includes the popup's out-of-box ink overflow in the OLD nav
+ * snapshot, which nothing fades, so a closing popup stayed frozen for the whole route
+ * transition and popped away at teardown (Firefox does not capture that overflow, which is
+ * why it only showed up in Chrome). Giving each popup its own group (profile-button.css /
+ * sync-buttons.css) takes it out of the nav capture; fading its old snapshot out here makes
+ * it close over 140ms, matching its CSS close transition in selector-shared.css.
+ */
+::view-transition-group(profile-popup),
+::view-transition-group(sync-popup) {
+  animation: none;
+}
+
+::view-transition-old(profile-popup),
+::view-transition-old(sync-popup) {
+  animation: route-fade-out 140ms ease-in both;
+}
+
 ::view-transition {
   background-color: var(--bg);
 }
@@ -150,7 +169,13 @@ app-navigation-bar {
   ::view-transition-new(nav),
   ::view-transition-group(settings-nav),
   ::view-transition-old(settings-nav),
-  ::view-transition-new(settings-nav) {
+  ::view-transition-new(settings-nav),
+  ::view-transition-group(profile-popup),
+  ::view-transition-old(profile-popup),
+  ::view-transition-new(profile-popup),
+  ::view-transition-group(sync-popup),
+  ::view-transition-old(sync-popup),
+  ::view-transition-new(sync-popup) {
     animation: none;
   }
 }
