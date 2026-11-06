@@ -8,18 +8,25 @@ import me.eeshe.tempus.dto.UpdateUserRequestDTO;
 import me.eeshe.tempus.dto.UserDTO;
 import me.eeshe.tempus.entity.User;
 import me.eeshe.tempus.mapper.UserMapper;
+import me.eeshe.tempus.mapper.UserSettingsMapper;
 import me.eeshe.tempus.request.CreateUserRequest;
 import me.eeshe.tempus.request.PatchUserRequest;
 import me.eeshe.tempus.request.UpdateUserRequest;
 
 @Component
 public class UserMapperImpl implements UserMapper {
+    private final UserSettingsMapper userSettingsMapper;
+
+    public UserMapperImpl(UserSettingsMapper userSettingsMapper) {
+        this.userSettingsMapper = userSettingsMapper;
+    }
 
     @Override
     public UserDTO toDTO(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getName(),
+                userSettingsMapper.toDTO(user.getSettings()),
                 user.getCreatedAt());
     }
 

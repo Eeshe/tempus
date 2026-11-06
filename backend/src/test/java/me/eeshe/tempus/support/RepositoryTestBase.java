@@ -18,6 +18,7 @@ import me.eeshe.tempus.repository.ProjectRepository;
 import me.eeshe.tempus.repository.TaskRepository;
 import me.eeshe.tempus.repository.TimeEntryRepository;
 import me.eeshe.tempus.repository.UserRepository;
+import me.eeshe.tempus.repository.UserSettingsRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -37,6 +38,9 @@ public abstract class RepositoryTestBase {
 
     @Autowired
     protected TimeEntryRepository timeEntryRepository;
+
+    @Autowired
+    protected UserSettingsRepository userSettingsRepository;
 
     @Autowired
     protected TestEntityManager entityManager;

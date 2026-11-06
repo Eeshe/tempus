@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -41,6 +42,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Set<TimeEntry> timeEntries = new HashSet<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserSettings settings;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -50,6 +54,7 @@ public class User {
     public User(String name, String password) {
         this.name = name;
         this.password = password;
+        this.settings = new UserSettings(this);
     }
 
     @PrePersist
@@ -84,6 +89,14 @@ public class User {
     public void setClients(Collection<Client> clients) {
         this.clients.clear();
         this.clients.addAll(clients);
+    }
+
+    public UserSettings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(UserSettings settings) {
+        this.settings = settings;
     }
 
     public Instant getCreatedAt() {

@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 import jakarta.servlet.http.Cookie;
+import me.eeshe.tempus.dto.ThemePatchDTO;
+import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.service.SyncService;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,6 +32,7 @@ public class TempusApplicationIntegrationTest {
     private static final String TASKS_URL = "/api/v1/tasks";
     private static final String TIME_ENTRIES_URL = "/api/v1/time-entries";
     private static final String PROJECT_REPORT_URL = "/api/v1/reports/projects";
+    private static final String SETTINGS_URL = "/api/v1/settings";
 
     private static final String SESSION_COOKIE = "SESSION";
     private static final String PASSWORD = "MyPassword";
@@ -38,6 +41,8 @@ public class TempusApplicationIntegrationTest {
     private static final String LOGOUT_USERNAME = "LogoutIntegration";
     private static final String DUPLICATE_USERNAME = "DuplicateIntegration";
     private static final String WORKFLOW_USERNAME = "WorkflowIntegration";
+    private static final String SETTINGS_USERNAME = "SettingsIntegration";
+    private static final String INVALID_SETTINGS_USERNAME = "InvalidSettingsIntegration";
 
     @Autowired
     private MockMvcTester mockMvc;
@@ -73,6 +78,8 @@ public class TempusApplicationIntegrationTest {
 
             assertThat(registerResult).hasStatus(201);
             assertThat(json(registerResult).get("name").asString()).isEqualTo(CURRENT_USER_USERNAME);
+            assertThat(json(registerResult).get("settings").get("theme").get("background").asString())
+                    .isEqualTo(Theme.DEFAULT_BACKGROUND);
 
             final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -113,6 +120,69 @@ public class TempusApplicationIntegrationTest {
             assertThat(registerResult).hasStatus(400);
             assertThat(json(registerResult).get("error").asString())
                     .isEqualTo("Username DuplicateIntegration is already used by another user");
+        }
+    }
+
+    @Nested
+    class Settings {
+
+        @Test
+        void patchesThemeAndPersistsIt() throws Exception {
+            final Cookie sessionCookie = registerAndLogin(SETTINGS_USERNAME);
+
+            final MvcTestResult currentUserResult = mockMvc.get().uri(CURRENT_USER_URL)
+                    .cookie(sessionCookie)
+                    .exchange();
+
+            assertThat(currentUserResult).hasStatus(200);
+            assertThat(json(currentUserResult).get("settings").get("theme").get("background").asString())
+                    .isEqualTo(Theme.DEFAULT_BACKGROUND);
+
+            final MvcTestResult patchResult = mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .cookie(sessionCookie)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"theme\":{\"background\":\"#000000\",\"accent\":\"#FFFFFF\"}}")
+                    .exchange();
+
+            assertThat(patchResult).hasStatus(200);
+            final JsonNode patchedTheme = json(patchResult).get("theme");
+            assertThat(patchedTheme.get("background").asString()).isEqualTo("#000000");
+            assertThat(patchedTheme.get("surface").asString()).isEqualTo(Theme.DEFAULT_SURFACE);
+            assertThat(patchedTheme.get("text").asString()).isEqualTo(Theme.DEFAULT_TEXT);
+            assertThat(patchedTheme.get("accent").asString()).isEqualTo("#FFFFFF");
+            assertThat(patchedTheme.get("danger").asString()).isEqualTo(Theme.DEFAULT_DANGER);
+
+            final MvcTestResult persistedUserResult = mockMvc.get().uri(CURRENT_USER_URL)
+                    .cookie(sessionCookie)
+                    .exchange();
+
+            assertThat(persistedUserResult).hasStatus(200);
+            final JsonNode persistedTheme = json(persistedUserResult).get("settings").get("theme");
+            assertThat(persistedTheme.get("background").asString()).isEqualTo("#000000");
+            assertThat(persistedTheme.get("accent").asString()).isEqualTo("#FFFFFF");
+        }
+
+        @Test
+        void rejectsInvalidHexColor() throws Exception {
+            final Cookie sessionCookie = registerAndLogin(INVALID_SETTINGS_USERNAME);
+
+            final MvcTestResult patchResult = mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .cookie(sessionCookie)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"theme\":{\"background\":\"red\"}}")
+                    .exchange();
+
+            assertThat(patchResult).hasStatus(400);
+            assertThat(json(patchResult).get("error").asString())
+                    .isEqualTo(ThemePatchDTO.ERROR_MESSAGE_INVALID_BACKGROUND);
+        }
+
+        @Test
+        void rejectsUnauthenticatedPatch() {
+            assertThat(mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(401);
         }
     }
 
