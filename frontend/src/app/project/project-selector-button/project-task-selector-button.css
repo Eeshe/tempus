@@ -47,7 +47,8 @@
   gap: 0.5rem;
 }
 
-.project-item {
+.project-item,
+.task-item {
   flex: 0 0 auto;
   padding: 0;
   margin: 0;
