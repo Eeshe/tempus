@@ -1,5 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { SearchInput } from '../../shared/input/search-input/search-input';
+import { PopupPlacement } from '../../shared/selector/popup-selector-base';
 import { CreateTaskFormModal } from '../../task/create-task-form-modal/create-task-form-modal';
 import { Task } from '../../task/models/task.model';
 import { CreateProjectFormModal } from '../create-project-form-modal/create-project-form-modal';
@@ -13,6 +14,9 @@ import { ProjectPopupSelectorBase } from '../project-popup-selector-base';
   templateUrl: './project-task-selector-button.html',
 })
 export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
+  // Opens beside the trigger: above/below would cover the project/task being edited.
+  protected override readonly popupPlacement: PopupPlacement = 'right';
+
   readonly selectedProject = input<Project | null>();
   readonly selectedTask = input<Task | null>();
   readonly displayText = computed<string>(() => {

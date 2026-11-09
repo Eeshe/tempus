@@ -18,6 +18,7 @@ export class SyncButtons extends PopupSelectorBase implements OnDestroy {
   private readonly localeId: string = inject(LOCALE_ID);
 
   protected override readonly alignPopupRight: boolean = true;
+  protected override readonly anchoredToViewport: boolean = true;
 
   private isPinned: boolean = false;
   private closeTimer: ReturnType<typeof setTimeout> | null = null;

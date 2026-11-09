@@ -14,6 +14,7 @@ export class ProfileButton extends PopupSelectorBase {
   private readonly router: Router = inject(Router);
 
   protected override readonly alignPopupRight: boolean = true;
+  protected override readonly anchoredToViewport: boolean = true;
 
   logout(): void {
     this.toggle();
