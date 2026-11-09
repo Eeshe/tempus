@@ -63,6 +63,14 @@
   border-radius: 8px;
   z-index: 20;
 
+  /* Page-scroll compensation, written imperatively by popup-selector-base.ts.
+     The popup stays `position: fixed` (so it keeps viewport shrink-to-fit sizing and is not
+     clipped by `overflow: hidden` rows), and `translate` (a paint-only property that is
+     independent of the `transform` used by the open/close animation) slides it along with the
+     page content. Both custom properties default to 0px and are set on the host element, so
+     popups that must stay viewport anchored (nav, modals) simply never touch them. */
+  translate: var(--popup-scroll-x, 0px) var(--popup-scroll-y, 0px);
+
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
   visibility: hidden;
@@ -76,6 +84,15 @@
   visibility: visible;
   pointer-events: auto;
   transition: opacity 140ms ease, transform 140ms ease;
+}
+
+/* Popups flipped above their trigger slide in from below; `--open` still wins over both rules. */
+.selector__popup--above {
+  transform: translateY(6px) scale(0.98);
+}
+
+.selector__popup--above.selector__popup--open {
+  transform: none;
 }
 
 .selector__popup-list {

@@ -18,8 +18,9 @@
 		}
 	</button>
 
-	<div class="selector__popup"
+	<div #popup class="selector__popup"
 	     [class.selector__popup--open]="isOpen()"
+	     [class.selector__popup--above]="opensAbove()"
 	     [style.top.px]="popupPosition().top"
 	     [style.left.px]="popupPosition().left"
 	>
