@@ -1,56 +1,101 @@
 <div class="selector">
-  <button
-    #triggerButton
-    type="button"
-    class="selector__trigger"
-    [class.selector__trigger--open]="isOpen()"
-    aria-haspopup="dialog"
-    [attr.aria-expanded]="isOpen()"
-    (click)="toggle()"
-  >
-    <span i18n>Date Range</span>
-    <span class="selector__trigger-value">
-      {{ startDate() ?? startLabel }} — {{ endDate() ?? endLabel }}
-    </span>
-  </button>
+	<div #triggerButton class="selector__trigger" [class.selector__trigger--open]="isOpen()" (click)="toggle()">
+		<button type="button"
+		        class="date-range-filter__shift-button date-range-filter__shift-button--previous"
+		        [attr.aria-label]="previousRangeLabel"
+		        [disabled]="!canShiftRange()"
+		        (click)="$event.stopPropagation(); shiftRange('previous')"
+		></button>
+		<span class="date-range-filter__divider" aria-hidden="true">|</span>
+		<button type="button"
+		        class="date-range-filter__shift-button date-range-filter__shift-button--next"
+		        [attr.aria-label]="nextRangeLabel"
+		        [disabled]="!canShiftRange()"
+		        (click)="$event.stopPropagation(); shiftRange('next')"
+		></button>
 
-  <div #popup
-    class="selector__popup"
-    [class.selector__popup--open]="isOpen()"
-    [class.selector__popup--above]="opensAbove()"
-    [style.top.px]="popupPosition().top"
-    [style.left.px]="popupPosition().left"
-  >
-    <div class="selector__popup-presets">
-      <button type="button" class="selector__popup-preset" (click)="setPreset('today')" i18n>Today</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('yesterday')" i18n>Yesterday</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisWeek')" i18n>This Week</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastWeek')" i18n>Last Week</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisMonth')" i18n>This Month</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastMonth')" i18n>Last Month</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('thisYear')" i18n>This Year</button>
-      <button type="button" class="selector__popup-preset" (click)="setPreset('lastYear')" i18n>Last Year</button>
-    </div>
+		<button type="button"
+		        class="date-range-filter__label"
+		        aria-haspopup="dialog"
+		        [attr.aria-expanded]="isOpen()"
+		>
+			<span i18n>Date Range</span>
+			<span class="selector__trigger-value">
+				{{ startDate() ?? startLabel }} — {{ endDate() ?? endLabel }}
+			</span>
+		</button>
+	</div>
 
-    <div class="selector__popup-dates">
-      <div class="selector__popup-date-field">
-        <label class="selector__popup-label" i18n>Start Date</label>
-        <app-date-input
-          [value]="startDate()"
-          (valueChange)="onStartDateChange($event)"
-          [invalid]="startDateInvalid()"
-          (touch)="onStartDateTouch()"
-        />
-      </div>
-      <div class="selector__popup-date-field">
-        <label class="selector__popup-label" i18n>End Date</label>
-        <app-date-input
-          [value]="endDate()"
-          (valueChange)="onEndDateChange($event)"
-          [invalid]="endDateInvalid()"
-          (touch)="onEndDateTouch()"
-        />
-      </div>
-    </div>
-  </div>
+	<div #popup
+	     class="selector__popup"
+	     [class.selector__popup--open]="isOpen()"
+	     [class.selector__popup--above]="opensAbove()"
+	     [style.top.px]="popupPosition().top"
+	     [style.left.px]="popupPosition().left"
+	>
+		<div class="selector__popup-presets">
+			<button type="button" class="selector__popup-preset" (click)="setPreset('today')" i18n>Today</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('yesterday')" i18n>Yesterday</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('thisWeek')" i18n>This Week</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('lastWeek')" i18n>Last Week</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('thisMonth')" i18n>This Month</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('lastMonth')" i18n>Last Month</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('thisYear')" i18n>This Year</button>
+			<button type="button" class="selector__popup-preset" (click)="setPreset('lastYear')" i18n>Last Year</button>
+		</div>
+
+		<div class="calendar" (mouseleave)="clearHoveredDay()">
+			@for (month of visibleMonths(); track month.key; let index = $index; let last = $last) {
+			<div class="calendar__month">
+				<div class="calendar__header">
+					@if (index === 0) {
+					<button type="button"
+					        class="calendar__nav calendar__nav--previous"
+					        [attr.aria-label]="previousMonthLabel"
+					        (click)="shiftVisibleMonths(-1)"
+					></button>
+					} @else {
+					<span class="calendar__nav-spacer"></span>
+					}
+					<span class="calendar__month-label">{{ month.label }}</span>
+					@if (last) {
+					<button type="button"
+					        class="calendar__nav calendar__nav--next"
+					        [attr.aria-label]="nextMonthLabel"
+					        (click)="shiftVisibleMonths(1)"
+					></button>
+					} @else {
+					<span class="calendar__nav-spacer"></span>
+					}
+				</div>
+
+				<div class="calendar__weekdays" aria-hidden="true">
+					@for (weekday of weekdayLabels; track weekday) {
+					<span class="calendar__weekday">{{ weekday }}</span>
+					}
+				</div>
+
+				<div class="calendar__days">
+					@for (day of month.days; track day.formattedDate) {
+					<button type="button"
+					        class="calendar__day"
+					        [class.calendar__day--outside]="day.isOutsideMonth"
+					        [class.calendar__day--today]="day.isToday"
+					        [class.calendar__day--selected]="day.isSelected"
+					        [class.calendar__day--preview]="day.isPreview"
+					        [class.calendar__day--edge]="day.isEdge"
+					        [attr.aria-label]="day.label"
+					        [attr.aria-pressed]="day.isSelected"
+					        [attr.aria-current]="day.isToday ? 'date' : null"
+					        (mouseenter)="hoverDay(day.formattedDate)"
+					        (click)="selectDay(day.formattedDate, day.isOutsideMonth)"
+					>
+						{{ day.dayOfMonth }}
+					</button>
+					}
+				</div>
+			</div>
+			}
+		</div>
+	</div>
 </div>

@@ -12,8 +12,7 @@
 }
 
 .page-navigator__button {
-  --icon: url('/icons/chevron.svg');
-  --chevron-rotation: 0deg;
+  --icon: url('/icons/chevron-left.svg');
 
   display: flex;
   align-items: center;
@@ -34,8 +33,7 @@
   background-color: var(--muted);
   -webkit-mask: var(--icon) center/contain no-repeat;
   mask: var(--icon) center/contain no-repeat;
-  transform: rotate(var(--chevron-rotation));
-  transition: transform 120ms ease, background-color 120ms ease;
+  transition: background-color 120ms ease;
 }
 
 .page-navigator__button:not(:disabled):hover {
@@ -64,11 +62,11 @@
 }
 
 .page-navigator__button--prev {
-  --chevron-rotation: 90deg;
+  --icon: url('/icons/chevron-left.svg');
 }
 
 .page-navigator__button--next {
-  --chevron-rotation: -90deg;
+  --icon: url('/icons/chevron-right.svg');
 }
 
 .page-navigator__label {
