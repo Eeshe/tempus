@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.entity.UserSettings;
 import me.eeshe.tempus.exception.UserNotFoundException;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.request.CreateUserRequest;
@@ -93,6 +94,8 @@ public class UserServiceImplTest extends EntityTestBase {
             assertThat(userCaptor.getValue().getPassword()).isEqualTo("MyNewPassword");
             assertThat(userCaptor.getValue().getSettings()).isNotNull();
             assertThat(userCaptor.getValue().getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
+            assertThat(userCaptor.getValue().getSettings().getCurrency())
+                    .isEqualTo(UserSettings.DEFAULT_CURRENCY);
             assertThat(user).isEqualTo(savedUser);
         }
     }

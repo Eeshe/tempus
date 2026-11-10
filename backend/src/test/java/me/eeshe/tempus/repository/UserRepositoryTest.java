@@ -86,6 +86,7 @@ public class UserRepositoryTest extends RepositoryTestBase {
             assertThat(saved.getSettings()).isNotNull();
             assertThat(saved.getSettings().getId()).isPositive();
             assertThat(saved.getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
+            assertThat(saved.getSettings().getCurrency()).isEqualTo(UserSettings.DEFAULT_CURRENCY);
 
             entityManager.flush();
             entityManager.clear();
@@ -95,6 +96,7 @@ public class UserRepositoryTest extends RepositoryTestBase {
                     .orElseThrow();
 
             assertThat(savedSettings.getTheme()).isEqualTo(Theme.DEFAULT);
+            assertThat(savedSettings.getCurrency()).isEqualTo(UserSettings.DEFAULT_CURRENCY);
             assertThat(savedSettings.getUser().getId()).isEqualTo(saved.getId());
         }
     }

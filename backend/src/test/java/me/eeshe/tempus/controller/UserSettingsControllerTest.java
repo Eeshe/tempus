@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Currency;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -15,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import me.eeshe.tempus.dto.PatchUserSettingsRequestDTO;
 import me.eeshe.tempus.dto.ThemePatchDTO;
+import me.eeshe.tempus.dto.UserSettingsDTO;
 import me.eeshe.tempus.entity.UserSettings;
 import me.eeshe.tempus.mapper.UserSettingsMapper;
 import me.eeshe.tempus.request.PatchUserSettingsRequest;
@@ -44,7 +47,8 @@ public class UserSettingsControllerTest extends ControllerTestBase {
                             JsonNullable.undefined(),
                             JsonNullable.undefined(),
                             JsonNullable.undefined(),
-                            JsonNullable.undefined()));
+                            JsonNullable.undefined()),
+                    JsonNullable.undefined());
 
             when(userSettingsMapper.fromDTO(any(PatchUserSettingsRequestDTO.class)))
                     .thenReturn(patchUserSettingsRequest);
@@ -72,9 +76,40 @@ public class UserSettingsControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchesProvidedCurrency() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            userSettings.setCurrency(Currency.getInstance("EUR"));
+
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(
+                    null,
+                    JsonNullable.of(Currency.getInstance("EUR")));
+
+            when(userSettingsMapper.fromDTO(any(PatchUserSettingsRequestDTO.class)))
+                    .thenReturn(patchUserSettingsRequest);
+            when(userSettingsService.patchUserSettings(USER_ID, patchUserSettingsRequest))
+                    .thenReturn(userSettings);
+            when(userSettingsMapper.toDTO(userSettings))
+                    .thenReturn(new UserSettingsDTO(createThemeDTO(), Currency.getInstance("EUR")));
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                            {
+                                "currency": "EUR"
+                            }"""))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .extractingPath("$.currency").asString().isEqualTo("EUR");
+
+            verify(userSettingsService).patchUserSettings(USER_ID, patchUserSettingsRequest);
+            verify(userSettingsMapper).toDTO(userSettings);
+        }
+
+        @Test
         void patchesNothingWhenThemeIsOmitted() {
             final UserSettings userSettings = createUser(USER_ID).getSettings();
-            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(null);
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(null,
+                    JsonNullable.undefined());
 
             when(userSettingsMapper.fromDTO(any(PatchUserSettingsRequestDTO.class)))
                     .thenReturn(patchUserSettingsRequest);
@@ -93,6 +128,29 @@ public class UserSettingsControllerTest extends ControllerTestBase {
         }
 
         @Test
+        void patchesNothingWhenCurrencyIsOmitted() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(null,
+                    JsonNullable.undefined());
+
+            when(userSettingsMapper.fromDTO(any(PatchUserSettingsRequestDTO.class)))
+                    .thenReturn(patchUserSettingsRequest);
+            when(userSettingsService.patchUserSettings(USER_ID, patchUserSettingsRequest))
+                    .thenReturn(userSettings);
+            when(userSettingsMapper.toDTO(userSettings)).thenReturn(createUserSettingsDTO());
+
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                    .hasStatus(200)
+                    .bodyJson()
+                    .extractingPath("$.currency").asString()
+                    .isEqualTo(UserSettings.DEFAULT_CURRENCY.getCurrencyCode());
+
+            verify(userSettingsService).patchUserSettings(USER_ID, patchUserSettingsRequest);
+        }
+
+        @Test
         void rejectsNullTheme() {
             assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
                     .contentType(MediaType.APPLICATION_JSON)
@@ -104,6 +162,38 @@ public class UserSettingsControllerTest extends ControllerTestBase {
                     .bodyJson()
                     .extractingPath("$.error").asString()
                     .isEqualTo(PatchUserSettingsRequestDTO.ERROR_MESSAGE_NULL_THEME);
+
+            verifyNoInteractions(userSettingsMapper, userSettingsService);
+        }
+
+        @Test
+        void rejectsNullCurrency() {
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                            {
+                                "currency": null
+                            }"""))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchUserSettingsRequestDTO.ERROR_MESSAGE_NULL_CURRENCY);
+
+            verifyNoInteractions(userSettingsMapper, userSettingsService);
+        }
+
+        @Test
+        void rejectsInvalidCurrency() {
+            assertThat(mockMvc.patch().uri(URL).with(createPrincipalWithCsrf(USER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                            {
+                                "currency": "XYZ"
+                            }"""))
+                    .hasStatus(400)
+                    .bodyJson()
+                    .extractingPath("$.error").asString()
+                    .isEqualTo(PatchUserSettingsRequestDTO.ERROR_MESSAGE_INVALID_CURRENCY);
 
             verifyNoInteractions(userSettingsMapper, userSettingsService);
         }

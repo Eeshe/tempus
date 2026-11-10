@@ -22,6 +22,7 @@ import me.eeshe.tempus.dto.UserDTO;
 import me.eeshe.tempus.dto.UserSettingsDTO;
 import me.eeshe.tempus.entity.Project;
 import me.eeshe.tempus.entity.Theme;
+import me.eeshe.tempus.entity.UserSettings;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.security.RestAuthenticationEntryPoint;
 import me.eeshe.tempus.security.UserDetailsImpl;
@@ -52,7 +53,7 @@ public abstract class ControllerTestBase extends EntityTestBase {
     }
 
     protected static UserSettingsDTO createUserSettingsDTO() {
-        return new UserSettingsDTO(createThemeDTO());
+        return new UserSettingsDTO(createThemeDTO(), UserSettings.DEFAULT_CURRENCY);
     }
 
     protected static ThemeDTO createThemeDTO() {

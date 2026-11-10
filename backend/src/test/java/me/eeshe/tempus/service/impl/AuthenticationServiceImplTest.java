@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.entity.User;
+import me.eeshe.tempus.entity.UserSettings;
 import me.eeshe.tempus.exception.UsernameAlreadyUsedException;
 import me.eeshe.tempus.repository.UserRepository;
 import me.eeshe.tempus.request.LoginRequest;
@@ -85,6 +86,8 @@ public class AuthenticationServiceImplTest extends EntityTestBase {
             assertThat(userCaptor.getValue().getPassword()).isEqualTo(ENCODED_PASSWORD);
             assertThat(userCaptor.getValue().getSettings()).isNotNull();
             assertThat(userCaptor.getValue().getSettings().getTheme()).isEqualTo(Theme.DEFAULT);
+            assertThat(userCaptor.getValue().getSettings().getCurrency())
+                    .isEqualTo(UserSettings.DEFAULT_CURRENCY);
             assertThat(user).isEqualTo(savedUser);
         }
 

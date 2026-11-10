@@ -1,4 +1,6 @@
 package me.eeshe.tempus.dto;
 
-public record UserSettingsDTO(ThemeDTO theme) {
+import java.util.Currency;
+
+public record UserSettingsDTO(ThemeDTO theme, Currency currency) {
 }

@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 import jakarta.servlet.http.Cookie;
+import me.eeshe.tempus.dto.PatchUserSettingsRequestDTO;
 import me.eeshe.tempus.dto.ThemePatchDTO;
 import me.eeshe.tempus.entity.Theme;
 import me.eeshe.tempus.service.SyncService;
@@ -43,6 +44,9 @@ public class TempusApplicationIntegrationTest {
     private static final String WORKFLOW_USERNAME = "WorkflowIntegration";
     private static final String SETTINGS_USERNAME = "SettingsIntegration";
     private static final String INVALID_SETTINGS_USERNAME = "InvalidSettingsIntegration";
+    private static final String CURRENCY_SETTINGS_USERNAME = "CurrencySettingsIntegration";
+    private static final String INVALID_CURRENCY_SETTINGS_USERNAME = "InvalidCurrencySettingsIntegration";
+    private static final String NULL_CURRENCY_SETTINGS_USERNAME = "NullCurrencySettingsIntegration";
 
     @Autowired
     private MockMvcTester mockMvc;
@@ -80,6 +84,8 @@ public class TempusApplicationIntegrationTest {
             assertThat(json(registerResult).get("name").asString()).isEqualTo(CURRENT_USER_USERNAME);
             assertThat(json(registerResult).get("settings").get("theme").get("background").asString())
                     .isEqualTo(Theme.DEFAULT_BACKGROUND);
+            assertThat(json(registerResult).get("settings").get("currency").asString())
+                    .isEqualTo("USD");
 
             final MvcTestResult loginResult = mockMvc.post().uri(LOGIN_URL).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -160,6 +166,76 @@ public class TempusApplicationIntegrationTest {
             final JsonNode persistedTheme = json(persistedUserResult).get("settings").get("theme");
             assertThat(persistedTheme.get("background").asString()).isEqualTo("#000000");
             assertThat(persistedTheme.get("accent").asString()).isEqualTo("#FFFFFF");
+        }
+
+        @Test
+        void patchesCurrencyAndPersistsIt() throws Exception {
+            final Cookie sessionCookie = registerAndLogin(CURRENCY_SETTINGS_USERNAME);
+
+            final MvcTestResult currentUserResult = mockMvc.get().uri(CURRENT_USER_URL)
+                    .cookie(sessionCookie)
+                    .exchange();
+
+            assertThat(currentUserResult).hasStatus(200);
+            assertThat(json(currentUserResult).get("settings").get("currency").asString())
+                    .isEqualTo("USD");
+
+            final MvcTestResult patchResult = mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .cookie(sessionCookie)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"currency\":\"EUR\"}")
+                    .exchange();
+
+            assertThat(patchResult).hasStatus(200);
+            assertThat(json(patchResult).get("currency").asString()).isEqualTo("EUR");
+            assertThat(json(patchResult).get("theme").get("background").asString())
+                    .isEqualTo(Theme.DEFAULT_BACKGROUND);
+
+            final MvcTestResult persistedUserResult = mockMvc.get().uri(CURRENT_USER_URL)
+                    .cookie(sessionCookie)
+                    .exchange();
+
+            assertThat(persistedUserResult).hasStatus(200);
+            assertThat(json(persistedUserResult).get("settings").get("currency").asString())
+                    .isEqualTo("EUR");
+        }
+
+        @Test
+        void rejectsInvalidCurrency() throws Exception {
+            final Cookie sessionCookie = registerAndLogin(INVALID_CURRENCY_SETTINGS_USERNAME);
+
+            final MvcTestResult patchResult = mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .cookie(sessionCookie)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"currency\":\"XYZ\"}")
+                    .exchange();
+
+            assertThat(patchResult).hasStatus(400);
+            assertThat(json(patchResult).get("error").asString())
+                    .isEqualTo(PatchUserSettingsRequestDTO.ERROR_MESSAGE_INVALID_CURRENCY);
+
+            final MvcTestResult persistedUserResult = mockMvc.get().uri(CURRENT_USER_URL)
+                    .cookie(sessionCookie)
+                    .exchange();
+
+            assertThat(persistedUserResult).hasStatus(200);
+            assertThat(json(persistedUserResult).get("settings").get("currency").asString())
+                    .isEqualTo("USD");
+        }
+
+        @Test
+        void rejectsNullCurrency() throws Exception {
+            final Cookie sessionCookie = registerAndLogin(NULL_CURRENCY_SETTINGS_USERNAME);
+
+            final MvcTestResult patchResult = mockMvc.patch().uri(SETTINGS_URL).with(csrf())
+                    .cookie(sessionCookie)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"currency\":null}")
+                    .exchange();
+
+            assertThat(patchResult).hasStatus(400);
+            assertThat(json(patchResult).get("error").asString())
+                    .isEqualTo(PatchUserSettingsRequestDTO.ERROR_MESSAGE_NULL_CURRENCY);
         }
 
         @Test
