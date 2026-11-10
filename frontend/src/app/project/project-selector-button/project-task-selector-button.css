@@ -99,7 +99,7 @@
   background-color: var(--muted);
   -webkit-mask: var(--icon) center/contain no-repeat;
   mask: var(--icon) center/contain no-repeat;
-  transition: transform 120ms ease, background-color 120ms ease;
+  transition: background-color 120ms ease;
 }
 
 .project-toggle:hover::after,
@@ -116,8 +116,8 @@
   outline-offset: 2px;
 }
 
-.project-toggle--expanded::after {
-  transform: rotate(180deg);
+.project-toggle--expanded {
+  --icon: url('/icons/chevron-up.svg');
 }
 
 .project-item:hover,

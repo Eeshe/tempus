@@ -21,7 +21,9 @@ export abstract class PopupSelectorBase {
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   protected readonly hostElement: ElementRef = inject(ElementRef);
-  protected readonly triggerButton = viewChild<ElementRef<HTMLButtonElement>>('triggerButton');
+  /** Popup anchor: usually the trigger button, but any element whose box the popup should
+   * follow (the date range filter anchors to its whole pill). */
+  protected readonly triggerButton = viewChild<ElementRef<HTMLElement>>('triggerButton');
   protected readonly popup = viewChild<ElementRef<HTMLDivElement>>('popup');
   protected readonly alignPopupRight: boolean = false;
 
@@ -104,11 +106,11 @@ export abstract class PopupSelectorBase {
   }
 
   protected openPopup(): void {
-    const button: HTMLButtonElement | undefined = this.triggerButton()?.nativeElement;
-    if (!button) {
+    const anchor: HTMLElement | undefined = this.triggerButton()?.nativeElement;
+    if (!anchor) {
       return;
     }
-    const rect: DOMRect = button.getBoundingClientRect();
+    const rect: DOMRect = anchor.getBoundingClientRect();
     this.spawnViewportRect = {
       top: rect.top,
       bottom: rect.bottom,
