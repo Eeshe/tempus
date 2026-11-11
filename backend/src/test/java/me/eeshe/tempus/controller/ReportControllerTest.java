@@ -17,12 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import me.eeshe.tempus.dto.ClientReportEntryDTO;
 import me.eeshe.tempus.dto.ProjectReportEntryDTO;
 import me.eeshe.tempus.dto.ReportDTO;
 import me.eeshe.tempus.dto.ReportDayDTO;
 import me.eeshe.tempus.dto.ReportRequestDTO;
+import me.eeshe.tempus.dto.ReportTimeEntryDTO;
+import me.eeshe.tempus.entity.Project;
+import me.eeshe.tempus.entity.Task;
+import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.InvalidZoneIdException;
 import me.eeshe.tempus.mapper.ReportMapper;
 import me.eeshe.tempus.model.ClientReportEntry;
@@ -35,10 +40,16 @@ import me.eeshe.tempus.support.ControllerTestBase;
 
 @WebMvcTest(ReportController.class)
 public class ReportControllerTest extends ControllerTestBase {
+    private static final long TIME_ENTRY_ID = 400L;
+    private static final long SECOND_TIME_ENTRY_ID = 401L;
+    private static final String TASK_NAME = "MyTask";
+
     private static final long TRACKED_TIME_MILLIS = 3_600_000L;
 
     private static final Instant START_DATE = Instant.parse("2026-01-02T00:00:00Z");
     private static final Instant END_DATE = Instant.parse("2026-01-02T10:00:00Z");
+    private static final Instant TIME_ENTRY_START_TIME = Instant.parse("2026-01-02T09:00:00Z");
+    private static final Instant TIME_ENTRY_END_TIME = Instant.parse("2026-01-02T10:00:00Z");
     private static final LocalDate REPORT_DATE = LocalDate.parse("2026-01-02");
     private static final String ZONE_ID = "UTC";
 
@@ -270,6 +281,8 @@ public class ReportControllerTest extends ControllerTestBase {
     }
 
     private static Report<ProjectReportEntry> createProjectReport() {
+        final Project project = createProject();
+
         return new Report<>(
                 TRACKED_TIME_MILLIS,
                 0L,
@@ -279,7 +292,12 @@ public class ReportControllerTest extends ControllerTestBase {
                         TRACKED_TIME_MILLIS,
                         0L,
                         TOTAL_ACCUMULATED_PAY,
-                        List.of(new ProjectReportEntry(createProject(), TRACKED_TIME_MILLIS)))));
+                        List.of(new ProjectReportEntry(
+                                project,
+                                TRACKED_TIME_MILLIS,
+                                List.of(
+                                        createTimeEntry(project, TIME_ENTRY_ID, createTask()),
+                                        createTimeEntry(project, SECOND_TIME_ENTRY_ID, null)))))));
     }
 
     private static Report<ProjectReportEntry> createEmptyProjectReport() {
@@ -302,7 +320,12 @@ public class ReportControllerTest extends ControllerTestBase {
                         TRACKED_TIME_MILLIS,
                         0L,
                         TOTAL_ACCUMULATED_PAY,
-                        List.of(new ProjectReportEntryDTO(createProjectDTO(), TRACKED_TIME_MILLIS)))));
+                        List.of(new ProjectReportEntryDTO(
+                                createProjectDTO(),
+                                TRACKED_TIME_MILLIS,
+                                List.of(
+                                        createReportTimeEntryDTO(TIME_ENTRY_ID, TASK_NAME),
+                                        createReportTimeEntryDTO(SECOND_TIME_ENTRY_ID, null)))))));
     }
 
     private static ReportDTO<ProjectReportEntryDTO> createEmptyProjectReportDTO() {
@@ -415,8 +438,49 @@ public class ReportControllerTest extends ControllerTestBase {
         return """
                 {
                     "project": %s,
-                    "trackedTimeMillis": %s
-                }""".formatted(createProjectDTOJson(), TRACKED_TIME_MILLIS);
+                    "trackedTimeMillis": %s,
+                    "timeEntries": [%s, %s]
+                }""".formatted(
+                createProjectDTOJson(),
+                TRACKED_TIME_MILLIS,
+                createReportTimeEntryDTOJson(TIME_ENTRY_ID, "\"" + TASK_NAME + "\""),
+                createReportTimeEntryDTOJson(SECOND_TIME_ENTRY_ID, "null"));
+    }
+
+    private static String createReportTimeEntryDTOJson(long id, String taskNameJson) {
+        return """
+                {
+                    "id": %s,
+                    "description": "MyDescription",
+                    "isBillable": true,
+                    "taskName": %s,
+                    "startTime": "%s",
+                    "endTime": "%s"
+                }""".formatted(id, taskNameJson, TIME_ENTRY_START_TIME, TIME_ENTRY_END_TIME);
+    }
+
+    private static TimeEntry createTimeEntry(Project project, long id, Task task) {
+        final TimeEntry timeEntry = new TimeEntry(
+                createUser(USER_ID),
+                project,
+                task,
+                "MyDescription",
+                true,
+                TIME_ENTRY_START_TIME,
+                TIME_ENTRY_END_TIME);
+        ReflectionTestUtils.setField(timeEntry, "id", id);
+
+        return timeEntry;
+    }
+
+    private static ReportTimeEntryDTO createReportTimeEntryDTO(long id, String taskName) {
+        return new ReportTimeEntryDTO(
+                id,
+                "MyDescription",
+                true,
+                taskName,
+                TIME_ENTRY_START_TIME,
+                TIME_ENTRY_END_TIME);
     }
 
     private static String createClientReportDTOJson() {
