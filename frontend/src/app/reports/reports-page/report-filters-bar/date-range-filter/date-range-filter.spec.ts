@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DateRangeFilter } from './date-range-filter';
+import type { CalendarDay, CalendarMonth } from './date-range-filter';
 
 interface ShiftCase {
   description: string;
@@ -328,6 +329,31 @@ describe('DateRangeFilter', () => {
       return component.visibleMonths().map((month) => month.key);
     }
 
+    function monthByKey(key: string): CalendarMonth {
+      const month: CalendarMonth | undefined = component
+        .visibleMonths()
+        .find((visible) => visible.key === key);
+      if (month == null) {
+        throw new Error(
+          `Month ${key} is not visible; visible months are ${monthKeys().join(', ')}`,
+        );
+      }
+
+      return month;
+    }
+
+    /** Reads a day cell out of one specific grid, so dimmed duplicates cannot be matched by accident. */
+    function dayByDate(formattedDate: string, monthKey: string): CalendarDay {
+      const day: CalendarDay | undefined = monthByKey(monthKey).days.find(
+        (candidate) => candidate.formattedDate === formattedDate,
+      );
+      if (day == null) {
+        throw new Error(`Day ${formattedDate} is not part of the ${monthKey} grid`);
+      }
+
+      return day;
+    }
+
     function selectedDates(): string[] {
       const dates = new Set<string>();
       for (const month of component.visibleMonths()) {
@@ -362,14 +388,23 @@ describe('DateRangeFilter', () => {
       }
     }
 
-    it('shows exactly two consecutive months anchored on the selected start month', () => {
+    it('shows exactly two consecutive months, with the anchor month last', () => {
       setRange('2024-11-02', '2024-11-06');
 
       component.toggle();
 
-      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
+      expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
       expect(component.visibleMonths().map((month) => month.days.length)).toEqual([42, 42]);
       expect(component.weekdayLabels.length).toBe(7);
+    });
+
+    it('anchors the window on the selected end month, not the start month', () => {
+      setRange('2024-09-15', '2024-11-06');
+
+      component.toggle();
+
+      // Anchoring on the start month would show August and September instead.
+      expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
     });
 
     it('starts the grid on the Monday of the week holding the first of the month', () => {
@@ -378,8 +413,9 @@ describe('DateRangeFilter', () => {
       component.toggle();
 
       // November 1st, 2024 is a Friday, so the grid opens on Monday October 28th.
-      expect(component.visibleMonths()[0].days[0].formattedDate).toBe('2024-10-28');
-      expect(component.visibleMonths()[0].days[0].isOutsideMonth).toBe(true);
+      const november: CalendarMonth = monthByKey('2024-11-01');
+      expect(november.days[0].formattedDate).toBe('2024-10-28');
+      expect(november.days[0].isOutsideMonth).toBe(true);
     });
 
     it('moves the two-month window one month at a time', () => {
@@ -387,10 +423,10 @@ describe('DateRangeFilter', () => {
       component.toggle();
 
       component.shiftVisibleMonths(1);
-      expect(monthKeys()).toEqual(['2024-12-01', '2025-01-01']);
+      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
 
       component.shiftVisibleMonths(-2);
-      expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
+      expect(monthKeys()).toEqual(['2024-09-01', '2024-10-01']);
       expect(component.visibleMonths().length).toBe(2);
     });
 
@@ -398,12 +434,12 @@ describe('DateRangeFilter', () => {
       setRange('2024-11-02', '2024-11-06');
       component.toggle();
       component.shiftVisibleMonths(3);
-      expect(monthKeys()).toEqual(['2025-02-01', '2025-03-01']);
+      expect(monthKeys()).toEqual(['2025-01-01', '2025-02-01']);
 
       component.toggle();
       component.toggle();
 
-      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
+      expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
     });
 
     it('starts a draft on the first click without emitting', () => {
@@ -480,10 +516,7 @@ describe('DateRangeFilter', () => {
 
         component.hoverDay('2024-11-14');
 
-        const draft = component
-          .visibleMonths()
-          .flatMap((month) => month.days)
-          .find((day) => day.formattedDate === '2024-11-10');
+        const draft = dayByDate('2024-11-10', '2024-11-01');
         expect(draft).toMatchObject({ isSelected: true, isPreview: false });
       });
 
@@ -494,14 +527,20 @@ describe('DateRangeFilter', () => {
       });
 
       it('keeps dimmed days out of the preview', () => {
+        // A span across a month boundary needs the window to reach December: reopen on that end.
+        setRange('2024-11-01', '2024-12-20');
+        component.toggle();
+        component.toggle();
+
         component.selectDay('2024-11-29');
 
         component.hoverDay('2024-12-02');
 
         expect(previewDates()).toEqual(['2024-11-30', '2024-12-01', '2024-12-02']);
-        expect(
-          component.visibleMonths()[0].days.find((day) => day.formattedDate === '2024-12-02'),
-        ).toMatchObject({ isOutsideMonth: true, isPreview: false });
+        expect(dayByDate('2024-12-02', '2024-11-01')).toMatchObject({
+          isOutsideMonth: true,
+          isPreview: false,
+        });
       });
 
       it('clears the preview when the pointer leaves the calendar', () => {
@@ -582,18 +621,16 @@ describe('DateRangeFilter', () => {
     it('never rings the dimmed duplicate of today', () => {
       vi.useFakeTimers();
       try {
-        vi.setSystemTime(new Date(2024, 10, 26, 12));
+        // November 5th, 2024 sits in the trailing week of October's grid and in November's own.
+        vi.setSystemTime(new Date(2024, 10, 5, 12));
         setRange('2024-11-01', '2024-11-30');
         component.toggle();
 
-        const november = component.visibleMonths()[0].days;
-        const december = component.visibleMonths()[1].days;
-
-        expect(november.find((day) => day.formattedDate === '2024-11-26')).toMatchObject({
+        expect(dayByDate('2024-11-05', '2024-11-01')).toMatchObject({
           isToday: true,
           isOutsideMonth: false,
         });
-        expect(december.find((day) => day.formattedDate === '2024-11-26')).toMatchObject({
+        expect(dayByDate('2024-11-05', '2024-10-01')).toMatchObject({
           isToday: false,
           isOutsideMonth: true,
         });
@@ -608,13 +645,15 @@ describe('DateRangeFilter', () => {
 
       component.selectDay('2024-12-01', true);
 
-      expect(monthKeys()).toEqual(['2024-12-01', '2025-01-01']);
+      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
       expect(component.startDateDraft()).toBe('2024-12-01');
-      expect(
-        component.visibleMonths()[0].days.find((day) => day.formattedDate === '2024-12-01'),
-      ).toMatchObject({
+      expect(dayByDate('2024-12-01', '2024-12-01')).toMatchObject({
         isOutsideMonth: false,
         isSelected: true,
+      });
+      expect(dayByDate('2024-12-01', '2024-11-01')).toMatchObject({
+        isOutsideMonth: true,
+        isSelected: false,
       });
     });
 
@@ -627,7 +666,7 @@ describe('DateRangeFilter', () => {
       component.selectDay('2025-01-02', true);
 
       expect(emitted).toEqual([{ startDate: '2024-11-20', endDate: '2025-01-02' }]);
-      expect(monthKeys()).toEqual(['2025-01-01', '2025-02-01']);
+      expect(monthKeys()).toEqual(['2024-12-01', '2025-01-01']);
     });
 
     it('shows only the draft while it is pending, hiding the old range', () => {
@@ -649,14 +688,36 @@ describe('DateRangeFilter', () => {
       expect(component.startDateDraft()).toBeNull();
     });
 
-    it('clears a pending draft when a preset is selected', () => {
+    it('clears a pending draft when a preset is selected and anchors on its end month', () => {
       withToday(new Date(2024, 10, 9, 12), () => {
         component.selectDay('2024-11-03');
 
         component.setPreset('today');
 
         expect(component.startDateDraft()).toBeNull();
-        expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
+        expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
+      });
+    });
+
+    it('anchors the window on the preset end month when the preset spans two months', () => {
+      withToday(new Date(2024, 11, 31, 12), () => {
+        const emitted: { startDate: string | null; endDate: string | null }[] = collectEmissions();
+
+        component.setPreset('thisWeek');
+
+        expect(emitted).toEqual([{ startDate: '2024-12-30', endDate: '2025-01-05' }]);
+        expect(monthKeys()).toEqual(['2024-12-01', '2025-01-01']);
+      });
+    });
+
+    it('falls back to the current month when there is no end date to anchor on', () => {
+      withToday(new Date(2024, 10, 9, 12), () => {
+        setRange('2024-09-15', null);
+
+        component.toggle();
+
+        // The start date is ignored on purpose: only the end date anchors the window.
+        expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
       });
     });
 
@@ -667,7 +728,17 @@ describe('DateRangeFilter', () => {
       component.shiftRange('next');
 
       expect(component.startDateDraft()).toBeNull();
-      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
+      expect(monthKeys()).toEqual(['2024-10-01', '2024-11-01']);
+    });
+
+    it('anchors the window on the shifted end month across a month boundary', () => {
+      setRange('2024-01-28', '2024-01-31');
+      const emitted: { startDate: string | null; endDate: string | null }[] = collectEmissions();
+
+      component.shiftRange('next');
+
+      expect(emitted).toEqual([{ startDate: '2024-02-01', endDate: '2024-02-04' }]);
+      expect(monthKeys()).toEqual(['2024-01-01', '2024-02-01']);
     });
 
     it('renders both months, weekday headers and day cells', () => {
@@ -705,7 +776,7 @@ describe('DateRangeFilter', () => {
       fixture.detectChanges();
 
       expect(component.startDateDraft()).toBe('2024-12-05');
-      expect(monthKeys()).toEqual(['2024-12-01', '2025-01-01']);
+      expect(monthKeys()).toEqual(['2024-11-01', '2024-12-01']);
     });
   });
 });

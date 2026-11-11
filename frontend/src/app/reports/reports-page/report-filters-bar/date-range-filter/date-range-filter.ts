@@ -8,13 +8,13 @@ import {
 
 /** 2024-01-01 is a Monday, so offsets from it label the Monday-first weekday header. */
 const WEEKDAY_OFFSETS = [0, 1, 2, 3, 4, 5, 6];
-const CALENDAR_MONTH_OFFSETS = [0, 1];
+const CALENDAR_MONTH_OFFSETS = [-1, 0];
 const DAYS_PER_WEEK: number = 7;
 const WEEKS_PER_MONTH: number = 6;
 const MILLISECONDS_PER_DAY: number = 86_400_000;
 
 /** Day cell of the two-month calendar. */
-interface CalendarDay {
+export interface CalendarDay {
   readonly formattedDate: string;
   readonly dayOfMonth: number;
   readonly label: string;
@@ -26,7 +26,7 @@ interface CalendarDay {
 }
 
 /** One of the two months rendered by the calendar. */
-interface CalendarMonth {
+export interface CalendarMonth {
   readonly key: string;
   readonly label: string;
   readonly days: CalendarDay[];
@@ -57,7 +57,7 @@ export class DateRangeFilter extends PopupSelectorBase {
 
   readonly startDateDraft = signal<string | null>(null);
 
-  readonly firstVisibleMonth = signal<Date>(this.getStartOfMonth(new Date()));
+  readonly anchorMonth = signal<Date>(this.getStartOfMonth(new Date()));
 
   readonly hoveredDate = signal<string | null>(null);
 
@@ -83,12 +83,14 @@ export class DateRangeFilter extends PopupSelectorBase {
     return startDate != null && endDate != null && startDate.getTime() <= endDate.getTime();
   }
 
-  /** Exactly two consecutive months, so the calendar never grows past that. */
+  /**
+   * Exactly two consecutive months, so the calendar never grows past that.
+  */
   readonly visibleMonths = computed<CalendarMonth[]>(() => {
-    const first: Date = this.firstVisibleMonth();
+    const anchor: Date = this.anchorMonth();
 
     return CALENDAR_MONTH_OFFSETS.map((offset: number): CalendarMonth =>
-      this.buildCalendarMonth(this.addMonths(first, offset)),
+      this.buildCalendarMonth(this.addMonths(anchor, offset)),
     );
   });
 
@@ -156,7 +158,7 @@ export class DateRangeFilter extends PopupSelectorBase {
     if (!this.isOpen()) {
       this.startDateDraft.set(null);
       this.hoveredDate.set(null);
-      this.anchorVisibleMonth(this.startDate());
+      this.anchorVisibleMonth(this.endDate());
     }
     super.toggle();
   }
@@ -168,8 +170,8 @@ export class DateRangeFilter extends PopupSelectorBase {
   }
 
   selectDay(date: string, outsideMonth: boolean = false): void {
-    // A dimmed cell belongs to the neighboring month: make that month the first visible one so
-    // the picked day (and the resulting range) is rendered in its own grid.
+    // A dimmed cell belongs to the neighboring month: anchor on that month so the picked day (and
+    // the resulting range) is rendered in its own grid instead of the dimmed duplicate.
     if (outsideMonth) {
       this.anchorVisibleMonth(date);
     }
@@ -192,7 +194,7 @@ export class DateRangeFilter extends PopupSelectorBase {
   }
 
   shiftVisibleMonths(offset: number): void {
-    this.firstVisibleMonth.set(this.addMonths(this.firstVisibleMonth(), offset));
+    this.anchorMonth.set(this.addMonths(this.anchorMonth(), offset));
   }
 
   private addMonths(date: Date, months: number): Date {
@@ -210,7 +212,7 @@ export class DateRangeFilter extends PopupSelectorBase {
     }
     this.startDateDraft.set(null);
     this.hoveredDate.set(null);
-    this.anchorVisibleMonth(shifted.startDate);
+    this.anchorVisibleMonth(shifted.endDate);
     this.datesChangeEvent.emit(shifted);
   }
 
@@ -278,9 +280,10 @@ export class DateRangeFilter extends PopupSelectorBase {
     return { startDate: formatYYYYMMDDDate(start), endDate: formatYYYYMMDDDate(end) };
   }
 
-  private anchorVisibleMonth(start: string | null): void {
-    const startDate: Date | null = parseYYYYMMDDDate(start);
-    this.firstVisibleMonth.set(this.getStartOfMonth(startDate ?? new Date()));
+  private anchorVisibleMonth(date: string | null): void {
+    const anchor: Date | null = parseYYYYMMDDDate(date);
+
+    this.anchorMonth.set(this.getStartOfMonth(anchor ?? new Date()));
   }
 
   private getStartOfMonth(date: Date): Date {
@@ -342,7 +345,7 @@ export class DateRangeFilter extends PopupSelectorBase {
 
     this.startDateDraft.set(null);
     this.hoveredDate.set(null);
-    this.firstVisibleMonth.set(this.getStartOfMonth(start));
+    this.anchorVisibleMonth(endStr);
     this.datesChangeEvent.emit({ startDate: startStr, endDate: endStr });
   }
 }
