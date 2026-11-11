@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { ClientSelectorButton } from '../../client/client-selector-button/client-selector-button';
 import { Client } from '../../client/models/client.model';
 import { ProjectService } from '../../services/project.service';
+import { CurrencyService } from '../../services/currency.service';
 import { ColorInput } from '../../shared/input/color-input/color-input';
 import { AppModal } from '../../shared/modal/modal';
 import { ModalBase } from '../../shared/modal/modal-base';
@@ -25,6 +26,9 @@ interface CreateProjectModel {
 })
 export class CreateProjectFormModal extends ModalBase {
   private readonly projectService: ProjectService = inject(ProjectService);
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
+
+  readonly symbol = this.currencyService.symbol;
 
   readonly projectModel = signal<CreateProjectModel>({
     name: "",

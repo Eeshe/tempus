@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BillableFilter } from './billable-filter';
 
@@ -8,6 +10,7 @@ describe('BillableFilter', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BillableFilter],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BillableFilter);

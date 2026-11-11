@@ -51,6 +51,12 @@ export abstract class PopupSelectorBase {
   /** Resolved anchoring, decided when the popup opens (explicit flag or modal host). */
   private anchored: boolean = false;
 
+  /**
+   * Side the popup was placed on. Remembered so a list that shrinks while the popup is open (the
+   * currency search filtering its entries) cannot make the popup jump across the trigger.
+   */
+  private placedAbove: boolean = false;
+
   private popupResizeObserver: ResizeObserver | null = null;
 
   constructor() {
@@ -91,7 +97,10 @@ export abstract class PopupSelectorBase {
 
   protected closeSelector(): void {
     this.isOpen.set(false);
-    this.searchQuery.set('');
+
+    // The search term is kept on purpose: the closing transition fades the popup out where it is,
+    // and clearing it here would re-render the unfiltered list for the whole length of that fade.
+    // It is cleared on the next opening instead.
 
     // The current shift is deliberately left in place: the closing transition should fade the
     // popup out where it currently is, not jump back to its spawn point first.
@@ -124,13 +133,18 @@ export abstract class PopupSelectorBase {
     this.appliedShiftX = 0;
     this.writeScrollShift(0, 0);
 
+    // Every opening decides its own side and starts from an empty search term, instead of
+    // inheriting the ones of the previous opening.
+    this.placedAbove = false;
+    this.searchQuery.set('');
     this.startPopupResizeTracking();
     this.placePopup();
   }
 
   /**
-   * Watches the open popup for size changes so `placePopup()` can re-decide between below/above once
-   * an asynchronously loaded list (or a search filter) changes the popup's height.
+   * Watches the open popup for size changes so `placePopup()` can re-measure the offset that keeps
+   * the popup on screen when an asynchronously loaded list (or a search filter) changes its height.
+   * The side picked when opening is kept unless the popup no longer fits on it.
    */
   private startPopupResizeTracking(): void {
     const popupElement: HTMLDivElement | undefined = this.popup()?.nativeElement;
@@ -194,7 +208,13 @@ export abstract class PopupSelectorBase {
     const fitsAbove: boolean = height <= spaceAbove;
 
     // When neither side fits, use the roomier one so the popup stays as reachable as possible.
-    const placeAbove: boolean = !fitsBelow && (fitsAbove || spaceAbove > spaceBelow);
+    const placeAbove: boolean = this.resolvePlacementAbove({
+      fitsAbove,
+      fitsBelow,
+      spaceAbove,
+      spaceBelow,
+    });
+    this.placedAbove = placeAbove;
     this.setOpensAbove(placeAbove);
 
     // Clamped into the area between the sticky nav bar and the bottom of the viewport: a popup that
@@ -203,6 +223,29 @@ export abstract class PopupSelectorBase {
       this.alignPopupRight ? spawn.right - width : spawn.left,
       Math.max(topBoundary, Math.min(placeAbove ? aboveTop : belowTop, maxTop)),
     );
+  }
+
+  /**
+   * Keeps the popup on the side it is already on as long as it fits there, so filtering a list down
+   * does not flip it across the trigger. It only flips when the current side no longer fits, and
+   * falls back to the roomier side when neither fits.
+   */
+  private resolvePlacementAbove(metrics: {
+    fitsAbove: boolean;
+    fitsBelow: boolean;
+    spaceAbove: number;
+    spaceBelow: number;
+  }): boolean {
+    const fitsOnCurrentSide: boolean = this.placedAbove ? metrics.fitsAbove : metrics.fitsBelow;
+    if (fitsOnCurrentSide) {
+      return this.placedAbove;
+    }
+    const fitsOnOtherSide: boolean = this.placedAbove ? metrics.fitsBelow : metrics.fitsAbove;
+    if (fitsOnOtherSide) {
+      return !this.placedAbove;
+    }
+
+    return metrics.spaceAbove > metrics.spaceBelow;
   }
 
   private setPopupPosition(left: number, top: number): void {
@@ -241,9 +284,19 @@ export abstract class PopupSelectorBase {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.isOpen() || this.hostElement.nativeElement.contains(event.target)) {
+    if (!this.isOpen() || this.isInsideSelector(event.target)) {
       return;
     }
     this.closeSelector();
+  }
+
+  private isInsideSelector(target: EventTarget | null): boolean {
+    if (!(target instanceof Node)) {
+      return false;
+    }
+    const trigger: HTMLElement | undefined = this.triggerButton()?.nativeElement;
+    const popup: HTMLElement | undefined = this.popup()?.nativeElement;
+
+    return (trigger?.contains(target) ?? false) || (popup?.contains(target) ?? false);
   }
 }

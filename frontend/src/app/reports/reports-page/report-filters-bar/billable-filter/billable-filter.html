@@ -14,7 +14,8 @@
 		<span class="selector__indicator"
 		      [class.selector__indicator--yes]="isBillable() === true"
 		      [class.selector__indicator--no]="isBillable() === false"
-		></span>
+		      aria-hidden="true"
+		>{{ symbol() }}</span>
 		}
 	</button>
 

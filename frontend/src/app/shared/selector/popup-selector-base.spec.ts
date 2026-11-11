@@ -38,6 +38,18 @@ class RightPlacementTestPopupSelector extends PopupSelectorBase {
 }
 
 @Component({
+  selector: 'app-carded-test-popup-selector',
+  template: `
+    <section class="card">
+      <p class="card-title">Currency</p>
+      <button #triggerButton type="button" (click)="toggle()">open</button>
+      <div #popup class="selector__popup">popup</div>
+    </section>
+  `,
+})
+class CardedTestPopupSelector extends PopupSelectorBase {}
+
+@Component({
   selector: 'app-page-host',
   imports: [TestPopupSelector],
   template: `
@@ -45,6 +57,16 @@ class RightPlacementTestPopupSelector extends PopupSelectorBase {
   `,
 })
 class PageHost {}
+
+@Component({
+  selector: 'app-carded-host',
+  imports: [CardedTestPopupSelector],
+  template: `
+    <p class="page-copy">page copy</p>
+    <app-carded-test-popup-selector />
+  `,
+})
+class CardedHost {}
 
 @Component({
   selector: 'app-anchored-host',
@@ -174,7 +196,7 @@ describe('PopupSelectorBase', () => {
     Object.defineProperty(globalThis, 'ResizeObserver', { value: FakeResizeObserver, configurable: true });
 
     await TestBed.configureTestingModule({
-      imports: [PageHost, AnchoredHost, ModalHost, NavHost, RightPlacementHost],
+      imports: [PageHost, AnchoredHost, ModalHost, NavHost, RightPlacementHost, CardedHost],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageHost);
@@ -273,6 +295,52 @@ describe('PopupSelectorBase', () => {
     expect(selector.component.opensAbove()).toBe(true);
   });
 
+  it('keeps the popup above when its content shrinks after opening above', () => {
+    // Too tall to fit below a trigger close to the bottom, so the popup opens above it.
+    selector = findSelector(fixture, TestPopupSelector, new DOMRect(50, 700, 80, 40));
+    setPopupSize(selector, 200, 300);
+    selector.component.toggle();
+    expect(selector.component.opensAbove()).toBe(true);
+    expect(selector.component.popupPosition()).toEqual({ top: 396, left: 50 });
+
+    // Filtering the list down (the currency search) must not flip it across the trigger.
+    setPopupSize(selector, 200, 60);
+    FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].trigger();
+
+    expect(selector.component.opensAbove()).toBe(true);
+    // The bottom edge stays glued above the trigger: 700 - 4 - 60.
+    expect(selector.component.popupPosition()).toEqual({ top: 636, left: 50 });
+  });
+
+  it('keeps the popup below when its content shrinks after opening below', () => {
+    selector = findSelector(fixture, TestPopupSelector, new DOMRect(50, 60, 80, 40));
+    setPopupSize(selector, 200, 300);
+    selector.component.toggle();
+    expect(selector.component.opensAbove()).toBe(false);
+    expect(selector.component.popupPosition()).toEqual({ top: 104, left: 50 });
+
+    setPopupSize(selector, 200, 60);
+    FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].trigger();
+
+    expect(selector.component.opensAbove()).toBe(false);
+    expect(selector.component.popupPosition()).toEqual({ top: 104, left: 50 });
+  });
+
+  it('decides the side again on the next opening', () => {
+    // 300px does not fit below this trigger (156px of room), 60px does.
+    selector = findSelector(fixture, TestPopupSelector, new DOMRect(50, 600, 80, 40));
+    setPopupSize(selector, 200, 300);
+    selector.component.toggle();
+    expect(selector.component.opensAbove()).toBe(true);
+
+    selector.component.toggle();
+    setPopupSize(selector, 200, 60);
+    selector.component.toggle();
+
+    expect(selector.component.opensAbove()).toBe(false);
+    expect(selector.component.popupPosition()).toEqual({ top: 644, left: 50 });
+  });
+
   it('never places the popup under the sticky nav bar', async () => {
     const navFixture: ComponentFixture<NavHost> = TestBed.createComponent(NavHost);
     await navFixture.whenStable();
@@ -369,5 +437,70 @@ describe('PopupSelectorBase', () => {
     scrollPage();
 
     expect(scrollShift(modalSelector.host)).toEqual({ x: '0px', y: '0px' });
+  });
+
+  describe('search term lifecycle', () => {
+    it('keeps the search term while the popup closes', () => {
+      selector.component.toggle();
+      selector.component.searchQuery.set('eur');
+
+      selector.component.toggle();
+
+      // Clearing it here would flash the unfiltered list during the closing transition.
+      expect(selector.component.searchQuery()).toBe('eur');
+    });
+
+    it('starts every opening with an empty search term', () => {
+      selector.component.searchQuery.set('eur');
+
+      selector.component.toggle();
+
+      expect(selector.component.searchQuery()).toBe('');
+    });
+  });
+
+  describe('closing on document clicks', () => {
+    let cardedFixture: ComponentFixture<CardedHost>;
+    let cardedSelector: RenderedSelector;
+
+    beforeEach(async () => {
+      cardedFixture = TestBed.createComponent(CardedHost);
+      await cardedFixture.whenStable();
+      cardedSelector = findSelector(cardedFixture, CardedTestPopupSelector);
+      cardedSelector.component.toggle();
+    });
+
+    function click(element: Element | null): void {
+      if (element == null) {
+        throw new Error('element to click not found');
+      }
+      (element as HTMLElement).click();
+    }
+
+    it('closes when a sibling inside the host element is clicked', () => {
+      click(cardedSelector.host.querySelector('.card-title'));
+
+      expect(cardedSelector.component.isOpen()).toBe(false);
+    });
+
+    it('stays open when the popup itself is clicked', () => {
+      click(cardedSelector.popupElement);
+
+      expect(cardedSelector.component.isOpen()).toBe(true);
+    });
+
+    it('closes when the page around the host element is clicked', () => {
+      click(cardedFixture.nativeElement.querySelector('.page-copy'));
+
+      expect(cardedSelector.component.isOpen()).toBe(false);
+    });
+
+    it('toggles once when the trigger is clicked', () => {
+      click(cardedSelector.host.querySelector('button'));
+      expect(cardedSelector.component.isOpen()).toBe(false);
+
+      click(cardedSelector.host.querySelector('button'));
+      expect(cardedSelector.component.isOpen()).toBe(true);
+    });
   });
 });

@@ -34,8 +34,26 @@ describe('UserSettingsService', () => {
     expect(request.request.body).toEqual({ theme });
     expect(request.request.withCredentials).toBe(true);
 
-    request.flush({ theme });
+    request.flush({ theme, currency: 'USD' });
 
-    expect(response).toEqual({ theme });
+    expect(response).toEqual({ theme, currency: 'USD' });
+  });
+
+  it('patches the currency on its own', () => {
+    let response: UserSettings | undefined;
+
+    userSettingsService
+      .patchCurrency('EUR')
+      .subscribe((settings: UserSettings) => (response = settings));
+
+    const request = httpMock.expectOne('/api/v1/settings');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ currency: 'EUR' });
+    expect(request.request.withCredentials).toBe(true);
+
+    const settings: UserSettings = { theme: DEFAULT_THEME, currency: 'EUR' };
+    request.flush(settings);
+
+    expect(response).toEqual(settings);
   });
 });

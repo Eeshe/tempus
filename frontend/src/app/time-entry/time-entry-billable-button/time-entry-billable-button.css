@@ -7,6 +7,7 @@
   font-size: 1.0625rem;
   font-weight: 500;
   line-height: 1;
+  white-space: nowrap;
   transition: color 120ms ease;
 }
 

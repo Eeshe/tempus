@@ -10,6 +10,7 @@ export type ThemeField = keyof Theme;
 
 export interface UserSettings {
   theme: Theme;
+  currency: string;
 }
 
 export interface User {

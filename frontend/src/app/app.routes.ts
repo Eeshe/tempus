@@ -8,7 +8,7 @@ import { ProjectsPage } from './project/projects-page/projects-page';
 import { ReportsPage } from './reports/reports-page/reports-page';
 import { AppearanceSettings } from './settings/appearance-settings/appearance-settings';
 import { unsavedThemeChangesGuard } from './settings/appearance-settings/unsaved-theme-changes.guard';
-import { LanguageSettings } from './settings/language-settings/language-settings';
+import { LocalizationSettings } from './settings/localization-settings/localization-settings';
 import { MigrationSettings } from './settings/migration-settings/migration-settings';
 import { SettingsPage } from './settings/settings-page/settings-page';
 
@@ -61,12 +61,12 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'language',
+        redirectTo: 'localization',
       },
       {
-        path: 'language',
-        title: 'route.settings.language',
-        component: LanguageSettings,
+        path: 'localization',
+        title: 'route.settings.localization',
+        component: LocalizationSettings,
       },
       {
         path: 'appearance',

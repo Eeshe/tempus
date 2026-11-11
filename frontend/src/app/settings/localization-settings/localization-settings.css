@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.localization {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.localization__title {
+  margin: 0;
+  color: var(--fg);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.localization__description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

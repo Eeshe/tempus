@@ -9,7 +9,7 @@
   <span class="total-header__value">{{ formattedTotalNonBillableTrackedTime() }}</span>
 
   <span class="total-header__label" i18n>ACCUMULATED PAY</span>
-  <span class="total-header__value">USD{{ formattedTotalAccumulatedPay() }}</span>
+  <span class="total-header__value">{{ report().totalAccumulatedPay | currency: currency() : 'symbol-narrow' : '1.2-2' }}</span>
 </header>
 <div class="details-container">
   <app-sortable-table

@@ -76,10 +76,13 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
+  /* Square for one-glyph symbols ($, €), grows instead of clipping multi-letter ones (CHF). */
+  min-width: 2.75rem;
   height: 2.75rem;
-  font-size: 1.25rem;
+  padding: 0 0.5rem;
+  font-size: 1.125rem;
   font-weight: 600;
+  white-space: nowrap;
   color: var(--muted);
   background: var(--bg);
   border: 1px solid var(--border);

@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Service, Signal, signal } from "@angular/core";
 import { catchError, map, Observable, of, tap } from "rxjs";
-import { Theme, User } from "../user/models/user.model";
+import { Theme, User, UserSettings } from "../user/models/user.model";
 
 export const AUTH_BASE_URL = "/api/v1/auth";
 
@@ -69,6 +69,18 @@ export class AuthService {
    * having to re-fetch /me.
    */
   setTheme(theme: Theme): void {
+    this.updateSettings({ theme });
+  }
+
+  /**
+   * Keeps the local user in sync after a settings update, so the currency is treated as saved
+   * without having to re-fetch /me.
+   */
+  setCurrency(currency: string): void {
+    this.updateSettings({ currency });
+  }
+
+  private updateSettings(settings: Partial<UserSettings>): void {
     const currentUser: User | null = this._currentUser();
     if (currentUser == null) {
       return;
@@ -77,7 +89,7 @@ export class AuthService {
       ...currentUser,
       settings: {
         ...currentUser.settings,
-        theme: theme,
+        ...settings,
       },
     });
   }

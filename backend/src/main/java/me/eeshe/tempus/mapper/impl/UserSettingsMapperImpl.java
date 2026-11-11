@@ -1,5 +1,8 @@
 package me.eeshe.tempus.mapper.impl;
 
+import java.util.Currency;
+
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 import me.eeshe.tempus.dto.PatchUserSettingsRequestDTO;
@@ -24,20 +27,23 @@ public class UserSettingsMapperImpl implements UserSettingsMapper {
                 theme.surface(),
                 theme.text(),
                 theme.accent(),
-                theme.danger()));
+                theme.danger()),
+                userSettings.getCurrency());
     }
 
     @Override
     public PatchUserSettingsRequest fromDTO(PatchUserSettingsRequestDTO patchUserSettingsRequestDTO) {
         final ThemePatchDTO theme = patchUserSettingsRequestDTO.theme().orElse(null);
+        final JsonNullable<Currency> currency = patchUserSettingsRequestDTO.currency();
         if (theme == null) {
-            return new PatchUserSettingsRequest(null);
+            return new PatchUserSettingsRequest(null, currency);
         }
         return new PatchUserSettingsRequest(new ThemePatch(
                 theme.background(),
                 theme.surface(),
                 theme.text(),
                 theme.accent(),
-                theme.danger()));
+                theme.danger()),
+                currency);
     }
 }

@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TimeEntry } from '../models/time-entry.model';
 import { TimeEntryBillableButton } from './time-entry-billable-button';
@@ -32,6 +34,7 @@ describe('TimeEntryBillableButton', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TimeEntryBillableButton],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TimeEntryBillableButton);

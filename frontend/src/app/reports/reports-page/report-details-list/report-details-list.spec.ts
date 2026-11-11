@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProjectReport, Report } from '../../models/report.model';
 import { ReportDetailsList } from './report-details-list';
@@ -19,6 +21,7 @@ describe('ReportDetailsList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ReportDetailsList],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ReportDetailsList);
@@ -29,5 +32,12 @@ describe('ReportDetailsList', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('renders the accumulated pay with the currency symbol', () => {
+    const header: HTMLElement = fixture.nativeElement.querySelector('.total-header');
+
+    expect(header.textContent).toContain('$0.00');
+    expect(header.textContent).not.toContain('USD');
   });
 });

@@ -23,12 +23,12 @@ describe('SettingsPage', () => {
     );
 
     expect(links.map((link) => link.textContent?.trim())).toEqual([
-      'Language',
+      'Localization',
       'Appearance',
       'Migration',
     ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/settings/language',
+      '/settings/localization',
       '/settings/appearance',
       '/settings/migration',
     ]);

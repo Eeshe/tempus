@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Currency;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ import me.eeshe.tempus.support.EntityTestBase;
 
 @ExtendWith(MockitoExtension.class)
 public class UserSettingsServiceImplTest extends EntityTestBase {
+    private static final Currency EUR = Currency.getInstance("EUR");
 
     @Mock
     private UserSettingsRepository userSettingsRepository;
@@ -46,7 +48,8 @@ public class UserSettingsServiceImplTest extends EntityTestBase {
                             JsonNullable.undefined(),
                             JsonNullable.undefined(),
                             JsonNullable.of("#FFFFFF"),
-                            JsonNullable.undefined()));
+                            JsonNullable.undefined()),
+                    JsonNullable.undefined());
 
             when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
             when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
@@ -73,7 +76,8 @@ public class UserSettingsServiceImplTest extends EntityTestBase {
                             JsonNullable.of("#000002"),
                             JsonNullable.of("#000003"),
                             JsonNullable.of("#000004"),
-                            JsonNullable.of("#000005")));
+                            JsonNullable.of("#000005")),
+                    JsonNullable.undefined());
 
             when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
             when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
@@ -91,9 +95,94 @@ public class UserSettingsServiceImplTest extends EntityTestBase {
         }
 
         @Test
+        void patchesCurrency() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(
+                    null,
+                    JsonNullable.of(EUR));
+
+            when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
+            when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
+
+            final UserSettings patchedUserSettings = userSettingsService.patchUserSettings(
+                    USER_ID,
+                    patchUserSettingsRequest);
+
+            assertThat(patchedUserSettings.getCurrency()).isEqualTo(EUR);
+            assertThat(patchedUserSettings.getTheme()).isEqualTo(Theme.DEFAULT);
+            verify(userSettingsRepository).save(userSettings);
+        }
+
+        @Test
+        void patchesCurrencyAndThemeTogether() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(
+                    new ThemePatch(
+                            JsonNullable.of("#000000"),
+                            JsonNullable.undefined(),
+                            JsonNullable.undefined(),
+                            JsonNullable.undefined(),
+                            JsonNullable.undefined()),
+                    JsonNullable.of(EUR));
+
+            when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
+            when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
+
+            final UserSettings patchedUserSettings = userSettingsService.patchUserSettings(
+                    USER_ID,
+                    patchUserSettingsRequest);
+
+            assertThat(patchedUserSettings.getCurrency()).isEqualTo(EUR);
+            assertThat(patchedUserSettings.getTheme().background()).isEqualTo("#000000");
+        }
+
+        @Test
+        void patchesNothingWhenCurrencyIsUndefined() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(
+                    null,
+                    JsonNullable.undefined());
+
+            when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
+            when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
+
+            final UserSettings patchedUserSettings = userSettingsService.patchUserSettings(
+                    USER_ID,
+                    patchUserSettingsRequest);
+
+            assertThat(patchedUserSettings.getCurrency()).isEqualTo(UserSettings.DEFAULT_CURRENCY);
+        }
+
+        @Test
+        void keepsCurrencyWhenOnlyThemeIsPatched() {
+            final UserSettings userSettings = createUser(USER_ID).getSettings();
+            userSettings.setCurrency(EUR);
+
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(
+                    new ThemePatch(
+                            JsonNullable.undefined(),
+                            JsonNullable.undefined(),
+                            JsonNullable.of("#000000"),
+                            JsonNullable.undefined(),
+                            JsonNullable.undefined()),
+                    JsonNullable.undefined());
+
+            when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
+            when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
+
+            final UserSettings patchedUserSettings = userSettingsService.patchUserSettings(
+                    USER_ID,
+                    patchUserSettingsRequest);
+
+            assertThat(patchedUserSettings.getCurrency()).isEqualTo(EUR);
+            assertThat(patchedUserSettings.getTheme().text()).isEqualTo("#000000");
+        }
+
+        @Test
         void patchesNothingWhenThemeIsNull() {
             final UserSettings userSettings = createUser(USER_ID).getSettings();
-            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(null);
+            final PatchUserSettingsRequest patchUserSettingsRequest = new PatchUserSettingsRequest(null,
+                    JsonNullable.undefined());
 
             when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
             when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
@@ -115,7 +204,8 @@ public class UserSettingsServiceImplTest extends EntityTestBase {
                             JsonNullable.undefined(),
                             JsonNullable.undefined(),
                             JsonNullable.undefined(),
-                            JsonNullable.undefined()));
+                            JsonNullable.undefined()),
+                    JsonNullable.undefined());
 
             when(userSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(userSettings));
             when(userSettingsRepository.save(userSettings)).thenReturn(userSettings);
@@ -133,7 +223,7 @@ public class UserSettingsServiceImplTest extends EntityTestBase {
 
             assertThatThrownBy(() -> userSettingsService.patchUserSettings(
                     USER_ID,
-                    new PatchUserSettingsRequest(null)))
+                    new PatchUserSettingsRequest(null, JsonNullable.undefined())))
                     .isInstanceOf(NoSuchElementException.class);
 
             verify(userSettingsRepository, never()).save(any());

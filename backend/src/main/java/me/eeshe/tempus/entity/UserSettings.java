@@ -1,8 +1,11 @@
 package me.eeshe.tempus.entity;
 
+import java.util.Currency;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,10 +14,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import me.eeshe.tempus.entity.converter.CurrencyConverter;
 
 @Entity
 @Table(name = "user_settings")
 public class UserSettings {
+    public static final Currency DEFAULT_CURRENCY = Currency.getInstance("USD");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,12 +39,17 @@ public class UserSettings {
     })
     private Theme theme;
 
+    @Convert(converter = CurrencyConverter.class)
+    @Column(name = "currency", nullable = false, length = 3)
+    private Currency currency = DEFAULT_CURRENCY;
+
     public UserSettings() {
     }
 
     public UserSettings(User user) {
         this.user = user;
         this.theme = Theme.DEFAULT;
+        this.currency = DEFAULT_CURRENCY;
     }
 
     public long getId() {
@@ -60,6 +70,14 @@ public class UserSettings {
 
     public void setTheme(Theme theme) {
         this.theme = theme;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 
     @Override

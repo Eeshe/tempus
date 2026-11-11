@@ -31,6 +31,8 @@ public class UserSettingsServiceImpl implements UserSettingsService {
                     themePatch.accent().orElse(currentTheme.accent()),
                     themePatch.danger().orElse(currentTheme.danger())));
         }
+        patchUserSettingsRequest.currency().ifPresent(userSettings::setCurrency);
+
         return userSettingsRepository.save(userSettings);
     }
 }

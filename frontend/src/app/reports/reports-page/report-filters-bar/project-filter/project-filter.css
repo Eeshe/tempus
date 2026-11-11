@@ -13,34 +13,6 @@
   min-width: 14rem;
 }
 
-.selector__popup-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.selector__popup-select-all {
-  padding: 0;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  transition: color 120ms ease;
-}
-
-.selector__popup-select-all:hover {
-  color: var(--fg);
-}
-
-.selector__popup-select-all:focus-visible {
-  outline: 2px solid var(--good);
-  outline-offset: 2px;
-}
-
 .selector__popup-list {
   display: flex;
   flex-direction: column;
