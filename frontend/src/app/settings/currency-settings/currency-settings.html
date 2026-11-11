@@ -1,0 +1,58 @@
+<section class="currency">
+  <h2 class="currency__title" i18n>Currency</h2>
+  <p class="currency__description" i18n>Choose the currency rates and accumulated pay are shown in. The change is saved right away.</p>
+
+  <div class="selector">
+    <button
+      #triggerButton
+      type="button"
+      class="selector__trigger"
+      [class.selector__trigger--open]="isOpen()"
+      [disabled]="isSaving()"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="isOpen()"
+      (click)="toggle()"
+    >
+      <span class="currency__symbol" aria-hidden="true">{{ symbol() }}</span>
+      <span class="currency__code">{{ currency() }}</span>
+    </button>
+
+    <div
+      #popup
+      class="selector__popup"
+      [class.selector__popup--open]="isOpen()"
+      [class.selector__popup--above]="opensAbove()"
+      [style.top.px]="popupPosition().top"
+      [style.left.px]="popupPosition().left"
+    >
+      <div class="selector__popup-header">
+        <app-search-input
+          [value]="searchQuery()"
+          [placeholder]="searchPlaceholder"
+          (searchChangeEvent)="searchQuery.set($event)"
+        />
+      </div>
+
+      <div class="selector__popup-list" role="listbox" aria-label="Currency" i18n-aria-label>
+        @for (option of filteredOptions(); track option.code) {
+          <button
+            type="button"
+            class="selector__popup-option"
+            role="option"
+            [attr.aria-selected]="option.code === currency()"
+            [class.selector__popup-option--selected]="option.code === currency()"
+            (click)="selectCurrency(option.code)"
+          >
+            <span class="selector__popup-code">{{ option.code }}</span>
+            <span class="selector__popup-name">{{ option.name }}</span>
+            <span class="selector__popup-check" aria-hidden="true"></span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (saveError(); as error) {
+    <p class="currency__error" role="alert">{{ error }}</p>
+  }
+</section>

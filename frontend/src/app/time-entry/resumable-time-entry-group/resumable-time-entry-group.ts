@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { map } from 'rxjs';
 import { Project } from '../../project/models/project.model';
 import { ProjectTaskSelectorButton } from '../../project/project-selector-button/project-task-selector-button';
+import { CurrencyService } from '../../services/currency.service';
 import { TimerService } from '../../shared/services/timer.service';
 import {
   computeDuration,
@@ -32,6 +33,9 @@ import { TimeEntryDescription } from '../time-entry-description/time-entry-descr
 export class ResumableTimeEntryGroup {
   private readonly timeEntryStore: TimeEntryStore = inject(TimeEntryStore);
   private readonly timerService: TimerService = inject(TimerService);
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
+
+  readonly symbol = this.currencyService.symbol;
 
   readonly timeEntries = input.required<TimeEntry[]>();
   readonly endedTimeEntries = computed<TimeEntry[]>(() => {

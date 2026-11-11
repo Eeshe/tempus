@@ -111,13 +111,15 @@
   transform: translateY(-50%);
   color: var(--muted);
   font-size: 0.9375rem;
+  white-space: nowrap;
   pointer-events: none;
 }
 
 .project-modal__rate-input input {
-  width: calc(4ch + 2.625rem);
+  /* The prefix grows with the currency symbol ("$" vs "CHF"), so the reserved room does too. */
+  width: calc(4ch + 1.75rem + var(--prefix-ch, 1) * 0.6em);
   box-sizing: border-box;
-  padding: 0.75rem 0.875rem 0.75rem 1.75rem;
+  padding: 0.75rem 0.875rem 0.75rem calc(1.25rem + var(--prefix-ch, 1) * 0.6em);
   background: var(--bg);
   color: var(--fg);
   font-family: inherit;

@@ -24,7 +24,7 @@
         <label for="billable" i18n>Billable</label>
         <div class="control">
           <input id="billable" type="checkbox" [formField]="newTimeEntryForm.billable" />
-          <span class="billable-icon" aria-hidden="true">$</span>
+          <span class="billable-icon" aria-hidden="true">{{ symbol() }}</span>
         </div>
       </div>
     </div>

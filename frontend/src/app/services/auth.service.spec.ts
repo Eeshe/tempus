@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { DEFAULT_CURRENCY } from '../shared/util/currency.util';
 import type { Theme, User } from '../user/models/user.model';
 import { AuthService } from './auth.service';
 import { DEFAULT_THEME } from './theme.service';
@@ -9,7 +10,7 @@ function createUser(theme: Theme = DEFAULT_THEME): User {
   return {
     id: 1,
     name: 'tester',
-    settings: { theme },
+    settings: { theme, currency: DEFAULT_CURRENCY },
     createdAt: '2026-01-01T00:00:00Z',
   };
 }
@@ -88,5 +89,15 @@ describe('AuthService', () => {
     authService.setTheme(updatedTheme);
 
     expect(authService.currentUser()?.settings.theme).toEqual(updatedTheme);
+  });
+
+  it('updates the locally stored currency', () => {
+    authService.login('tester', 'password').subscribe();
+    httpMock.expectOne('/api/v1/auth/login').flush(createUser());
+
+    authService.setCurrency('EUR');
+
+    expect(authService.currentUser()?.settings.currency).toBe('EUR');
+    expect(authService.currentUser()?.settings.theme).toEqual(DEFAULT_THEME);
   });
 });

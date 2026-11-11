@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Project } from '../models/project.model';
@@ -23,7 +25,7 @@ describe('ProjectModal', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ProjectModal],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectModal);

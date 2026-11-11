@@ -1,4 +1,5 @@
 import { formatDate } from '@angular/common';
+import { capitalizeFirstLetter } from './string.util';
 
 const DATE_NAME_WIDTHS = ['long', 'short', 'narrow'] as const;
 const localeDateNamesCache = new Map<string, ReadonlySet<string>>();
@@ -47,10 +48,6 @@ function addDateName(target: Set<string>, name: string, locale: string): void {
     return;
   }
   target.add(name.toLocaleLowerCase(locale));
-}
-
-function capitalizeFirstLetter(value: string, locale: string): string {
-  return value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
 }
 
 export function formatYYYYMMDDDate(date: Date | null): string {

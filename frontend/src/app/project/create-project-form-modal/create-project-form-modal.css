@@ -83,11 +83,13 @@ form {
   transform: translateY(-50%);
   color: var(--muted);
   font-size: 0.9375rem;
+  white-space: nowrap;
   pointer-events: none;
 }
 
 .input-group input {
-  padding-left: 1.75rem;
+  /* The prefix grows with the currency symbol ("$" vs "CHF"), so the reserved room does too. */
+  padding-left: calc(1.25rem + var(--prefix-ch, 1) * 0.6em);
 }
 
 .input-group input[type="number"]::-webkit-outer-spin-button,

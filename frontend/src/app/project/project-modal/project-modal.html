@@ -22,8 +22,8 @@
 
   <div class="project-modal__field">
     <span class="project-modal__field-label" i18n>Hourly Rate</span>
-    <div class="project-modal__rate-input">
-      <span class="project-modal__rate-prefix" aria-hidden="true">$</span>
+    <div class="project-modal__rate-input" [style.--prefix-ch]="symbol().length">
+      <span class="project-modal__rate-prefix" aria-hidden="true">{{ symbol() }}</span>
       <input
         type="number"
         step="0.01"

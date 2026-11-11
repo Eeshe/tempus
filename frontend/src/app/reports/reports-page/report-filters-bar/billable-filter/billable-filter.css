@@ -14,14 +14,15 @@
 }
 
 .selector__indicator {
-  --icon: url('/icons/dollar.svg');
-
-  width: 1rem;
-  height: 1rem;
-  background-color: currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   color: var(--muted);
-  -webkit-mask: var(--icon) center/contain no-repeat;
-  mask: var(--icon) center/contain no-repeat;
 }
 
 .selector__indicator--yes {

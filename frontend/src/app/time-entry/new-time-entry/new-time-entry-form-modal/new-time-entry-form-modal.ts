@@ -3,6 +3,7 @@ import { form, FormField, required, submit, validate } from '@angular/forms/sign
 import { firstValueFrom } from 'rxjs';
 import { Project } from '../../../project/models/project.model';
 import { ProjectTaskSelectorButton } from '../../../project/project-selector-button/project-task-selector-button';
+import { CurrencyService } from '../../../services/currency.service';
 import { DateInput } from '../../../shared/input/date-input/date-input';
 import { TimeInput } from '../../../shared/input/time-input/time-input';
 import { AppModal } from '../../../shared/modal/modal';
@@ -54,6 +55,9 @@ function isValidDate(date: string | null): boolean {
 export class NewTimeEntryFormModal extends ModalBase {
   private readonly timeEntryService: TimeEntryService = inject(TimeEntryService);
   private readonly timeEntryStore: TimeEntryStore = inject(TimeEntryStore);
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
+
+  readonly symbol = this.currencyService.symbol;
 
   readonly newTimeEntryModel = signal<NewTimeEntryModel>({
     project: null,

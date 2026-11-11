@@ -1,4 +1,5 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
+import { CurrencyService } from '../../../../services/currency.service';
 import { PopupSelectorBase } from '../../../../shared/selector/popup-selector-base';
 
 @Component({
@@ -8,7 +9,11 @@ import { PopupSelectorBase } from '../../../../shared/selector/popup-selector-ba
   templateUrl: './billable-filter.html',
 })
 export class BillableFilter extends PopupSelectorBase {
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
+
   readonly isBillable = input<boolean | null>(null);
+
+  readonly symbol = this.currencyService.symbol;
 
   readonly isBillableChangeEvent = output<boolean | null>();
 

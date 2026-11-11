@@ -1,6 +1,7 @@
-import { DecimalPipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ProjectReport } from '../../reports/models/report.model';
+import { CurrencyService } from '../../services/currency.service';
 import { MsToHHMMSSPipe } from '../../shared/pipes/ms-to-hhmmss.pipe';
 import { SortableColumn, SortableTable } from '../../shared/sortable-table/sortable-table';
 import { Project } from '../models/project.model';
@@ -8,15 +9,17 @@ import { ProjectModal } from '../project-modal/project-modal';
 import { ProjectReportStore } from '../store/project-report.store';
 
 @Component({
-  imports: [SortableTable, MsToHHMMSSPipe, ProjectModal, DecimalPipe],
+  imports: [SortableTable, MsToHHMMSSPipe, CurrencyPipe, ProjectModal],
   selector: 'app-project-list',
   styleUrl: './project-list.css',
   templateUrl: './project-list.html',
 })
 export class ProjectList {
   private readonly projectReportStore: ProjectReportStore = inject(ProjectReportStore);
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
 
   readonly projectReports = this.projectReportStore.projectReports;
+  readonly currency = this.currencyService.currency;
 
   readonly columns: SortableColumn<ProjectReport>[] = [
     {
@@ -39,14 +42,14 @@ export class ProjectList {
     },
     {
       key: "hourlyRate",
-      label: $localize`:Table column|Project hourly rate in USD:Hourly Rate (USD)`,
+      label: $localize`:Table column|Project hourly rate:Hourly Rate`,
       align: "center",
       cellAlign: "center",
       sortValue: (projectReport) => projectReport.project.hourlyRate ?? -1,
     },
     {
       key: "accumulatedPay",
-      label: $localize`:Table column|Project accumulated pay in USD:Accumulated Pay (USD)`,
+      label: $localize`:Table column|Project accumulated pay:Accumulated Pay`,
       align: "center",
       cellAlign: "center",
       sortValue: (projectReport) => this.calculateAccumulatedPay(projectReport),

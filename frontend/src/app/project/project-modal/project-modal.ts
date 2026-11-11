@@ -7,6 +7,7 @@ import { ColorInput } from '../../shared/input/color-input/color-input';
 import { InlineEditInput } from '../../shared/input/inline-edit-input/inline-edit-input';
 import { AppModal } from '../../shared/modal/modal';
 import { ModalBase } from '../../shared/modal/modal-base';
+import { CurrencyService } from '../../services/currency.service';
 import { Task } from '../../task/models/task.model';
 import { TaskList } from '../../task/task-list/task-list';
 import { Project } from '../models/project.model';
@@ -28,10 +29,13 @@ import { ProjectReportStore } from '../store/project-report.store';
 })
 export class ProjectModal extends ModalBase {
   private readonly projectReportStore: ProjectReportStore = inject(ProjectReportStore);
+  private readonly currencyService: CurrencyService = inject(CurrencyService);
 
   readonly project = input.required<Project>();
 
   readonly projectDeleteEvent = output<void>();
+
+  readonly symbol = this.currencyService.symbol;
 
   readonly isEditingName = signal<boolean>(false);
   readonly isDeleteConfirmationModalOpen = signal<boolean>(false);

@@ -14,7 +14,7 @@ interface SettingsNavItem {
 })
 export class SettingsPage {
   readonly navItems: readonly SettingsNavItem[] = [
-    { label: $localize`:Settings navigation|Language:Language`, route: 'language' },
+    { label: $localize`:Settings navigation|Localization:Localization`, route: 'localization' },
     { label: $localize`:Settings navigation|Appearance:Appearance`, route: 'appearance' },
     { label: $localize`:Settings navigation|Migration:Migration`, route: 'migration' },
   ];

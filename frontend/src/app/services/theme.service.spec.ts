@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { DEFAULT_CURRENCY } from '../shared/util/currency.util';
 import type { Theme, User } from '../user/models/user.model';
 import { AuthService } from './auth.service';
 import { DEFAULT_THEME, THEME_STORAGE_KEY, ThemeService } from './theme.service';
@@ -19,7 +20,7 @@ function createUser(theme: Theme): User {
   return {
     id: 1,
     name: 'tester',
-    settings: { theme },
+    settings: { theme, currency: DEFAULT_CURRENCY },
     createdAt: '2026-01-01T00:00:00Z',
   };
 }
