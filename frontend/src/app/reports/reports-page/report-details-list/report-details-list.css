@@ -60,6 +60,15 @@
   color: var(--project-color, var(--fg));
 }
 
+/*
+ * The project row carries the emphasis while its expanded time entry rows stay normal weight.
+ * Font size and tabular figures are inherited from `.sortable-table__cell--right` — keep
+ * `.report-time-entry__duration` in sync with that same 0.9375rem size.
+ */
+.project-duration {
+  font-weight: 600;
+}
+
 .project-name--archived {
   color: var(--muted);
 }

@@ -12,16 +12,20 @@
   align-items: center;
   gap: 1rem;
   /*
-   * Horizontal insets are added on top of the surrounding table cell:
-   * - left: 1rem, in addition to the detail <td>'s own 0.75rem (it is a cell:first-child), so
-   *   the entry text does not sit flush under the project row's chevron.
+   * This row owns every inset: the detail <td> has no padding at all (see
+   * .sortable-table__row--detail in sortable-table.css), so this row's hover background and the
+   * separator borders below span the full row width instead of stopping short of the cell edge.
+   * - left: 1.75rem = the 0.75rem gutter the table's first cell would otherwise provide, plus
+   *   1rem, so the entry text does not sit flush under the project row's chevron.
    * - right: mirror .sortable-table__cell-arrow (width 1.6ch + 0.375rem margin), the empty
    *   sort-arrow slot every cell reserves, so this row's duration ends exactly where the
    *   project row's duration text ends. `ch` resolves against the font-size inherited from
    *   the cell (0.9375rem), which is the same context the arrow slot uses — so do not set a
    *   font-size on this element.
+   * - vertical: 0.5rem top/bottom is the whole gap between an entry and its neighbours —
+   *   including the project row above the first entry.
    */
-  padding: 0.5rem calc(1.6ch + 0.375rem) 0.5rem 1rem;
+  padding: 0.5rem calc(1.6ch + 0.375rem) 0.5rem 1.75rem;
   transition: background 120ms ease, border-color 160ms ease;
 }
 
@@ -95,8 +99,8 @@
 }
 
 .report-time-entry__duration {
-  font-size: 1rem;
-  font-weight: 600;
+  /* Normal weight: emphasis belongs to the project row total, and both share this size. */
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
 }
 

@@ -77,6 +77,18 @@
   padding-left: 0.75rem;
 }
 
+/*
+ * Detail rows own all of their spacing: the detail <td> has no padding in any direction, so a
+ * detail template can paint edge to edge — a hover background or a separator border inside it
+ * reaches both sides of the row instead of stopping short of the cell edge. Templates must
+ * therefore inset their own content. The :first-child selector is required because
+ * `.sortable-table__cell:first-child` above has the same specificity as the plain one.
+ */
+.sortable-table__row--detail .sortable-table__cell,
+.sortable-table__row--detail .sortable-table__cell:first-child {
+  padding: 0;
+}
+
 .sortable-table__cell--left {
   text-align: left;
 }
@@ -182,6 +194,17 @@
   animation: sortable-table-cell-pad-up 250ms ease-in forwards;
 }
 
+/*
+ * Detail cells have no vertical padding to animate, so the pad keyframes are suppressed for
+ * them: leaving them on would grow a padding band during expansion and re-add one at the start
+ * of collapsing, only to snap back once the animation ends. The row fade and the grid-rows
+ * slide still animate, which is what makes the height change smooth.
+ */
+.sortable-table__row--detail.animate-expand .sortable-table__cell,
+.sortable-table__row--detail.animate-collapse .sortable-table__cell {
+  animation: none;
+}
+
 .sortable-table__row.animate-collapse .sortable-table__cell-content {
   animation: sortable-table-cell-slide-up 250ms ease-in forwards;
 }
@@ -191,6 +214,8 @@
   .sortable-table__row.animate-collapse,
   .sortable-table__row.animate-expand .sortable-table__cell,
   .sortable-table__row.animate-collapse .sortable-table__cell,
+  .sortable-table__row--detail.animate-expand .sortable-table__cell,
+  .sortable-table__row--detail.animate-collapse .sortable-table__cell,
   .sortable-table__row.animate-expand .sortable-table__cell-content,
   .sortable-table__row.animate-collapse .sortable-table__cell-content {
     animation: none;

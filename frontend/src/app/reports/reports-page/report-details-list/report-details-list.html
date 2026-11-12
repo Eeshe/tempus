@@ -44,7 +44,7 @@
       </span>
     </ng-template>
     <ng-template #durationCell let-entry>
-      {{ entry.trackedTimeMillis | msToHHMMSS }}
+      <span class="project-duration">{{ entry.trackedTimeMillis | msToHHMMSS }}</span>
     </ng-template>
     <ng-template #timeEntryRows let-entry>
       @for (timeEntry of entry.timeEntries; track timeEntry.id) {
