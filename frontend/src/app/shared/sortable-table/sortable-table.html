@@ -20,6 +20,7 @@
     @for (entry of sortedRows(); track trackBy()($index, entry)) {
       <tr
         class="sortable-table__row"
+        [class.sortable-table__row--striped]="$odd"
         animate.enter="animate-expand"
         animate.leave="animate-collapse"
         [class.sortable-table__row--clickable]="clickable()"
@@ -40,6 +41,24 @@
           </td>
         }
       </tr>
+      @if (detailTemplate() != null && isRowExpanded()(entry)) {
+        <tr
+          class="sortable-table__row sortable-table__row--detail"
+          animate.enter="animate-expand"
+          animate.leave="animate-collapse"
+        >
+          <td class="sortable-table__cell" [attr.colspan]="columns().length">
+            <div class="sortable-table__cell-content">
+              <div class="sortable-table__cell-content-inner">
+                <ng-container
+                  [ngTemplateOutlet]="detailTemplate()!"
+                  [ngTemplateOutletContext]="{ $implicit: entry }"
+                />
+              </div>
+            </div>
+          </td>
+        </tr>
+      }
     }
   </tbody>
 </table>

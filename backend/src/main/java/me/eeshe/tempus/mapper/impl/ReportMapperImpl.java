@@ -12,6 +12,8 @@ import me.eeshe.tempus.dto.ProjectReportEntryDTO;
 import me.eeshe.tempus.dto.ReportDTO;
 import me.eeshe.tempus.dto.ReportDayDTO;
 import me.eeshe.tempus.dto.ReportRequestDTO;
+import me.eeshe.tempus.dto.ReportTimeEntryDTO;
+import me.eeshe.tempus.entity.TimeEntry;
 import me.eeshe.tempus.exception.InvalidZoneIdException;
 import me.eeshe.tempus.mapper.ClientMapper;
 import me.eeshe.tempus.mapper.ProjectMapper;
@@ -59,7 +61,10 @@ public class ReportMapperImpl implements ReportMapper {
     private ReportDayDTO<ProjectReportEntryDTO> toProjectReportDayDTO(ReportDay<ProjectReportEntry> reportDay) {
         final List<ProjectReportEntryDTO> projectReportEntryDTOs = reportDay.reportEntries().stream()
                 .map(entry -> new ProjectReportEntryDTO(projectMapper.toDTO(entry.project()),
-                        entry.trackedTimeMillis()))
+                        entry.trackedTimeMillis(),
+                        entry.timeEntries().stream()
+                                .map(ReportMapperImpl::toReportTimeEntryDTO)
+                                .toList()))
                 .toList();
         return new ReportDayDTO<>(
                 reportDay.date(),
@@ -82,6 +87,16 @@ public class ReportMapperImpl implements ReportMapper {
                 reportDay.totalNonBillableTrackedTimeMillis(),
                 reportDay.totalAccumulatedPay(),
                 clientReportEntryDTOs);
+    }
+
+    private static ReportTimeEntryDTO toReportTimeEntryDTO(TimeEntry timeEntry) {
+        return new ReportTimeEntryDTO(
+                timeEntry.getId(),
+                timeEntry.getDescription(),
+                timeEntry.isBillable(),
+                timeEntry.getTask() != null ? timeEntry.getTask().getName() : null,
+                timeEntry.getStartTime(),
+                timeEntry.getEndTime());
     }
 
     @Override

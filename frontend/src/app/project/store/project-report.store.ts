@@ -45,6 +45,7 @@ export class ProjectReportStore {
       projectReports.push({
         project: project,
         trackedTimeMillis: 0,
+        timeEntries: [],
       });
     }
     return projectReports;

@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,10 @@ public class ReportServiceImpl implements ReportService {
         return generateReport(
                 reportRequest,
                 (timeEntry) -> timeEntry.getProject(),
-                (entry) -> new ProjectReportEntry(entry.getKey(), entry.getValue()));
+                (reportGroup) -> new ProjectReportEntry(
+                        reportGroup.key(),
+                        reportGroup.trackedTimeMillis(),
+                        sortTimeEntries(reportGroup.timeEntries())));
     }
 
     @Override
@@ -44,13 +49,20 @@ public class ReportServiceImpl implements ReportService {
         return generateReport(
                 reportRequest,
                 (timeEntry) -> timeEntry.getProject().getClient(),
-                (entry) -> new ClientReportEntry(entry.getKey(), entry.getValue()));
+                (reportGroup) -> new ClientReportEntry(
+                        reportGroup.key(),
+                        reportGroup.trackedTimeMillis()));
+    }
+
+    private List<TimeEntry> sortTimeEntries(List<TimeEntry> timeEntries) {
+        return timeEntries.stream().sorted(Comparator.comparing(TimeEntry::getStartTime)
+                .thenComparingLong(TimeEntry::getId)).toList();
     }
 
     private <T, U> Report<T> generateReport(
             ReportRequest reportRequest,
             Function<TimeEntry, U> mapKeyFunction,
-            Function<Map.Entry<U, Long>, T> reportEntryCreateFunction) {
+            Function<ReportGroup<U>, T> reportEntryCreateFunction) {
         final List<TimeEntry> timeEntries = timeEntryRepository.findAll(TimeEntrySpecification.withFilters(
                 reportRequest.userId(),
                 reportRequest.startDate(),
@@ -78,7 +90,7 @@ public class ReportServiceImpl implements ReportService {
             final ReportDayAccumulator<U> reportDayAccumulator = reportDayAccumulators.computeIfAbsent(
                     reportDate,
                     (_) -> new ReportDayAccumulator<>());
-            reportDayAccumulator.addTrackedTimeMillis(reportKey, timeEntryDurationMillis);
+            reportDayAccumulator.addTrackedTimeMillis(reportKey, timeEntryDurationMillis, timeEntry);
 
             if (timeEntry.isBillable()) {
                 totalBillableTrackedTimeMillis += timeEntryDurationMillis;
@@ -107,7 +119,7 @@ public class ReportServiceImpl implements ReportService {
                                 entry.getValue().billableTrackedTimeMillis(),
                                 entry.getValue().nonBillableTrackedTimeMillis(),
                                 entry.getValue().accumulatedPay(),
-                                entry.getValue().trackedTimeMillisByKey().entrySet().stream()
+                                entry.getValue().getReportGroups().stream()
                                         .map(reportEntryCreateFunction)
                                         .toList()))
                         .toList());
@@ -115,14 +127,31 @@ public class ReportServiceImpl implements ReportService {
 
 }
 
+record ReportGroup<U>(
+        U key,
+        long trackedTimeMillis,
+        List<TimeEntry> timeEntries) {
+}
+
 class ReportDayAccumulator<U> {
     private final Map<U, Long> trackedTimeMillisByKey = new LinkedHashMap<>();
+    private final Map<U, List<TimeEntry>> timeEntriesByKey = new LinkedHashMap<>();
     private long billableTrackedTimeMillis;
     private long nonBillableTrackedTimeMillis;
     private BigDecimal accumulatedPay = BigDecimal.ZERO;
 
-    public void addTrackedTimeMillis(U key, long trackedTimeMillis) {
+    public void addTrackedTimeMillis(U key, long trackedTimeMillis, TimeEntry timeEntry) {
         trackedTimeMillisByKey.merge(key, trackedTimeMillis, Long::sum);
+        timeEntriesByKey.computeIfAbsent(key, (_) -> new ArrayList<>()).add(timeEntry);
+    }
+
+    public List<ReportGroup<U>> getReportGroups() {
+        return trackedTimeMillisByKey.entrySet().stream()
+                .map(entry -> new ReportGroup<>(
+                        entry.getKey(),
+                        entry.getValue(),
+                        timeEntriesByKey.get(entry.getKey())))
+                .toList();
     }
 
     public void addBillableTrackedTimeMillis(long trackedTimeMillis) {
@@ -135,10 +164,6 @@ class ReportDayAccumulator<U> {
 
     public void addAccumulatedPay(BigDecimal pay) {
         accumulatedPay = accumulatedPay.add(pay);
-    }
-
-    public Map<U, Long> trackedTimeMillisByKey() {
-        return trackedTimeMillisByKey;
     }
 
     public long billableTrackedTimeMillis() {

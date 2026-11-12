@@ -81,7 +81,10 @@ public class ReportServiceImplTest extends EntityTestBase {
                     THREE_HOURS_MILLIS,
                     0L,
                     report.totalAccumulatedPay(),
-                    List.of(new ProjectReportEntry(project, THREE_HOURS_MILLIS))));
+                    List.of(new ProjectReportEntry(
+                            project,
+                            THREE_HOURS_MILLIS,
+                            List.of(firstEntry, secondEntry)))));
 
             verify(timeEntryRepository).findAll(any(PredicateSpecification.class));
         }
@@ -108,8 +111,8 @@ public class ReportServiceImplTest extends EntityTestBase {
                     0L,
                     report.totalAccumulatedPay(),
                     List.of(
-                            new ProjectReportEntry(project, ONE_HOUR_MILLIS),
-                            new ProjectReportEntry(secondProject, ONE_HOUR_MILLIS))));
+                            new ProjectReportEntry(project, ONE_HOUR_MILLIS, List.of(firstEntry)),
+                            new ProjectReportEntry(secondProject, ONE_HOUR_MILLIS, List.of(secondEntry)))));
         }
 
         @Test
@@ -130,10 +133,16 @@ public class ReportServiceImplTest extends EntityTestBase {
                     .containsExactly(REPORT_DATE, SECOND_REPORT_DATE);
             assertThat(report.reportDays().get(0).totalTrackedTimeMillis()).isEqualTo(ONE_HOUR_MILLIS);
             assertThat(report.reportDays().get(1).totalTrackedTimeMillis()).isEqualTo(TWO_HOURS_MILLIS);
-            assertThat(report.reportDays()).allSatisfy(reportDay -> assertThat(reportDay.reportEntries())
+            assertThat(report.reportDays().get(0).reportEntries())
                     .containsExactly(new ProjectReportEntry(
                             project,
-                            reportDay.totalTrackedTimeMillis())));
+                            ONE_HOUR_MILLIS,
+                            List.of(firstEntry)));
+            assertThat(report.reportDays().get(1).reportEntries())
+                    .containsExactly(new ProjectReportEntry(
+                            project,
+                            TWO_HOURS_MILLIS,
+                            List.of(secondEntry)));
             assertThat(report.totalTrackedTimeMillis()).isEqualTo(THREE_HOURS_MILLIS);
         }
 
@@ -153,7 +162,48 @@ public class ReportServiceImplTest extends EntityTestBase {
                     TWO_HOURS_MILLIS,
                     0L,
                     report.totalAccumulatedPay(),
-                    List.of(new ProjectReportEntry(project, TWO_HOURS_MILLIS))));
+                    List.of(new ProjectReportEntry(project, TWO_HOURS_MILLIS, List.of(timeEntry)))));
+        }
+
+        @Test
+        void ordersTimeEntriesByStartTime() {
+            final Client client = createClient();
+            final Project project = createProject(PROJECT_ID, HOURLY_RATE, client);
+            final TimeEntry firstEntry = createTimeEntry(project, true, START_TIME, START_TIME.plusSeconds(3600));
+            final TimeEntry lastEntry = createTimeEntry(
+                    project, true, START_TIME.plusSeconds(7200), START_TIME.plusSeconds(10800));
+            final TimeEntry middleEntry = createTimeEntry(
+                    project, true, START_TIME.plusSeconds(3600), START_TIME.plusSeconds(7200));
+
+            when(timeEntryRepository.findAll(any(PredicateSpecification.class)))
+                    .thenReturn(List.of(lastEntry, firstEntry, middleEntry));
+
+            final Report<ProjectReportEntry> report = reportService.generateProjectReport(REPORT_REQUEST);
+
+            assertThat(report.reportDays()).singleElement().satisfies(reportDay -> assertThat(
+                    reportDay.reportEntries().getFirst().timeEntries())
+                    .containsExactly(firstEntry, middleEntry, lastEntry));
+        }
+
+        @Test
+        void ordersTimeEntriesWithSameStartTimeById() {
+            final Client client = createClient();
+            final Project project = createProject(PROJECT_ID, HOURLY_RATE, client);
+            final TimeEntry firstEntry = createTimeEntry(
+                    project, true, START_TIME, START_TIME.plusSeconds(3600));
+            ReflectionTestUtils.setField(firstEntry, "id", 1L);
+            final TimeEntry secondEntry = createTimeEntry(
+                    project, true, START_TIME, START_TIME.plusSeconds(3600));
+            ReflectionTestUtils.setField(secondEntry, "id", 2L);
+
+            when(timeEntryRepository.findAll(any(PredicateSpecification.class)))
+                    .thenReturn(List.of(secondEntry, firstEntry));
+
+            final Report<ProjectReportEntry> report = reportService.generateProjectReport(REPORT_REQUEST);
+
+            assertThat(report.reportDays()).singleElement().satisfies(reportDay -> assertThat(
+                    reportDay.reportEntries().getFirst().timeEntries())
+                    .containsExactly(firstEntry, secondEntry));
         }
 
         @Test
