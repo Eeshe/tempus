@@ -110,8 +110,5 @@ This will import all the time entries in the CSV file an show any errors that ar
 
 Tempus is far from complete, so far the following features are planned:
 
-- Reports graphs
-- Animations
-- Search functionality for project, task and client selectors
-- Project archiving
+- Improve responsiveness for smaller devices
 
