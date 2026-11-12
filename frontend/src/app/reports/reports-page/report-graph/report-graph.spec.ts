@@ -310,7 +310,7 @@ function createClient(): Client {
 }
 
 function createProjectReport(project: Project, trackedTimeMillis: number): ProjectReport {
-  return { project, trackedTimeMillis };
+  return { project, trackedTimeMillis, timeEntries: [] };
 }
 
 function createReportDay(date: string, reportEntries: ProjectReport[]): ReportDay<ProjectReport> {

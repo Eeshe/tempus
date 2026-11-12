@@ -1,13 +1,14 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { CurrencyService } from '../../../services/currency.service';
 import { MsToHHMMSSPipe } from '../../../shared/pipes/ms-to-hhmmss.pipe';
 import { SortableColumn, SortableTable } from '../../../shared/sortable-table/sortable-table';
 import { durationFromMs, formatHHMMSSTime } from '../../../shared/util/time.util';
 import { flattenProjectReportEntries, ProjectReport, Report } from '../../models/report.model';
+import { ReportTimeEntryRow } from './report-time-entry-row/report-time-entry-row';
 
 @Component({
-  imports: [SortableTable, MsToHHMMSSPipe, CurrencyPipe],
+  imports: [SortableTable, MsToHHMMSSPipe, CurrencyPipe, ReportTimeEntryRow],
   selector: 'app-report-details-list',
   styleUrl: './report-details-list.css',
   templateUrl: './report-details-list.html',
@@ -20,6 +21,24 @@ export class ReportDetailsList {
   readonly currency = this.currencyService.currency;
 
   readonly reportEntries = computed<ProjectReport[]>(() => flattenProjectReportEntries(this.report()));
+
+  private readonly expandedProjectIds = signal<ReadonlySet<number>>(new Set<number>());
+
+  readonly isExpanded = (entry: ProjectReport): boolean =>
+    this.expandedProjectIds().has(entry.project.id);
+
+  toggleRow(entry: ProjectReport): void {
+    const projectId: number = entry.project.id;
+    this.expandedProjectIds.update((expandedProjectIds) => {
+      const updatedProjectIds: Set<number> = new Set(expandedProjectIds);
+      if (updatedProjectIds.has(projectId)) {
+        updatedProjectIds.delete(projectId);
+      } else {
+        updatedProjectIds.add(projectId);
+      }
+      return updatedProjectIds;
+    });
+  }
 
   readonly columns: SortableColumn<ProjectReport>[] = [
     {

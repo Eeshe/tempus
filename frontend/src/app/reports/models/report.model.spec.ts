@@ -7,6 +7,7 @@ import {
   ProjectReport,
   Report,
   ReportDay,
+  ReportTimeEntry,
 } from './report.model';
 
 describe('report.model', () => {
@@ -14,13 +15,76 @@ describe('report.model', () => {
     it('merges entries with the same project name and sums their tracked time', () => {
       const project = createProject(1, 'MyProject');
       const report = createReport<ProjectReport>([
-        createReportDay('2026-01-01', [{ project, trackedTimeMillis: 1_000 }]),
-        createReportDay('2026-01-02', [{ project, trackedTimeMillis: 2_000 }]),
+        createReportDay('2026-01-01', [{ project, trackedTimeMillis: 1_000, timeEntries: [] }]),
+        createReportDay('2026-01-02', [{ project, trackedTimeMillis: 2_000, timeEntries: [] }]),
       ]);
 
       expect(flattenProjectReportEntries(report)).toEqual([
-        { project, trackedTimeMillis: 3_000 },
+        { project, trackedTimeMillis: 3_000, timeEntries: [] },
       ]);
+    });
+
+    it('merges the time entries of the same project newest first', () => {
+      const project = createProject(1, 'MyProject');
+      const firstTimeEntry = createTimeEntry(1, '2026-01-01T09:00:00Z');
+      const secondTimeEntry = createTimeEntry(2, '2026-01-02T09:00:00Z');
+      const report = createReport<ProjectReport>([
+        createReportDay('2026-01-01', [
+          { project, trackedTimeMillis: 1_000, timeEntries: [firstTimeEntry] },
+        ]),
+        createReportDay('2026-01-02', [
+          { project, trackedTimeMillis: 2_000, timeEntries: [secondTimeEntry] },
+        ]),
+      ]);
+
+      expect(flattenProjectReportEntries(report)).toEqual([
+        {
+          project,
+          trackedTimeMillis: 3_000,
+          timeEntries: [secondTimeEntry, firstTimeEntry],
+        },
+      ]);
+    });
+
+    it('orders time entries sharing a start time by descending id', () => {
+      const project = createProject(1, 'MyProject');
+      const firstTimeEntry = createTimeEntry(1, '2026-01-01T09:00:00Z');
+      const secondTimeEntry = createTimeEntry(2, '2026-01-01T09:00:00Z');
+      const report = createReport<ProjectReport>([
+        createReportDay('2026-01-01', [
+          {
+            project,
+            trackedTimeMillis: 2_000,
+            timeEntries: [firstTimeEntry, secondTimeEntry],
+          },
+        ]),
+      ]);
+
+      expect(flattenProjectReportEntries(report)).toEqual([
+        {
+          project,
+          trackedTimeMillis: 2_000,
+          timeEntries: [secondTimeEntry, firstTimeEntry],
+        },
+      ]);
+    });
+
+    it('does not mutate the report entries it receives', () => {
+      const project = createProject(1, 'MyProject');
+      const firstTimeEntry = createTimeEntry(1, '2026-01-01T09:00:00Z');
+      const secondTimeEntry = createTimeEntry(2, '2026-01-01T10:00:00Z');
+      const reportEntry: ProjectReport = {
+        project,
+        trackedTimeMillis: 2_000,
+        timeEntries: [firstTimeEntry, secondTimeEntry],
+      };
+      const report = createReport<ProjectReport>([
+        createReportDay('2026-01-01', [reportEntry]),
+      ]);
+
+      flattenProjectReportEntries(report);
+
+      expect(reportEntry.timeEntries).toEqual([firstTimeEntry, secondTimeEntry]);
     });
 
     it('keeps entries with different project names separate', () => {
@@ -99,8 +163,23 @@ describe('report.model', () => {
     return { client, trackedTimeMillis };
   }
 
-  function createProjectReport(project: Project, trackedTimeMillis: number): ProjectReport {
-    return { project, trackedTimeMillis };
+  function createProjectReport(
+    project: Project,
+    trackedTimeMillis: number,
+    timeEntries: ReportTimeEntry[] = [],
+  ): ProjectReport {
+    return { project, trackedTimeMillis, timeEntries };
+  }
+
+  function createTimeEntry(id: number, startTime: string): ReportTimeEntry {
+    return {
+      id,
+      description: `Description ${id}`,
+      isBillable: true,
+      taskName: null,
+      startTime,
+      endTime: startTime,
+    };
   }
 
   function createReportDay<T>(date: string, reportEntries: T[]): ReportDay<T> {

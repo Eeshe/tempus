@@ -1,0 +1,107 @@
+:host {
+  display: block;
+}
+
+:host(:not(:last-child)) .report-time-entry {
+  border-bottom: 1px solid var(--border);
+}
+
+.report-time-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  /*
+   * Horizontal insets are added on top of the surrounding table cell:
+   * - left: 1rem, in addition to the detail <td>'s own 0.75rem (it is a cell:first-child), so
+   *   the entry text does not sit flush under the project row's chevron.
+   * - right: mirror .sortable-table__cell-arrow (width 1.6ch + 0.375rem margin), the empty
+   *   sort-arrow slot every cell reserves, so this row's duration ends exactly where the
+   *   project row's duration text ends. `ch` resolves against the font-size inherited from
+   *   the cell (0.9375rem), which is the same context the arrow slot uses — so do not set a
+   *   font-size on this element.
+   */
+  padding: 0.5rem calc(1.6ch + 0.375rem) 0.5rem 1rem;
+  transition: background 120ms ease, border-color 160ms ease;
+}
+
+.report-time-entry:hover {
+  background: var(--fg-ghost);
+}
+
+.report-time-entry__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.report-time-entry__description {
+  min-width: 0;
+  color: var(--fg);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-time-entry__description--empty {
+  color: var(--muted);
+}
+
+.report-time-entry__separator {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.report-time-entry__task {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--project-color, var(--fg));
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-time-entry__task--archived {
+  color: var(--muted);
+}
+
+.report-time-entry__right {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.report-time-entry__date,
+.report-time-entry__range {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-time-entry__billable {
+  color: var(--muted);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.report-time-entry__billable--yes {
+  color: var(--good);
+}
+
+.report-time-entry__duration {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-time-entry {
+    transition: none;
+  }
+}

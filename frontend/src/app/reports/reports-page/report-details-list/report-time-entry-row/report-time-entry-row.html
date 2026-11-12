@@ -1,0 +1,26 @@
+<div class="report-time-entry">
+  <div class="report-time-entry__left">
+    @if (hasDescription()) {
+      <span class="report-time-entry__description">{{ timeEntry().description }}</span>
+    } @else {
+      <span class="report-time-entry__description report-time-entry__description--empty" i18n>No description</span>
+    }
+    @if (timeEntry().taskName != null) {
+      <span class="report-time-entry__separator" aria-hidden="true">:</span>
+      <span
+        class="report-time-entry__task"
+        [class.report-time-entry__task--archived]="isArchived()"
+        [style.--project-color]="projectColor()"
+      >{{ timeEntry().taskName }}</span>
+    }
+  </div>
+  <div class="report-time-entry__right">
+    <span class="report-time-entry__date">{{ formattedDate() }}</span>
+    <span
+      class="report-time-entry__billable"
+      [class.report-time-entry__billable--yes]="timeEntry().isBillable"
+    >{{ symbol() }}</span>
+    <span class="report-time-entry__range">{{ formattedStartTime() }} – {{ formattedEndTime() }}</span>
+    <span class="report-time-entry__duration">{{ timeEntry().startTime | duration: timeEntry().endTime }}</span>
+  </div>
+</div>

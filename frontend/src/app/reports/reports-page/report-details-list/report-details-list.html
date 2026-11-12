@@ -17,16 +17,43 @@
     [rows]="reportEntries()"
     [trackBy]="trackBy"
     [cellTemplates]="{ project: projectCell, duration: durationCell }"
+    [clickable]="true"
+    [isRowExpanded]="isExpanded"
+    [detailTemplate]="timeEntryRows"
+    (rowClickEvent)="toggleRow($event)"
   >
     <ng-template #projectCell let-entry>
-      <span
-        class="project-name"
-        [class.project-name--archived]="entry.project.isArchived"
-        [style.--project-color]="entry.project.color"
-      >{{ entry.project.name }}</span>
+      <span class="project-toggle">
+        <svg
+          class="project-toggle__chevron"
+          [class.project-toggle__chevron--open]="isExpanded(entry)"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+        </svg>
+        <span class="project-toggle__count">{{ entry.timeEntries.length }}</span>
+        <span
+          class="project-name"
+          [class.project-name--archived]="entry.project.isArchived"
+          [style.--project-color]="entry.project.color"
+        >{{ entry.project.name }}</span>
+      </span>
     </ng-template>
     <ng-template #durationCell let-entry>
       {{ entry.trackedTimeMillis | msToHHMMSS }}
+    </ng-template>
+    <ng-template #timeEntryRows let-entry>
+      @for (timeEntry of entry.timeEntries; track timeEntry.id) {
+        <app-report-time-entry-row
+          [timeEntry]="timeEntry"
+          [projectColor]="entry.project.color"
+          [isArchived]="entry.project.isArchived"
+        />
+      }
     </ng-template>
   </app-sortable-table>
 </div>

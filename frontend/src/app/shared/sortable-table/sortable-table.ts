@@ -23,6 +23,8 @@ export class SortableTable<T> {
   readonly clickable = input<boolean>(false);
   readonly sortGroup = input<(entry: T) => number>(() => 0);
   readonly rowClass = input<(entry: T) => string | null>(() => null);
+  readonly isRowExpanded = input<(entry: T) => boolean>(() => false);
+  readonly detailTemplate = input<TemplateRef<unknown> | null>(null);
 
   readonly rowClickEvent = output<T>();
 
