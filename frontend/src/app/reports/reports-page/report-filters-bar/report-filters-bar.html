@@ -2,6 +2,7 @@
 	<app-date-range-filter [startDate]="startDate()" [endDate]="endDate()" (datesChangeEvent)="updateDates($event.startDate, $event.endDate)"/>
 	<app-project-filter [selectedProjects]="projects()" (selectedProjectsChangeEvent)="setProjects($event)"/>
 	<app-task-filter [selectedTasks]="tasks()" [selectedProjects]="projects()" (selectedTasksChangeEvent)="setTasks($event)"/>
+	<app-client-filter [selectedClients]="clients()" (selectedClientsChangeEvent)="setClients($event)"/>
 	<app-description-filter [descriptions]="descriptions()" (descriptionsChangeEvent)="setDescriptions($event)"/>
 	<app-billable-filter [isBillable]="isBillable()" (isBillableChangeEvent)="setBillable($event)"/>
 </div>

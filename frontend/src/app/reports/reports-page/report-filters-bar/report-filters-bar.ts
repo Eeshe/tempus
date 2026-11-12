@@ -6,13 +6,14 @@ import { Task } from '../../../task/models/task.model';
 import { ProjectReport, Report } from '../../models/report.model';
 import { ReportService } from '../../services/report.service';
 import { BillableFilter } from './billable-filter/billable-filter';
+import { ClientFilter } from './client-filter/client-filter';
 import { DateRangeFilter } from './date-range-filter/date-range-filter';
 import { DescriptionFilter } from './description-filter/description-filter';
 import { ProjectFilter } from './project-filter/project-filter';
 import { TaskFilter } from './task-filter/task-filter';
 
 @Component({
-  imports: [BillableFilter, DateRangeFilter, DescriptionFilter, ProjectFilter, TaskFilter],
+  imports: [BillableFilter, ClientFilter, DateRangeFilter, DescriptionFilter, ProjectFilter, TaskFilter],
   selector: 'app-report-filters-bar',
   styleUrl: './report-filters-bar.css',
   templateUrl: './report-filters-bar.html',
@@ -51,6 +52,11 @@ export class ReportFiltersBar {
 
   setTasks(tasks: Task[]): void {
     this.tasks.set(tasks);
+    this.generateReport();
+  }
+
+  setClients(clients: Client[]): void {
+    this.clients.set(clients);
     this.generateReport();
   }
 

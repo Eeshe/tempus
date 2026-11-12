@@ -1,0 +1,45 @@
+<div class="selector">
+	<button #triggerButton
+	        type="button"
+	        class="selector__trigger"
+	        [class.selector__trigger--open]="isOpen()"
+	        aria-haspopup="dialog"
+	        [attr.aria-expanded]="isOpen()"
+	        (click)="toggle()"
+	>
+		<span i18n>Clients</span>
+		<span class="selector__badge"
+		      [class.selector__badge--visible]="selectedClients().length > 0"
+		>
+			{{ selectedClients().length }}
+		</span>
+	</button>
+
+	<div #popup class="selector__popup"
+	     [class.selector__popup--open]="isOpen()"
+	     [class.selector__popup--above]="opensAbove()"
+	     [style.top.px]="popupPosition().top"
+	     [style.left.px]="popupPosition().left"
+	>
+		<div class="selector__popup-header">
+			<app-search-input [value]="searchQuery()" (searchChangeEvent)="searchQuery.set($event)"/>
+			<button type="button" class="selector__popup-select-all" (click)="toggleSelectAll()">
+				@if (allSelected()) {
+					<span i18n>Unselect All</span>
+				} @else {
+					<span i18n>Select All</span>
+				}
+			</button>
+		</div>
+
+		<div class="selector__popup-list">
+			@for (client of filteredClients(); track client.id) {
+			<label class="selector__popup-item">
+				<input type="checkbox" class="selector__popup-checkbox" [checked]="isSelected(client)" (change)="toggleClient(client)">
+				<span class="selector__popup-check"></span>
+				<span class="selector__popup-name">{{ client.name }}</span>
+			</label>
+			}
+		</div>
+	</div>
+</div>
