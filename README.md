@@ -17,6 +17,7 @@ The way time is tracked is through time entries. Each **time entry** has:
 
 Additionally, every **project** has:
 
+- Color
 - Client (optional)
 - Hourly rate (optional)
 
@@ -28,13 +29,22 @@ All these attributes help organize time entries into **reports**. These are a fi
 - Project(s)
 - Task(s)
 - Description(s)
+- Client(s)
 - Billable status
 
 These filters allow users to generate useful information for employers, project statistics or even just personal use.
 
 ![Reports](assets/reports.png)
 
+Once you are done working on a project, instead of deleting it and losing all of your tracked time entries, you can archive it. Once a project is archived, it won't show in the project selector for new time entries, but the data will still be there for any reports you generate.
+
 ![Projects](assets/projects.png)
+
+While tempus is shipped with default colors, language and currency, all of these can be configured in the settings page. Changing the currency WILL NOT convert any previous data into the new currency you set, currencies are purely visual/for reference.
+
+![Localization](assets/localization.png)
+
+![Appearance](assets/appearance.png)
 
 ## Data Storage
 
@@ -105,10 +115,3 @@ Luckily, someone else encountered this issue as well and coded a solution for it
 6. Click on `Confirm`.
 
 This will import all the time entries in the CSV file an show any errors that are encountered during the import.
-
-## Planned Features
-
-Tempus is far from complete, so far the following features are planned:
-
-- Improve responsiveness for smaller devices
-
