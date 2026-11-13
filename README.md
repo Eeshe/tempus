@@ -87,7 +87,7 @@ To start using Tempus you need to open your web browser and navigate to `http://
 
 You'll be greeted with a login page, you can create an account and then access the home page of the app. Once you are there, you start by clicking the `New Time Entry` button and filling the requested information.
 
-https://github.com/user-attachments/assets/6619e69b-a053-4c2a-a2ec-09295fc7e965
+https://github.com/user-attachments/assets/bba02018-af4f-4e19-b55b-58c98a215fb0
 
 ## Localization
 
