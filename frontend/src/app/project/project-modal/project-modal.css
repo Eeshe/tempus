@@ -117,7 +117,7 @@
 
 .project-modal__rate-input input {
   /* The prefix grows with the currency symbol ("$" vs "CHF"), so the reserved room does too. */
-  width: calc(4ch + 1.75rem + var(--prefix-ch, 1) * 0.6em);
+  width: calc(4ch + 1.75rem + var(--prefix-ch, 1) * 0.8em);
   box-sizing: border-box;
   padding: 0.75rem 0.875rem 0.75rem calc(1.25rem + var(--prefix-ch, 1) * 0.6em);
   background: var(--bg);
