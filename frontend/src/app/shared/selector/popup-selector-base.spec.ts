@@ -1,8 +1,8 @@
-import { CUSTOM_ELEMENTS_SCHEMA, Component, Type } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, Type, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { AppModal } from '../modal/modal';
-import { PopupSelectorBase } from './popup-selector-base';
+import { PopupSelectorBase, PopupPlacement } from './popup-selector-base';
 
 const DEFAULT_TRIGGER_RECT: DOMRect = new DOMRect(50, 60, 80, 40);
 
@@ -34,7 +34,9 @@ class AnchoredTestPopupSelector extends PopupSelectorBase {
   `,
 })
 class RightPlacementTestPopupSelector extends PopupSelectorBase {
-  protected override readonly popupPlacement: 'below' | 'right' = 'right';
+  protected override get popupPlacement(): PopupPlacement {
+    return 'right';
+  }
 }
 
 @Component({
@@ -91,11 +93,29 @@ class RightPlacementHost {}
   imports: [AppModal, TestPopupSelector],
   template: `
     <app-modal>
+      <p class="modal-copy">modal copy</p>
       <app-test-popup-selector />
     </app-modal>
   `,
 })
 class ModalHost {}
+
+@Component({
+  selector: 'app-modal-above-host',
+  imports: [AppModal, CardedTestPopupSelector],
+  template: `
+    <p class="page-copy">page copy</p>
+    <app-carded-test-popup-selector />
+    @if (showModal()) {
+      <app-modal header="Create project">
+        <p class="dialog-copy">dialog copy</p>
+      </app-modal>
+    }
+  `,
+})
+class ModalAboveHost {
+  readonly showModal = signal<boolean>(false);
+}
 
 @Component({
   selector: 'app-nav-host',
@@ -196,7 +216,7 @@ describe('PopupSelectorBase', () => {
     Object.defineProperty(globalThis, 'ResizeObserver', { value: FakeResizeObserver, configurable: true });
 
     await TestBed.configureTestingModule({
-      imports: [PageHost, AnchoredHost, ModalHost, NavHost, RightPlacementHost, CardedHost],
+      imports: [PageHost, AnchoredHost, ModalHost, ModalAboveHost, NavHost, RightPlacementHost, CardedHost],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageHost);
@@ -501,6 +521,54 @@ describe('PopupSelectorBase', () => {
 
       click(cardedSelector.host.querySelector('button'));
       expect(cardedSelector.component.isOpen()).toBe(true);
+    });
+
+    it('closes when the modal containing the selector is clicked', async () => {
+      const modalFixture: ComponentFixture<ModalHost> = TestBed.createComponent(ModalHost);
+      await modalFixture.whenStable();
+      const modalSelector: RenderedSelector = findSelector(modalFixture, TestPopupSelector);
+      modalSelector.component.toggle();
+
+      // A sibling field of the selector, inside the same modal: not covered by a dialog above it.
+      click(modalFixture.nativeElement.querySelector('.modal-copy'));
+
+      expect(modalSelector.component.isOpen()).toBe(false);
+    });
+
+    describe('with a modal opened on top of the selector', () => {
+      let hostFixture: ComponentFixture<ModalAboveHost>;
+      let aboveSelector: RenderedSelector;
+
+      beforeEach(async () => {
+        hostFixture = TestBed.createComponent(ModalAboveHost);
+        await hostFixture.whenStable();
+        aboveSelector = findSelector(hostFixture, CardedTestPopupSelector);
+        aboveSelector.component.toggle();
+
+        hostFixture.componentInstance.showModal.set(true);
+        await hostFixture.whenStable();
+      });
+
+      it('keeps the popup open when the dialog above it is clicked', () => {
+        click(hostFixture.nativeElement.querySelector('.dialog-copy'));
+
+        expect(aboveSelector.component.isOpen()).toBe(true);
+      });
+
+      it('keeps the popup open when the dialog backdrop is clicked', () => {
+        click(hostFixture.nativeElement.querySelector('.modal__backdrop'));
+
+        expect(aboveSelector.component.isOpen()).toBe(true);
+      });
+
+      it('closes again on an outside click once the dialog is gone', async () => {
+        hostFixture.componentInstance.showModal.set(false);
+        await hostFixture.whenStable();
+
+        click(hostFixture.nativeElement.querySelector('.page-copy'));
+
+        expect(aboveSelector.component.isOpen()).toBe(false);
+      });
     });
   });
 });

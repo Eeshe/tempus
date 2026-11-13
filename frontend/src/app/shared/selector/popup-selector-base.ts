@@ -1,4 +1,5 @@
 import { DestroyRef, Directive, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
+import { AppModal } from '../modal/modal';
 
 /** Distance between the trigger and the popup, on whichever side the popup is placed. */
 const POPUP_GAP: number = 4;
@@ -27,7 +28,15 @@ export abstract class PopupSelectorBase {
   protected readonly popup = viewChild<ElementRef<HTMLDivElement>>('popup');
   protected readonly alignPopupRight: boolean = false;
 
-  protected readonly popupPlacement: PopupPlacement = 'below';
+  /**
+   * Side of the trigger the popup opens on.
+   *
+   * An accessor, not a field: subclasses whose side depends on an input must override it as a
+   * getter, and a base class field would be defined as an own instance property that shadows it.
+   */
+  protected get popupPlacement(): PopupPlacement {
+    return 'below';
+  }
 
   /**
    * Set this in components whose popup must stay glued to the viewport instead of scrolling away
@@ -284,10 +293,20 @@ export abstract class PopupSelectorBase {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.isOpen() || this.isInsideSelector(event.target)) {
+    if (!this.isOpen() || this.isInsideSelector(event.target) || this.isCoveredByOpenModal()) {
       return;
     }
     this.closeSelector();
+  }
+
+  /**
+   * Modals stacked above the selector (a dialog opened from its popup, or one in front of the modal
+   * the selector lives in) swallow the click: closing on it would drop the popup the user returns to
+   * once the dialog is gone. A click inside the modal that merely contains the selector still closes
+   * it, so its own fields keep dismissing the popup.
+   */
+  private isCoveredByOpenModal(): boolean {
+    return AppModal.isStackedAbove(this.hostElement.nativeElement as HTMLElement);
   }
 
   private isInsideSelector(target: EventTarget | null): boolean {

@@ -3,7 +3,7 @@
     <div class="row">
       <div class="field">
         <label for="description" i18n>Project/Task</label>
-        <app-project-task-selector-button [selectedProject]="newTimeEntryModel().project" [selectedTask]="newTimeEntryModel().task" (projectSelectEvent)="assignProject($event)" (taskSelectEvent)="assignTask($event.newProject, $event.newTask)"/>
+        <app-project-task-selector-button placement="below" [selectedProject]="newTimeEntryModel().project" [selectedTask]="newTimeEntryModel().task" (projectSelectEvent)="assignProject($event)" (taskSelectEvent)="assignTask($event.newProject, $event.newTask)"/>
       </div>
     </div>
 

@@ -14,8 +14,15 @@ import { ProjectPopupSelectorBase } from '../project-popup-selector-base';
   templateUrl: './project-task-selector-button.html',
 })
 export class ProjectTaskSelectorButton extends ProjectPopupSelectorBase {
-  // Opens beside the trigger: above/below would cover the project/task being edited.
-  protected override readonly popupPlacement: PopupPlacement = 'right';
+  /**
+   * Side the popup opens on, defaulting to beside the trigger: in the time-entry list rows an
+   * above/below popup would cover the row being edited. Forms open it below the trigger instead.
+   */
+  readonly placement = input<PopupPlacement>('right');
+
+  protected override get popupPlacement(): PopupPlacement {
+    return this.placement();
+  }
 
   readonly selectedProject = input<Project | null>();
   readonly selectedTask = input<Task | null>();
