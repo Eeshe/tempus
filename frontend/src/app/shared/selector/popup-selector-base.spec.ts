@@ -52,6 +52,19 @@ class RightPlacementTestPopupSelector extends PopupSelectorBase {
 class CardedTestPopupSelector extends PopupSelectorBase {}
 
 @Component({
+  selector: 'app-ordering-test-popup-selector',
+  template: `
+    <button #triggerButton type="button" (click)="toggle()">open</button>
+    <div #popup class="selector__popup">popup</div>
+  `,
+})
+class OrderingTestPopupSelector extends PopupSelectorBase {
+  orderSelectedFirst<T>(items: readonly T[], isSelected: (item: T) => boolean): T[] {
+    return this.sortSelectedFirst(items, isSelected);
+  }
+}
+
+@Component({
   selector: 'app-page-host',
   imports: [TestPopupSelector],
   template: `
@@ -476,6 +489,47 @@ describe('PopupSelectorBase', () => {
       selector.component.toggle();
 
       expect(selector.component.searchQuery()).toBe('');
+    });
+  });
+
+  describe('selected-first ordering', () => {
+    let orderingSelector: OrderingTestPopupSelector;
+
+    beforeEach(() => {
+      orderingSelector = TestBed.createComponent(OrderingTestPopupSelector).componentInstance;
+    });
+
+    it('keeps the incoming order when nothing is selected', () => {
+      const items: string[] = ['Alpha', 'Beta', 'Gamma'];
+
+      expect(orderingSelector.orderSelectedFirst(items, () => false)).toEqual(items);
+    });
+
+    it('keeps the incoming order when everything is selected', () => {
+      const items: string[] = ['Alpha', 'Beta', 'Gamma'];
+
+      expect(orderingSelector.orderSelectedFirst(items, () => true)).toEqual(items);
+    });
+
+    it('moves the selected entries to the top keeping both groups in their incoming order', () => {
+      const items: string[] = ['Alpha', 'Beta', 'Gamma', 'Delta'];
+      const selected: string[] = ['Beta', 'Delta'];
+
+      expect(
+        orderingSelector.orderSelectedFirst(items, (item: string) => selected.includes(item)),
+      ).toEqual(['Beta', 'Delta', 'Alpha', 'Gamma']);
+    });
+
+    it('handles an empty list', () => {
+      expect(orderingSelector.orderSelectedFirst([], () => true)).toEqual([]);
+    });
+
+    it('asks the predicate about every entry', () => {
+      const predicate = vi.fn(() => false);
+
+      orderingSelector.orderSelectedFirst(['Alpha', 'Beta', 'Gamma'], predicate);
+
+      expect(predicate).toHaveBeenCalledTimes(3);
     });
   });
 

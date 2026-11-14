@@ -19,15 +19,23 @@ export class ClientFilter extends PopupSelectorBase {
 
   readonly clients = signal<Client[]>([]);
 
-  readonly filteredClients = computed<Client[]>(() =>
+  readonly matchingClients = computed<Client[]>(() =>
     this.clients().filter((client) => this.matchesSearch(client.name))
   );
 
-  readonly allSelected = computed<boolean>(() => {
-    const all: Client[] = this.filteredClients();
-    const selected: Client[] = this.selectedClients();
+  readonly filteredClients = computed<Client[]>(() =>
+    this.sortSelectedFirst(
+      this.clients().filter(
+        (client) => this.isSelected(client) || this.matchesSearch(client.name)
+      ),
+      (client) => this.isSelected(client)
+    )
+  );
 
-    return all.length > 0 && all.length === selected.length;
+  readonly allSelected = computed<boolean>(() => {
+    const matches: Client[] = this.matchingClients();
+
+    return matches.length > 0 && matches.every((client) => this.isSelected(client));
   });
 
   protected override openPopup(): void {
@@ -56,6 +64,6 @@ export class ClientFilter extends PopupSelectorBase {
   }
 
   toggleSelectAll(): void {
-    this.selectedClientsChangeEvent.emit(this.allSelected() ? [] : [...this.filteredClients()]);
+    this.selectedClientsChangeEvent.emit(this.allSelected() ? [] : [...this.matchingClients()]);
   }
 }

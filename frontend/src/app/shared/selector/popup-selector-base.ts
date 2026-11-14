@@ -176,6 +176,22 @@ export abstract class PopupSelectorBase {
   }
 
   /**
+   * Stable partition for checkbox lists: entries the predicate accepts first, then the rest, each
+   * group keeping the order it came in. Callers pass an alphabetically sorted list, so both groups
+   * stay alphabetical.
+   */
+  protected sortSelectedFirst<T>(items: readonly T[], isSelected: (item: T) => boolean): T[] {
+    const selected: T[] = [];
+    const unselected: T[] = [];
+
+    for (const item of items) {
+      (isSelected(item) ? selected : unselected).push(item);
+    }
+
+    return [...selected, ...unselected];
+  }
+
+  /**
    * Written straight to the host's inline style instead of a bound signal: this runs on every
    * scroll frame and must not trigger change detection (that is what makes popups look jittery).
    * The popup inherits the custom properties, `selector-shared.css` consumes them in `translate`.

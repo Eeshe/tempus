@@ -14,15 +14,23 @@ export class ProjectFilter extends ProjectPopupSelectorBase {
 
   readonly selectedProjectsChangeEvent = output<Project[]>();
 
-  readonly filteredProjects = computed<Project[]>(() =>
+  readonly matchingProjects = computed<Project[]>(() =>
     this.projects().filter((project) => this.matchesSearch(project.name))
   );
 
-  readonly allSelected = computed<boolean>(() => {
-    const all: Project[] = this.filteredProjects();
-    const selected: Project[] = this.selectedProjects();
+  readonly filteredProjects = computed<Project[]>(() =>
+    this.sortSelectedFirst(
+      this.projects().filter(
+        (project) => this.isSelected(project) || this.matchesSearch(project.name)
+      ),
+      (project) => this.isSelected(project)
+    )
+  );
 
-    return all.length > 0 && all.length === selected.length;
+  readonly allSelected = computed<boolean>(() => {
+    const matches: Project[] = this.matchingProjects();
+
+    return matches.length > 0 && matches.every((project) => this.isSelected(project));
   });
 
   isSelected(checkProject: Project): boolean {
@@ -39,6 +47,6 @@ export class ProjectFilter extends ProjectPopupSelectorBase {
   }
 
   toggleSelectAll(): void {
-    this.selectedProjectsChangeEvent.emit(this.allSelected() ? [] : [...this.filteredProjects()]);
+    this.selectedProjectsChangeEvent.emit(this.allSelected() ? [] : [...this.matchingProjects()]);
   }
 }

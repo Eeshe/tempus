@@ -21,21 +21,34 @@ export class TaskFilter extends PopupSelectorBase {
 
   readonly projects = signal<Project[]>([]);
 
-  readonly availableTasks = computed<Task[]>(() => {
-    const projects: Project[] = this.projects();
+  private readonly scopedProjects = computed<Project[]>(() => {
     const selectedProjectIds: number[] = this.selectedProjects().map((project) => project.id);
+    const projects: Project[] = this.projects();
 
-    const tasks: Task[] = projects.flatMap((project) => project.tasks);
-    const byProject: Task[] = selectedProjectIds.length === 0
-      ? tasks
-      : tasks.filter((task) => selectedProjectIds.includes(task.projectId));
-    return byProject.filter((task) => this.matchesSearch(task.name));
+    return selectedProjectIds.length === 0
+      ? projects
+      : projects.filter((project) => selectedProjectIds.includes(project.id));
   });
 
-  readonly allSelected = computed<boolean>(() => {
-    const available: Task[] = this.availableTasks();
+  readonly matchingTasks = computed<Task[]>(() =>
+    this.scopedProjects()
+      .flatMap((project) => project.tasks)
+      .filter((task) => this.matchesSearch(task.name))
+  );
 
-    return available.length > 0 && available.length === this.selectedTasks().length;
+  readonly availableTasks = computed<Task[]>(() =>
+    this.scopedProjects().flatMap((project) =>
+      this.sortSelectedFirst(
+        project.tasks.filter((task) => this.isSelected(task) || this.matchesSearch(task.name)),
+        (task) => this.isSelected(task)
+      )
+    )
+  );
+
+  readonly allSelected = computed<boolean>(() => {
+    const matches: Task[] = this.matchingTasks();
+
+    return matches.length > 0 && matches.every((task) => this.isSelected(task));
   });
 
   protected override openPopup(): void {
@@ -70,6 +83,6 @@ export class TaskFilter extends PopupSelectorBase {
   }
 
   toggleSelectAll(): void {
-    this.selectedTasksChangeEvent.emit(this.allSelected() ? [] : [...this.availableTasks()]);
+    this.selectedTasksChangeEvent.emit(this.allSelected() ? [] : [...this.matchingTasks()]);
   }
 }
