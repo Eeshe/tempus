@@ -47,15 +47,23 @@ export class ReportGraph {
   constructor() {
     // Every new report resets the graph to the view that best fits its amount of days.
     effect(() => {
-      const reportDaysCount: number = this.report().reportDays.length;
-      untracked(() => this.graphType.set(this.resolveDefaultGraphType(reportDaysCount)));
+      const report: Report<ProjectReport> = this.report();
+      untracked(() => this.graphType.set(this.resolveDefaultGraphType(report)));
     });
   }
 
   /**
    * <= 30 days of data renders one bar per day, 31 or more renders one bar per month.
+   * A report without a full date range falls back to the year graph.
    */
-  private resolveDefaultGraphType(reportDaysCount: number): ReportGraphType {
+  private resolveDefaultGraphType(report: Report<ProjectReport>): ReportGraphType {
+    const startDate: Date | null = parseYYYYMMDDDate(report.startDate);
+    const endDate: Date | null = parseYYYYMMDDDate(report.endDate);
+    if (startDate == null || endDate == null) {
+      return 'year';
+    }
+    const reportDaysCount: number = enumerateDays(report.startDate, report.endDate).length;
+
     return reportDaysCount <= 30 ? 'month' : 'year';
   }
 

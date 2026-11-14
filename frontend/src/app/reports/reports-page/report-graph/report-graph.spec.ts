@@ -31,7 +31,7 @@ describe('ReportGraph', () => {
   }
 
   it('picks the month graph up to 30 days', async () => {
-    for (const dayCount of [0, 1, 30]) {
+    for (const dayCount of [1, 15, 30]) {
       await setReport(createReportWithDays(dayCount));
 
       expect(component.graphType()).toBe('month');
@@ -41,6 +41,31 @@ describe('ReportGraph', () => {
   it('picks the year graph from 31 days', async () => {
     for (const dayCount of [31, 365]) {
       await setReport(createReportWithDays(dayCount));
+
+      expect(component.graphType()).toBe('year');
+    }
+  });
+
+  it('picks the graph type from the date range instead of the reported days', async () => {
+    await setReport(
+      createReport(
+        [createReportDay('2026-08-01', [createProjectReport(createProject('ProjectA'), 1_800_000)])],
+        '2026-08-01',
+        '2026-08-31',
+      ),
+    );
+
+    expect(component.graphType()).toBe('year');
+  });
+
+  it('picks the year graph when a report date is missing', async () => {
+    const ranges: [string | null, string | null][] = [
+      [null, null],
+      ['2026-08-01', null],
+      [null, '2026-08-31'],
+    ];
+    for (const [startDate, endDate] of ranges) {
+      await setReport(createReport([], startDate, endDate));
 
       expect(component.graphType()).toBe('year');
     }
@@ -270,19 +295,22 @@ describe('ReportGraph', () => {
 function createReportWithDays(dayCount: number): Report<ProjectReport> {
   const startDate: Date = new Date(2026, 0, 1);
   const reportDays: ReportDay<ProjectReport>[] = [];
-  let lastDate: string = formatYYYYMMDDDate(startDate);
   for (let dayIndex = 0; dayIndex < dayCount; dayIndex++) {
     const currentDay: Date = new Date(startDate);
     currentDay.setDate(startDate.getDate() + dayIndex);
-    lastDate = formatYYYYMMDDDate(currentDay);
     reportDays.push(
-      createReportDay(lastDate, [createProjectReport(createProject('ProjectA'), 3_600_000)]),
+      createReportDay(formatYYYYMMDDDate(currentDay), [
+        createProjectReport(createProject('ProjectA'), 3_600_000),
+      ]),
     );
   }
   if (dayCount === 0) {
     return createReport(reportDays, null, null);
   }
-  return createReport(reportDays, formatYYYYMMDDDate(startDate), lastDate);
+  const endDate: Date = new Date(startDate);
+  endDate.setDate(startDate.getDate() + dayCount - 1);
+
+  return createReport(reportDays, formatYYYYMMDDDate(startDate), formatYYYYMMDDDate(endDate));
 }
 
 function createProject(name: string, color = '#FFFFFF'): Project {
